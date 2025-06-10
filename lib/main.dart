@@ -52,8 +52,11 @@ class _MainAppState extends State<MainApp> {
           child: Column(
             children: [
               Image.asset('assets/images/haj-logo.png'),
+              Padding(padding: EdgeInsets.only(bottom: 80.0)),
               Text(
-                'Welcome to HAJ Repairs.  Are you a Customer, Supplier, Driver or Employee?'
+                  'Welcome to HAJ Repairs.  Are you a Customer, Supplier, Driver or Employee?',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center
               ),
               TextField(
                 onChanged: (value) => setMatchedDrivers(value),

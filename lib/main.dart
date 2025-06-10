@@ -21,6 +21,13 @@ class _MainAppState extends State<MainApp> {
     'Trevor'
   ];
 
+  final List<String> _employeeTypes = [
+    'Customer',
+    'Supplier',
+    'Driver',
+    'Employee'
+  ];
+
   List<String> _matchedDrivers = [];
 
 
@@ -58,31 +65,76 @@ class _MainAppState extends State<MainApp> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center
               ),
-              TextField(
-                onChanged: (value) => setMatchedDrivers(value),
-                decoration: InputDecoration(
-                  labelText: 'Enter name',
-                  border: OutlineInputBorder(),
+              // TextField(
+              //   onChanged: (value) => setMatchedDrivers(value),
+              //   decoration: InputDecoration(
+              //     labelText: 'Enter name',
+              //     border: OutlineInputBorder(),
+              //   ),
+              // ),
+              Padding(padding: EdgeInsets.only(bottom: 20.0, top: 20.0)),
+                TextButton(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                ),
+                onPressed: () { },
+                child: Text(
+                  'Customer',
+                  style: TextStyle(fontSize: 28),
                 ),
               ),
-              _matchedDrivers.isNotEmpty
-                  ? Expanded(
-                      child: ListView.builder(
-                        itemCount: _matchedDrivers.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(_matchedDrivers[index]),
-                            tileColor: Colors.red,
-                            onTap: () {
-                              developer.log('Selected driver: ${_matchedDrivers[index]}');
-                              // You can add more actions here, like navigating to a details page
-                            },
-                          );
-                        },
-                      ),
-                    ) 
-                  :
-                  const Text('No matches found'),
+              Padding(padding: EdgeInsets.only(bottom: 20.0)),
+                TextButton(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                ),
+                onPressed: () { },
+                child: Text(
+                  'Supplier',
+                  style: TextStyle(fontSize: 28),
+                ),
+              ),
+              Padding(padding: EdgeInsets.only(bottom: 20.0)),
+                TextButton(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                ),
+                onPressed: () { },
+                child: Text(
+                  'Driver',
+                  style: TextStyle(fontSize: 28),
+                ),
+              ),
+              Padding(padding: EdgeInsets.only(bottom: 20.0)),
+                TextButton(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                ),
+                onPressed: () { },
+                child: Text(
+                  'Employee',
+                  style: TextStyle(fontSize: 28),
+                ),
+              ),
+              
+              // _matchedDrivers.isNotEmpty
+              //     ? Expanded(
+              //         child: ListView.builder(
+              //           itemCount: _matchedDrivers.length,
+              //           itemBuilder: (context, index) {
+              //             return ListTile(
+              //               title: Text(_matchedDrivers[index]),
+              //               tileColor: Colors.red,
+              //               onTap: () {
+              //                 developer.log('Selected driver: ${_matchedDrivers[index]}');
+              //                 // You can add more actions here, like navigating to a details page
+              //               },
+              //             );
+              //           },
+              //         ),
+              //       ) 
+              //     :
+              //     const Text('No matches found'),
             ],
           ),
         ),

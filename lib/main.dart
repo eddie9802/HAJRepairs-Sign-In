@@ -130,52 +130,51 @@ class _EmployeeState extends State<Employee> {
       body:
         Center(
           child:
-
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 50.0),
-              child: 
-                SizedBox(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: 50.0),
+                  child: 
+                    SizedBox(
+                      width: 400,
+                      child: TextField(
+                        onChanged: (value) => setMatchedEmployees(value),
+                        decoration: InputDecoration(
+                        labelText: 'Enter name',
+                        border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                ),
+                Expanded(
+                  child: 
+                  SizedBox(
                   width: 400,
-                  child: TextField(
-                    onChanged: (value) => setMatchedEmployees(value),
-                    decoration: InputDecoration(
-                    labelText: 'Enter name',
-                    border: OutlineInputBorder(),
+                  child: ListView(
+                    padding: EdgeInsets.all(16.0),
+                    children: [
+                      ...List.generate(_matchedEmployees.length, (index) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 8.0),
+                          child: ListTile(
+                              title: Text(_matchedEmployees[index]),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => EmployeeReception()),
+                                );  
+                              },
+                            ),
+                          );
+                        }),
+                      ]
                     ),
                   ),
                 ),
+              ],
             ),
-            Expanded(
-              child: 
-              SizedBox(
-              width: 400,
-              child: ListView(
-                padding: EdgeInsets.all(16.0),
-                children: [
-                  ...List.generate(_matchedEmployees.length, (index) {
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: ListTile(
-                          title: Text(_matchedEmployees[index]),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => EmployeeReception()),
-                            );  
-                          },
-                        ),
-                      );
-                    }),
-                  ]
-                ),
-              ),
-            ),
-          ],
-      ),
         ),
     );
   }
@@ -194,7 +193,16 @@ class _EmployeeReception extends State<EmployeeReception> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Employee Reception')),
-      body: Center(child: Text('Welcome to Employee Reception')),
+      body: 
+      Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('Welcome to Employee Reception', style: TextStyle(fontSize: 24)),
+          ),
+          // Add more widgets here as needed
+        ],
+      ),
     );
   }
 }

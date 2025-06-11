@@ -163,8 +163,8 @@ class _EmployeeState extends State<Employee> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => EmployeeReception()),
-                                );  
+                                  MaterialPageRoute(builder: (context) => EmployeeReception(_matchedEmployees[index])),
+                                );
                               },
                             ),
                           );
@@ -181,27 +181,31 @@ class _EmployeeState extends State<Employee> {
 }
 
 
-class EmployeeReception extends StatefulWidget {
-  @override
-  _EmployeeReception createState() => _EmployeeReception();
-}
+class EmployeeReception extends StatelessWidget {
 
-class _EmployeeReception extends State<EmployeeReception> {
+  final String _name;
 
+  EmployeeReception(this._name);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Employee Reception')),
-      body: 
-      Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('Welcome to Employee Reception', style: TextStyle(fontSize: 24)),
-          ),
-          // Add more widgets here as needed
-        ],
+      body:
+      Center(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('What would you like to do, $_name?', style: TextStyle(fontSize: 24)),
+            ),
+            TextButton(
+              onPressed:() => developer.log('Sign In Pressed'),
+              child:
+                Text('Sign In', style: TextStyle(fontSize: 24)),
+            ),
+          ],
+        ),
       ),
     );
   }

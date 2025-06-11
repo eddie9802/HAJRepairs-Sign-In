@@ -24,7 +24,6 @@ class _MainAppState extends State<MainApp> {
   final List<String> _employeeTypes = [
     'Customer',
     'Supplier',
-    'Driver',
     'Employee'
   ];
 
@@ -42,7 +41,7 @@ class _MainAppState extends State<MainApp> {
             Image.asset('assets/images/haj-logo.png'),
             Padding(padding: EdgeInsets.only(bottom: 80.0)),
             Text(
-                'Welcome to HAJ Repairs.  Are you a Customer, Supplier, Driver or Employee?',
+                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Employee?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center
             ),
@@ -116,7 +115,11 @@ class _EmployeeState extends State<Employee> {
     'Victor',
     'Bethal',
     'Darius',
-    'Edward Hamilton'
+    'Edward Hamilton',
+    'Derrick',
+    'Ian',
+    'Kevin',
+    'Trevor',
   ];
 
   List<String> _matchedEmployees = [];
@@ -147,32 +150,39 @@ class _EmployeeState extends State<Employee> {
           children: [
             Padding(
               padding: EdgeInsets.only(top: 50.0),
-              child: 
-                Row(
+              child:
+                Stack(
                   children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 20.0),
-                      child:
-                        TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text('Back', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Spacer(),
-                    Center(
-                      child: SizedBox(
-                        width: 400,
-                        child: TextField(
-                          onChanged: (value) => setMatchedEmployees(value),
-                          decoration: InputDecoration(
-                          labelText: 'Enter name',
-                          border: OutlineInputBorder(),
-                          ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 20.0),
+                        child:
+                          TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Back', style: TextStyle(fontSize: 18)),
                         ),
                       ),
                     ),
-                    Spacer(),
-                  ],
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text('Employee Search', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    ),
+                  ]
+                )
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 50.0),
+              child: 
+                SizedBox(
+                  width: 400,
+                  child: TextField(
+                    onChanged: (value) => setMatchedEmployees(value),
+                    decoration: InputDecoration(
+                    labelText: 'Enter name',
+                    border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
             ),
             Expanded(

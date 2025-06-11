@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
 void main() {
-  runApp(const MainApp());
+  runApp(MaterialApp(home: MainApp()));
 }
 
 class MainApp extends StatefulWidget {
@@ -30,114 +30,174 @@ class _MainAppState extends State<MainApp> {
 
   List<String> _matchedDrivers = [];
 
+  
 
-  // Function to get matched drivers based on search input
-  List<String> getMatchedDrivers(String search) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: EdgeInsets.only(left: 300.0, right: 300.0, top: 50.0),
+        child: Column(
+          children: [
+            Image.asset('assets/images/haj-logo.png'),
+            Padding(padding: EdgeInsets.only(bottom: 80.0)),
+            Text(
+                'Welcome to HAJ Repairs.  Are you a Customer, Supplier, Driver or Employee?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center
+            ),
+            Padding(padding: EdgeInsets.only(bottom: 40.0)),
+            ...List.generate(_employeeTypes.length, (index) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 20.0),
+                child: TextButton(
+                  child: Text(
+                      _employeeTypes[index],
+                      style: TextStyle(fontSize: 28),
+                      ),
+                  onPressed: () {
+                    if (_employeeTypes[index] == 'Employee') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Employee()),
+                      );
+                    }
+                  },
+                ),
+              );
+            }),
+            
+            // _matchedDrivers.isNotEmpty
+            //     ? Expanded(
+            //         child: ListView.builder(
+            //           itemCount: _matchedDrivers.length,
+            //           itemBuilder: (context, index) {
+            //             return ListTile(
+            //               title: Text(_matchedDrivers[index]),
+            //               tileColor: Colors.red,
+            //               onTap: () {
+            //                 developer.log('Selected driver: ${_matchedDrivers[index]}');
+            //                 // You can add more actions here, like navigating to a details page
+            //               },
+            //             );
+            //           },
+            //         ),
+            //       ) 
+            //     :
+            //     const Text('No matches found'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class Employee extends StatefulWidget {
+  @override
+  _EmployeeState createState() => _EmployeeState();
+}
+
+class _EmployeeState extends State<Employee> {
+
+  final List<String> _employees = [
+    'Jason',
+    'Erin',
+    'Harriet',
+    'Brendan',
+    'Leo',
+    'Jhun Jhun Fernando',
+    'Marcus',
+    'Adrian',
+    'Aidan',
+    'Raveena',
+    'Kirsty',
+    'Carole',
+    'Victor',
+    'Bethal',
+    'Darius',
+    'Edward Hamilton'
+  ];
+
+  List<String> _matchedEmployees = [];
+
+  // Function to get matched employees based on search input
+  List<String> getSearchedEmployees(String search) {
     List<String> matched = [];
-    for (var driver in _drivers) {
-      if (driver.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
-        matched.add(driver);
+    for (var employee in _employees) {
+      if (employee.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
+        matched.add(employee);
       }
     }
     return matched;
   }
-  
-  // Function to update the matched drivers based on user input
-  void setMatchedDrivers(String search) {
+
+// Function to update the matched employees based on user input
+  void setMatchedEmployees(String search) {
     setState(() {
-      _matchedDrivers = getMatchedDrivers(search);
+      _matchedEmployees = getSearchedEmployees(search);
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Padding(
-          padding: EdgeInsets.only(left: 300.0, right: 300.0, top: 50.0),
-          child: Column(
-            children: [
-              Image.asset('assets/images/haj-logo.png'),
-              Padding(padding: EdgeInsets.only(bottom: 80.0)),
-              Text(
-                  'Welcome to HAJ Repairs.  Are you a Customer, Supplier, Driver or Employee?',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center
-              ),
-              // TextField(
-              //   onChanged: (value) => setMatchedDrivers(value),
-              //   decoration: InputDecoration(
-              //     labelText: 'Enter name',
-              //     border: OutlineInputBorder(),
-              //   ),
-              // ),
-              Padding(padding: EdgeInsets.only(bottom: 20.0, top: 20.0)),
-                TextButton(
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+    return Scaffold(
+      body:  
+        Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 50.0),
+              child: 
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 20.0),
+                      child:
+                        TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Back', style: TextStyle(fontSize: 18)),
+                      ),
+                    ),
+                    Spacer(),
+                    Center(
+                      child: SizedBox(
+                        width: 400,
+                        child: TextField(
+                          onChanged: (value) => setMatchedEmployees(value),
+                          decoration: InputDecoration(
+                          labelText: 'Enter name',
+                          border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Spacer(),
+                  ],
                 ),
-                onPressed: () { },
-                child: Text(
-                  'Customer',
-                  style: TextStyle(fontSize: 28),
-                ),
-              ),
-              Padding(padding: EdgeInsets.only(bottom: 20.0)),
-                TextButton(
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-                ),
-                onPressed: () { },
-                child: Text(
-                  'Supplier',
-                  style: TextStyle(fontSize: 28),
-                ),
-              ),
-              Padding(padding: EdgeInsets.only(bottom: 20.0)),
-                TextButton(
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-                ),
-                onPressed: () { },
-                child: Text(
-                  'Driver',
-                  style: TextStyle(fontSize: 28),
-                ),
-              ),
-              Padding(padding: EdgeInsets.only(bottom: 20.0)),
-                TextButton(
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-                ),
-                onPressed: () { },
-                child: Text(
-                  'Employee',
-                  style: TextStyle(fontSize: 28),
+            ),
+            Expanded(
+              child: 
+              SizedBox(
+              width: 400,
+              child: ListView(
+                padding: EdgeInsets.all(16.0),
+                children: [
+                  ...List.generate(_matchedEmployees.length, (index) {
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: 8.0),
+                      child: ListTile(
+                          title: Text(_matchedEmployees[index]),
+                          onTap: () {
+                            // Handle employee selection
+                          },
+                        ),
+                      );
+                    }),
+                  ]
                 ),
               ),
-              
-              // _matchedDrivers.isNotEmpty
-              //     ? Expanded(
-              //         child: ListView.builder(
-              //           itemCount: _matchedDrivers.length,
-              //           itemBuilder: (context, index) {
-              //             return ListTile(
-              //               title: Text(_matchedDrivers[index]),
-              //               tileColor: Colors.red,
-              //               onTap: () {
-              //                 developer.log('Selected driver: ${_matchedDrivers[index]}');
-              //                 // You can add more actions here, like navigating to a details page
-              //               },
-              //             );
-              //           },
-              //         ),
-              //       ) 
-              //     :
-              //     const Text('No matches found'),
-            ],
-          ),
-        ),
+            ),
+          ],
       ),
     );
   }

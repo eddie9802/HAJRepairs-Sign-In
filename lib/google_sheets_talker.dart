@@ -50,6 +50,8 @@ class GoogleSheetsTalker {
     return employees;
   }
 
+
+  // Retrieves the Google Sheets API client using service account credentials.
   Future<SheetsApi> getSheetsApi() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
     final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));

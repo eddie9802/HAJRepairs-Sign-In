@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
+import 'package:googleapis/sheets/v4.dart';
 
 
 class Employee {
@@ -49,6 +50,16 @@ class GoogleSheetsTalker {
     return employees;
   }
 
+  Future<SheetsApi> getSheetsApi() async {
+    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
+    final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
+    final scopes = [SheetsApi.spreadsheetsScope];
+
+    final httpClient = await clientViaServiceAccount(credentials, scopes);
+
+    return SheetsApi(httpClient);
+  }
+
 
   Future<List<dynamic>?> retrieveEmployees() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
@@ -74,7 +85,8 @@ class GoogleSheetsTalker {
   }
 
 
-  Future<void> writeToSheet() async {
+  // Writes the current time to the Google Sheet for the given user.
+  Future<void> writeSigning() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
     final serviceAccount = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
 
@@ -108,19 +120,31 @@ class GoogleSheetsTalker {
       }
     }
 
-    // Gets the current time in the format hh:mm a
-    // e.g. 02:30 PM
+    // Gets the current time in the 24-hour format
+    // e.g. 14:30
     final now = DateTime.now();
-    final formattedTime = DateFormat('hh:mm a').format(now);
+    // final formattedTime = DateFormat('hh:mm:').format(now);
+    final timeAsFraction = (now.hour + now.minute / 60 + now.second / 3600) / 24;
+    developer.log('Current time as fraction: $timeAsFraction');
     List<dynamic> headers = sheet[0];
 
+    final cell = CellData.fromJson({
+    'userEnteredValue': {'numberValue': timeAsFraction},
+    'userEnteredFormat': {
+      'numberFormat': {
+        'type': 'TIME',
+        'pattern': 'hh:mm AM/PM',
+      }
+    }
+  });
+
     if (userIndex == 0) {
-      sheet.add([user, formattedTime]);
+      sheet.add([user, cell]);
 
     } else {
       List<dynamic> userRow = sheet[userIndex];
       int rowLength = userRow.length;
-      userRow.add(formattedTime);
+      userRow.add(cell);
       
       if (headers.length <= rowLength) {
         // If the headers are not long enough, add a new header

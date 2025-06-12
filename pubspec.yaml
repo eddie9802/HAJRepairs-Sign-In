@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   intl: ^0.18.1
+  googleapis: ^11.4.0
   googleapis_auth: ^1.4.0
   flutter:
     sdk: flutter

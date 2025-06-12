@@ -176,7 +176,7 @@ class EmployeeReception extends StatelessWidget {
             TextButton(
               onPressed:() {
                 developer.log('Sign In Pressed');
-                GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeToSheet();
+                GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeSigning();
               },
               child:
                 Text('Sign In', style: TextStyle(fontSize: 24)),

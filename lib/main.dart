@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
+import 'google_sheets_talker.dart'; // Import the Timesheets class
 
 void main() {
   runApp(MaterialApp(home: MainApp()));
@@ -14,22 +15,11 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
 
-  final List<String> _drivers = [
-    'Derrick',
-    'Ian',
-    'Kevin',
-    'Trevor'
-  ];
-
   final List<String> _employeeTypes = [
     'Customer',
     'Supplier',
     'Employee'
   ];
-
-  List<String> _matchedDrivers = [];
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +48,7 @@ class _MainAppState extends State<MainApp> {
                     if (_employeeTypes[index] == 'Employee') {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Employee()),
+                        MaterialPageRoute(builder: (context) => EmployeeSearch()),
                       );
                     }
                   },
@@ -73,43 +63,26 @@ class _MainAppState extends State<MainApp> {
 }
 
 
-class Employee extends StatefulWidget {
+class EmployeeSearch extends StatefulWidget {
+  const EmployeeSearch({super.key});
+
   @override
-  _EmployeeState createState() => _EmployeeState();
+  _EmployeeSearchState createState() => _EmployeeSearchState();
 }
 
-class _EmployeeState extends State<Employee> {
+class _EmployeeSearchState extends State<EmployeeSearch> {
 
-  final List<String> _employees = [
-    'Jason',
-    'Erin',
-    'Harriet',
-    'Brendan',
-    'Leo',
-    'Jhun Jhun Fernando',
-    'Marcus',
-    'Adrian',
-    'Aidan',
-    'Raveena',
-    'Kirsty',
-    'Carole',
-    'Victor',
-    'Bethal',
-    'Darius',
-    'Edward Hamilton',
-    'Derrick',
-    'Ian',
-    'Kevin',
-    'Trevor',
-  ];
+  final Future<List<dynamic>?> _employees = GoogleSheetsTalker().retrieveEmployees();
 
-  List<String> _matchedEmployees = [];
+  List<Employee> _matchedEmployees = [];
 
   // Function to get matched employees based on search input
-  List<String> getSearchedEmployees(String search) {
-    List<String> matched = [];
-    for (var employee in _employees) {
-      if (employee.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
+  Future<List<Employee>> getSearchedEmployees(String search) async {
+    List<Employee> matched = [];
+    final employees = await _employees;
+    for (var employee in employees!) {
+      String fullName = '${employee.forename} ${employee.surname}';
+      if (fullName.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
         matched.add(employee);
       }
     }
@@ -117,9 +90,10 @@ class _EmployeeState extends State<Employee> {
   }
 
 // Function to update the matched employees based on user input
-  void setMatchedEmployees(String search) {
+  void setMatchedEmployees(String search) async {
+    final matched = await getSearchedEmployees(search);
     setState(() {
-      _matchedEmployees = getSearchedEmployees(search);
+      _matchedEmployees = matched;
     });
   }
 
@@ -159,7 +133,7 @@ class _EmployeeState extends State<Employee> {
                         return Padding(
                           padding: EdgeInsets.only(bottom: 8.0),
                           child: ListTile(
-                              title: Text(_matchedEmployees[index]),
+                              title: Text(_matchedEmployees[index].forename + ' ' + _matchedEmployees[index].surname),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -183,9 +157,9 @@ class _EmployeeState extends State<Employee> {
 
 class EmployeeReception extends StatelessWidget {
 
-  final String _name;
+  final Employee _employee;
 
-  EmployeeReception(this._name);
+  EmployeeReception(this._employee);
 
   @override
   Widget build(BuildContext context) {
@@ -197,10 +171,13 @@ class EmployeeReception extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.0),
-              child: Text('What would you like to do, $_name?', style: TextStyle(fontSize: 24)),
+              child: Text('What would you like to do, ${_employee.forename}?', style: TextStyle(fontSize: 24)),
             ),
             TextButton(
-              onPressed:() => developer.log('Sign In Pressed'),
+              onPressed:() {
+                developer.log('Sign In Pressed');
+                GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeToSheet();
+              },
               child:
                 Text('Sign In', style: TextStyle(fontSize: 24)),
             ),

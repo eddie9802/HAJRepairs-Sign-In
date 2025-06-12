@@ -44,4 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-haj-reception.json
+/assets/haj-reception.json

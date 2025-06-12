@@ -7,8 +7,8 @@ environment:
   sdk: ^3.8.0-265.0.dev
 
 dependencies:
-  cloud_functions: ^4.5.0
-  firebase_core: ^2.0.0
+  intl: ^0.18.1
+  googleapis_auth: ^1.4.0
   flutter:
     sdk: flutter
 
@@ -22,3 +22,4 @@ flutter:
 
   assets:
     - assets/images/haj-logo.png
+    - assets/haj-reception.json

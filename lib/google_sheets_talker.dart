@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
-import 'package:googleapis/sheets/v4.dart';
+import 'package:googleapis/sheets/v4.dart' as sheets;
 
 
 class Employee {
@@ -52,14 +52,88 @@ class GoogleSheetsTalker {
 
 
   // Retrieves the Google Sheets API client using service account credentials.
-  Future<SheetsApi> getSheetsApi() async {
+  Future<sheets.SheetsApi> getSheetsApi() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
     final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
-    final scopes = [SheetsApi.spreadsheetsScope];
+    final scopes = [sheets.SheetsApi.spreadsheetsScope];
 
     final httpClient = await clientViaServiceAccount(credentials, scopes);
 
-    return SheetsApi(httpClient);
+    return sheets.SheetsApi(httpClient);
+  }
+
+
+
+  double getTimeAsFraction(String timeString) {
+    // Parses a time string in the format "hh:mm" or "hh:mm AM/PM"
+    final time = DateFormat('h:mm a').parse(timeString);
+    // Converts the time to a fraction of a day
+    return (time.hour + time.minute / 60 + time.second / 3600) / 24;
+  }
+
+
+  // Creates a new row for the Google Sheet with the given row data.
+  // The row data is a list of strings, and the last cell will contain the current time.
+  sheets.RowData getNewSigningsRow(List<dynamic> row) {
+    sheets.RowData newRow = sheets.RowData(values: []);
+    developer.log('Creating new signings row: $row');
+    for (var cellValue in row.skip(1)) {
+      double timeAsFraction = getTimeAsFraction(cellValue.toString());
+      final cell = sheets.CellData.fromJson({
+        'userEnteredValue': {'numberValue': timeAsFraction},
+        'userEnteredFormat': {
+          'numberFormat': {
+            'type': 'TIME',
+            'pattern': 'h:mm AM/PM',
+          }
+        }
+      });
+      newRow.values!.add(cell);
+    }
+
+    // Add new signing
+    DateTime now = DateTime.now();
+    String formattedTime = DateFormat('hh:mm a').format(now);
+    double timeAsFraction = getTimeAsFraction(formattedTime.toString());
+    final cell = sheets.CellData.fromJson({
+      'userEnteredValue': {'numberValue': timeAsFraction},
+      'userEnteredFormat': {
+        'numberFormat': {
+          'type': 'TIME',
+          'pattern': 'h:mm AM/PM',
+        }
+      }
+    });
+    newRow.values!.add(cell);
+    return newRow;
+  }
+
+
+  sheets.RowData getNewHeaders(List<String> headers) {
+    sheets.RowData newHeaders = sheets.RowData(values: []);
+    for (String header in headers) {
+      newHeaders.values!.add(sheets.CellData.fromJson({
+        'userEnteredValue': {'stringValue': header},
+        'userEnteredFormat': {
+          'textFormat': {'bold': true}
+        }
+      }));
+    }
+
+    newHeaders.values!.add(sheets.CellData.fromJson({
+      'userEnteredValue': {'stringValue': 'In'},
+      'userEnteredFormat': {
+        'textFormat': {'bold': true}
+      }
+    }));
+
+    newHeaders.values!.add(sheets.CellData.fromJson({
+      'userEnteredValue': {'stringValue': 'Out'},
+      'userEnteredFormat': {
+        'textFormat': {'bold': true}
+      }
+    }));
+    return newHeaders;
   }
 
 
@@ -102,11 +176,11 @@ class GoogleSheetsTalker {
 
 
     final response = await client.get(urlGet);
-    List<dynamic>? sheet;
+    List<dynamic>? signingsSheet;
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      sheet = data['values'];
-      developer.log('Data retrieved successfully: $sheet');
+      signingsSheet = data['values'];
+      developer.log('Data retrieved successfully: $signingsSheet');
     } else {
       developer.log('Error retrieving data: ${response.statusCode}');
       return;
@@ -114,64 +188,106 @@ class GoogleSheetsTalker {
 
     // Check if the user is already in the sheet
     int userIndex = 0; // If userIndex is not found, it will remain 0
-    for (List<dynamic> row in sheet!) {
+    for (List<dynamic> row in signingsSheet!) {
       if (row[0] == user) {
         developer.log('Found user $user in row: $row');
-        userIndex = sheet.indexOf(row);
+        userIndex = signingsSheet.indexOf(row);
         break;
       }
     }
 
-    // Gets the current time in the 24-hour format
-    // e.g. 14:30
-    final now = DateTime.now();
-    // final formattedTime = DateFormat('hh:mm:').format(now);
-    final timeAsFraction = (now.hour + now.minute / 60 + now.second / 3600) / 24;
-    developer.log('Current time as fraction: $timeAsFraction');
-    List<dynamic> headers = sheet[0];
 
-    final cell = CellData.fromJson({
-    'userEnteredValue': {'numberValue': timeAsFraction},
-    'userEnteredFormat': {
-      'numberFormat': {
-        'type': 'TIME',
-        'pattern': 'hh:mm AM/PM',
-      }
+    // Takes the signing sheet data and creates a new row with the current time.
+    final signingsRow = getNewSigningsRow(signingsSheet[userIndex]);
+    sheets.RowData newHeaders = sheets.RowData(values: []);
+    List<String> headers = signingsSheet[0].cast<String>();
+    
+    // The + 1 includes the name in the row length
+    if (signingsRow.values!.length + 1 > headers.length) {
+      newHeaders = getNewHeaders(headers);
     }
-  });
 
-    if (userIndex == 0) {
-      sheet.add([user, cell]);
 
-    } else {
-      List<dynamic> userRow = sheet[userIndex];
-      int rowLength = userRow.length;
-      userRow.add(cell);
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+    final spreadsheet = await sheetsApi.spreadsheets.get(_spreadsheetId);
+    final sheet = spreadsheet.sheets?.firstWhere(
+      (s) => s.properties?.title == _sheetName,
+    );
+    final sheetId = sheet?.properties?.sheetId;
+
+    // Build the request
+    final signingRequest = sheets.BatchUpdateSpreadsheetRequest(
+      requests: [
+        sheets.Request(
+          updateCells: sheets.UpdateCellsRequest(
+            rows: [signingsRow],
+            fields: 'userEnteredValue,userEnteredFormat',
+            start: sheets.GridCoordinate(
+              sheetId: sheetId,
+              rowIndex: userIndex,
+              columnIndex: 1, // Starting column is after the employee name
+            ),
+          ),
+        ),
+      ],
+    );
+    await sheetsApi.spreadsheets.batchUpdate(signingRequest, _spreadsheetId);
+
+    // Build the request
+    final headerRequest = sheets.BatchUpdateSpreadsheetRequest(
+      requests: [
+        sheets.Request(
+          updateCells: sheets.UpdateCellsRequest(
+            rows: [newHeaders],
+            fields: 'userEnteredValue,userEnteredFormat',
+            start: sheets.GridCoordinate(
+              sheetId: sheetId,
+
+              // Inserts the row at the top
+              rowIndex: 0,
+              columnIndex: 0,
+            ),
+          ),
+        ),
+      ],
+    );
+    await sheetsApi.spreadsheets.batchUpdate(headerRequest, _spreadsheetId);
+  }
+
+
+  //   if (userIndex == 0) {
+  //     signingsSheet.add([user, cell]);
+
+  //   } else {
+  //     List<dynamic> userRow = signingsSheet[userIndex];
+  //     int rowLength = userRow.length;
+  //     userRow.add(cell);
       
-      if (headers.length <= rowLength) {
-        // If the headers are not long enough, add a new header
-        if (headers.length % 2 == 0) {
-          headers.add('Out');
-        } else {
-          headers.add('In');
-        }
+  //     if (headers.length <= rowLength) {
+  //       // If the headers are not long enough, add a new header
+  //       if (headers.length % 2 == 0) {
+  //         headers.add('Out');
+  //       } else {
+  //         headers.add('In');
+  //       }
         
 
-      }
-    }
+  //     }
+  //   }
 
-    final writeResponse= await client.put(
-      urlwrite,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'values': sheet,
-      }),
-    );
+  //   final writeResponse= await client.put(
+  //     urlwrite,
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: json.encode({
+  //       'values': signingsSheet,
+  //     }),
+  //   );
 
-    if (writeResponse.statusCode == 200) {
-      developer.log('Data written successfully');
-    } else {
-      developer.log('Error writing data: ${writeResponse.statusCode}');
-    }
-  }
+  //   if (writeResponse.statusCode == 200) {
+  //     developer.log('Data written successfully');
+  //   } else {
+  //     developer.log('Error writing data: ${writeResponse.statusCode}');
+  //   }
+  // }
 }

@@ -9,8 +9,15 @@ import 'package:googleapis/sheets/v4.dart' as sheets;
 class Employee {
   final String forename;
   final String surname;
+  String? lastSigningTime;
+  List<String> signings = [];
 
   Employee({required this.forename, required this.surname});
+
+
+  String getFullName() {
+    return '${this.forename} ${this.surname}';
+  }
 }
 
 class GoogleSheetsTalker {
@@ -20,10 +27,10 @@ class GoogleSheetsTalker {
   static const _sheetName = 'Signings';
   static const _employeeListSheetName = 'List';
   static const _range = 'Signings!A1';
-  final String? user;
+  final Employee? employee;
 
-  GoogleSheetsTalker() : user = null;
-  GoogleSheetsTalker.sign(this.user);
+  GoogleSheetsTalker() : employee = null;
+  GoogleSheetsTalker.sign(this.employee);
 
 
   Future<String> getButtonText() async {
@@ -34,12 +41,16 @@ class GoogleSheetsTalker {
 
     if (response.values != null) {
       for (final row in response.values!) {
-        if (row.isNotEmpty && row[0].toString() == user) {
+        if (row.isNotEmpty && row[0].toString() == employee!.getFullName()) {
           // Finds out if the user is signing in or out
           if (row.length % 2 == 0) {
             signing = "Sign Out";
           } else {
             signing = "Sign In";
+          }
+          employee?.signings = [];
+          for (int i = 1; i < row.length; i++) {
+            employee?.signings.add(row[i].toString());
           }
         }
       }
@@ -127,6 +138,8 @@ class GoogleSheetsTalker {
         }
       }
     });
+    employee!.lastSigningTime = formattedTime.toString();
+    developer.log('Signing time has been set: ${employee!.lastSigningTime!}');
     newRow.values!.add(cell);
     return newRow;
   }
@@ -212,8 +225,8 @@ class GoogleSheetsTalker {
     // Check if the user is already in the sheet
     int userIndex = 0; // If userIndex is not found, it will remain 0
     for (List<dynamic> row in signingsSheet!) {
-      if (row[0] == user) {
-        developer.log('Found user $user in row: $row');
+      if (row[0] == employee!.getFullName()) {
+        developer.log('Found user ${employee!.getFullName()} in row: $row');
         userIndex = signingsSheet.indexOf(row);
         break;
       }

@@ -137,7 +137,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => EmployeeReception(_matchedEmployees[index])),
+                                  MaterialPageRoute(builder: (context) => EmployeeReception(employee: _matchedEmployees[index])),
                                 );
                               },
                             ),
@@ -155,28 +155,65 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
 }
 
 
-class EmployeeReception extends StatelessWidget {
 
-  final Employee _employee;
+class EmployeeReception extends StatefulWidget {
 
-  EmployeeReception(this._employee);
+  final Employee employee;
+
+  const EmployeeReception({super.key, required this.employee});
+
+
+  @override
+  _EmployeeReceptionState createState() => _EmployeeReceptionState();
+
+}
+
+class _EmployeeReceptionState extends State<EmployeeReception> {
+  late Future<String> _buttonTextFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
+  }
+
+  Future<dynamic> showEmployeeDialog(BuildContext context, String? signing) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(''),
+        content: Text('$signing at ${widget.employee.lastSigningTime} successful!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> signEmployee(BuildContext context, String? signing) async {
+    developer.log('employee to be $signing');
+    await GoogleSheetsTalker.sign(widget.employee).writeSigning();
+    await showEmployeeDialog(context, signing);
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).getButtonText(), 
+      future: _buttonTextFuture, 
       builder: (context, snapshot) {
-        Widget signingButtonText;
+        String? signingButtonText;
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Future is still loading
-          signingButtonText = Text('Loading...', style: TextStyle(fontSize: 24));
+          signingButtonText = 'Loading...';
         } else if (snapshot.hasError) {
           // Future completed with error
-          signingButtonText = Text('Error: ${snapshot.error}', style: TextStyle(fontSize: 24));
+          signingButtonText = 'Error: ${snapshot.error}';
         } else {
           // Future completed successfully
-          String value = snapshot.data ?? 'No data';
-          signingButtonText = Text(value, style: TextStyle(fontSize: 24));
+          signingButtonText = snapshot.data ?? 'No data';
         }
 
       return(
@@ -188,15 +225,49 @@ class EmployeeReception extends StatelessWidget {
               children: [
                 Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Text('What would you like to do, ${_employee.forename}?', style: TextStyle(fontSize: 24)),
+                  child: Text('What would you like to do, ${widget.employee.forename}?', style: TextStyle(fontSize: 24)),
                 ),
                 TextButton(
-                  onPressed:() {
-                    developer.log('Sign In Pressed');
-                    GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeSigning();
+                  onPressed:() async {
+                    String? signing = snapshot.data;
+                    await signEmployee(context, signing);
+
+                  setState(() {
+                      _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
+                    });
                   },
-                  child:  signingButtonText
+                  child:  
+                    Text(signingButtonText, style: TextStyle(fontSize: 24))
                 ),
+                Padding(padding: EdgeInsets.only(bottom: 40.0)),
+                Expanded( 
+                  child:
+                  SizedBox(
+                    width: 400,
+                    child: 
+                      ListView(
+                        children: [
+                          ...List.generate(widget.employee.signings.length, (index) {
+                            if (index % 2 == 0) {
+                              return 
+                                Center(child: 
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 20.0),
+                                  child: Text('Sign In: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                  );
+                            } else {
+                              return
+                                Center(child: 
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 20.0),
+                                  child: Text('Sign Out: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                  );
+                            }
+                          })
+                        ]
+                      ),
+                    )
+                )
               ],
             ),
           ),

@@ -128,7 +128,8 @@ class GoogleSheetsTalker {
 
     // Add new signing
     DateTime now = DateTime.now();
-    String formattedTime = DateFormat('hh:mm a').format(now);
+    String formattedTime = DateFormat('h:mm a').format(now);
+    employee?.signings.add(formattedTime);
     double timeAsFraction = getTimeAsFraction(formattedTime.toString());
     final cell = sheets.CellData.fromJson({
       'userEnteredValue': {'numberValue': timeAsFraction},

@@ -182,7 +182,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(''),
-        content: Text('$signing at ${widget.employee.lastSigningTime} successful!'),
+        content: Text('$signing at ${widget.employee.signings.last} successful!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -194,7 +194,6 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
   }
 
   Future<void> signEmployee(BuildContext context, String? signing) async {
-    developer.log('employee to be $signing');
     await GoogleSheetsTalker.sign(widget.employee).writeSigning();
     await showEmployeeDialog(context, signing);
   }

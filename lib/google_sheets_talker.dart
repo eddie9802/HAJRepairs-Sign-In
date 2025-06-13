@@ -52,6 +52,7 @@ class GoogleSheetsTalker {
           for (int i = 1; i < row.length; i++) {
             employee?.signings.add(row[i].toString());
           }
+          break;
         }
       }
     }

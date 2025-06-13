@@ -163,27 +163,46 @@ class EmployeeReception extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Employee Reception')),
-      body:
-      Center(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('What would you like to do, ${_employee.forename}?', style: TextStyle(fontSize: 24)),
+    return FutureBuilder(
+      future: GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).getButtonText(), 
+      builder: (context, snapshot) {
+        Widget signingButtonText;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Future is still loading
+          signingButtonText = Text('Loading...', style: TextStyle(fontSize: 24));
+        } else if (snapshot.hasError) {
+          // Future completed with error
+          signingButtonText = Text('Error: ${snapshot.error}', style: TextStyle(fontSize: 24));
+        } else {
+          // Future completed successfully
+          String value = snapshot.data ?? 'No data';
+          signingButtonText = Text(value, style: TextStyle(fontSize: 24));
+        }
+
+      return(
+        Scaffold(
+          appBar: AppBar(title: Text('Employee Reception')),
+          body:
+          Center(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('What would you like to do, ${_employee.forename}?', style: TextStyle(fontSize: 24)),
+                ),
+                TextButton(
+                  onPressed:() {
+                    developer.log('Sign In Pressed');
+                    GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeSigning();
+                  },
+                  child:  signingButtonText
+                ),
+              ],
             ),
-            TextButton(
-              onPressed:() {
-                developer.log('Sign In Pressed');
-                GoogleSheetsTalker.sign(_employee.forename + ' ' + _employee.surname).writeSigning();
-              },
-              child:
-                Text('Sign In', style: TextStyle(fontSize: 24)),
-            ),
-          ],
-        ),
-      ),
+          ),
+        )
+      );
+    }
     );
   }
 }

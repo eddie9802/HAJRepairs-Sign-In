@@ -26,6 +26,29 @@ class GoogleSheetsTalker {
   GoogleSheetsTalker.sign(this.user);
 
 
+  Future<String> getButtonText() async {
+    String? signing;
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId,'Signings',);
+
+    if (response.values != null) {
+      for (final row in response.values!) {
+        if (row.isNotEmpty && row[0].toString() == user) {
+          // Finds out if the user is signing in or out
+          if (row.length % 2 == 0) {
+            signing = "Sign Out";
+          } else {
+            signing = "Sign In";
+          }
+        }
+      }
+    }
+    signing ??= "Could not find user on signings sheet";
+    return signing;
+  }
+
+
   List<Employee> processEmployeeList(List<dynamic>? employeesData) {
     if (employeesData == null || employeesData.isEmpty) {
       return [];
@@ -254,40 +277,4 @@ class GoogleSheetsTalker {
     );
     await sheetsApi.spreadsheets.batchUpdate(headerRequest, _spreadsheetId);
   }
-
-
-  //   if (userIndex == 0) {
-  //     signingsSheet.add([user, cell]);
-
-  //   } else {
-  //     List<dynamic> userRow = signingsSheet[userIndex];
-  //     int rowLength = userRow.length;
-  //     userRow.add(cell);
-      
-  //     if (headers.length <= rowLength) {
-  //       // If the headers are not long enough, add a new header
-  //       if (headers.length % 2 == 0) {
-  //         headers.add('Out');
-  //       } else {
-  //         headers.add('In');
-  //       }
-        
-
-  //     }
-  //   }
-
-  //   final writeResponse= await client.put(
-  //     urlwrite,
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: json.encode({
-  //       'values': signingsSheet,
-  //     }),
-  //   );
-
-  //   if (writeResponse.statusCode == 200) {
-  //     developer.log('Data written successfully');
-  //   } else {
-  //     developer.log('Error writing data: ${writeResponse.statusCode}');
-  //   }
-  // }
 }

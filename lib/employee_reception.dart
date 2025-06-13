@@ -77,9 +77,13 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                     String? signing = snapshot.data;
                     await signEmployee(context, signing);
 
-                  setState(() {
+                    setState(() {
                       _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
                     });
+
+                    // Returns to the home sceen
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
                   },
                   child:  
                     Text(signingButtonText, style: TextStyle(fontSize: 24))
@@ -108,7 +112,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                                   child: Text('Sign Out: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
                                   );
                             }
-                          })
+                          }),
                         ]
                       ),
                     )

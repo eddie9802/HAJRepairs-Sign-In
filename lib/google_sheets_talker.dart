@@ -127,10 +127,10 @@ class GoogleSheetsTalker {
 
   // Creates a new row for the Google Sheet with the given row data.
   // The row data is a list of strings, and the last cell will contain the current time.
-  sheets.RowData getNewSigningsRow(List<dynamic> row) {
+  sheets.RowData getNewSigningsRow(List<String>? row) {
     sheets.RowData newRow = sheets.RowData(values: []);
     developer.log('Creating new signings row: $row');
-    for (var cellValue in row.skip(1)) {
+    for (var cellValue in row!) {
       double timeAsFraction = getTimeAsFraction(cellValue.toString());
       final cell = sheets.CellData.fromJson({
         'userEnteredValue': {'numberValue': timeAsFraction},
@@ -251,7 +251,7 @@ class GoogleSheetsTalker {
 
 
     // Takes the signing sheet data and creates a new row with the current time.
-    final signingsRow = getNewSigningsRow(signingsSheet[userIndex]);
+    final signingsRow = getNewSigningsRow(employee?.signings);
     sheets.RowData newHeaders = sheets.RowData(values: []);
     List<String> headers = signingsSheet[0].cast<String>();
     

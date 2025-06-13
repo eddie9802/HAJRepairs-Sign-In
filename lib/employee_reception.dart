@@ -44,6 +44,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
     await showEmployeeDialog(context, signing);
   }
 
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -81,9 +82,10 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                       _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
                     });
 
-                    // Returns to the home sceen
+                    // Returns to home screen
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
+                    
                   },
                   child:  
                     Text(signingButtonText, style: TextStyle(fontSize: 24))

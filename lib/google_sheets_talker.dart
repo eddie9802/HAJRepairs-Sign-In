@@ -24,9 +24,27 @@ class GoogleSheetsTalker {
   static const _scopes = ['https://www.googleapis.com/auth/spreadsheets'];
   static const _spreadsheetId = '15cVVDR83OxLY0WP_H2oamygbSX6MnAKyJyX_M37VPRk';
   static const _employeeSpreadSheetId = '1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM';
-  static const _sheetName = 'Signings';
+  static final String _currentSheet = getTodaysSheet();
   static const _employeeListSheetName = 'List';
   static const _range = 'Signings!A1';
+
+  static String getTodaysSheet() {
+    DateTime now = DateTime.now();
+    int weekday = now.weekday;
+
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    return days[weekday - 1];
+  }
+  
   final Employee? employee;
 
   GoogleSheetsTalker() : employee = null;
@@ -37,7 +55,7 @@ class GoogleSheetsTalker {
     String? signing;
     sheets.SheetsApi sheetsApi = await getSheetsApi();
 
-    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId,'Signings',);
+    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheet,);
 
     if (response.values != null) {
       for (final row in response.values!) {
@@ -207,10 +225,7 @@ class GoogleSheetsTalker {
     // Get authenticated HTTP client
     final client = await clientViaServiceAccount(serviceAccount, _scopes);
 
-    // Make the write API request
-    final urlwrite = Uri.parse('https://sheets.googleapis.com/v4/spreadsheets/$_spreadsheetId/values/$_range?valueInputOption=RAW');
-
-    final urlGet = Uri.parse('https://sheets.googleapis.com/v4/spreadsheets/$_spreadsheetId/values/$_sheetName');
+    final urlGet = Uri.parse('https://sheets.googleapis.com/v4/spreadsheets/$_spreadsheetId/values/$_currentSheet');
 
 
     final response = await client.get(urlGet);
@@ -250,7 +265,7 @@ class GoogleSheetsTalker {
 
     final spreadsheet = await sheetsApi.spreadsheets.get(_spreadsheetId);
     final sheet = spreadsheet.sheets?.firstWhere(
-      (s) => s.properties?.title == _sheetName,
+      (s) => s.properties?.title == _currentSheet,
     );
     final sheetId = sheet?.properties?.sheetId;
 

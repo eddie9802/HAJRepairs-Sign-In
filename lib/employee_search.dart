@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'google_sheets_talker.dart';
 import 'employee_signing.dart';
+import 'apps_script_runner.dart';
 
 class EmployeeSearch extends StatefulWidget {
   const EmployeeSearch({super.key});
@@ -18,6 +19,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
 
   // Function to get matched employees based on search input
   Future<List<Employee>> getSearchedEmployees(String search) async {
+    callAppsScript();
     List<Employee> matched = [];
     final employees = await _employees;
     for (var employee in employees!) {

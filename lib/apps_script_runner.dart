@@ -21,7 +21,7 @@ Future<void> callAppsScript() async {
   final scriptId = 'AKfycbwXWqC9vbsD61grGS42hpHeszebutBx4Cc2UOqohTBOT1F15qsxhQr8UMsk8qsTUoH9pQ'; // Get from Apps Script project URL
 
   final response = await client.post(
-    Uri.parse('https://script.googleapis.com/v1/scripts/$scriptId:run'),
+    Uri.parse('https://script.google.com/macros/s/AKfycbyhlGLPByK0C4feg0poB-ycCi3-Qvzd-E0ENdXMA5c1TqqwSf42_zq8Mw-2WtKyQfF8bQ/exec'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'function': 'createWeeklyTimesheets',

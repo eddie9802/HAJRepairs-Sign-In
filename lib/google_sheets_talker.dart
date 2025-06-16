@@ -16,7 +16,7 @@ class Employee {
 
 
   String getFullName() {
-    return '${this.forename} ${this.surname}';
+    return '$forename $surname';
   }
 }
 
@@ -25,6 +25,8 @@ class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
   static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
 
+
+  // Returns the day of the week as a string depending on the day of the week
   static String getTodaysSheet() {
     DateTime now = DateTime.now();
     int weekday = now.weekday;

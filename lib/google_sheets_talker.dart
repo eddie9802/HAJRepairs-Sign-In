@@ -21,12 +21,9 @@ class Employee {
 }
 
 class GoogleSheetsTalker {
-  static const _scopes = ['https://www.googleapis.com/auth/spreadsheets'];
   static const _spreadsheetId = '15cVVDR83OxLY0WP_H2oamygbSX6MnAKyJyX_M37VPRk';
-  static const _employeeSpreadSheetId = '1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM';
-  static final String _currentSheet = getTodaysSheet();
-  static const _employeeListSheetName = 'List';
-  static const _range = 'Signings!A1';
+  static final String _currentSheetId = getTodaysSheet();
+  static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
 
   static String getTodaysSheet() {
     DateTime now = DateTime.now();
@@ -55,7 +52,7 @@ class GoogleSheetsTalker {
     String? signing;
     sheets.SheetsApi sheetsApi = await getSheetsApi();
 
-    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheet,);
+    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheetId,);
 
     if (response.values != null) {
       for (final row in response.values!) {
@@ -193,55 +190,73 @@ class GoogleSheetsTalker {
   }
 
 
+
+  // Returns a list of all the employees
   Future<List<dynamic>?> retrieveEmployees() async {
-    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
-    final serviceAccount = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
-
-    // Get authenticated HTTP client
-    final client = await clientViaServiceAccount(serviceAccount, _scopes);
-
-    // Make the API request
-    final url = Uri.parse('https://sheets.googleapis.com/v4/spreadsheets/$_employeeSpreadSheetId/values/$_employeeListSheetName');
-
-    final response = await client.get(url);
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<dynamic>? employeesData = data['values'];
-      developer.log('Data retrieved successfully: $employeesData');
-      List<Employee> employees = processEmployeeList(employeesData);
-      return employees;
+    final range = "A:B"; // Reads all the values in columns A and B
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_employeeSheetId, range);
+    final values = response.values;
+    final allEmployees = [];
+    if (values == null || values.isEmpty) {
+      developer.log("No employees found");
     } else {
-      developer.log('Error retrieving data: ${response.statusCode}');
-      return null;
+
+      // .skip(1) skips the header row
+      for (var row in values.skip(1)) {
+        String forename = row[0].toString();
+        String surname = row[1].toString();
+        allEmployees.add(Employee(forename: forename, surname: surname));
+      }
     }
+    return allEmployees;
+  }
+
+
+  // Creates the spreadsheet requests
+  List<dynamic> getSpreadsheetRequests(List<dynamic> allRowUpdateDetails, int? sheetId) {
+    final allUpdateRequests = [];
+    for(var rowDetails in allRowUpdateDetails){
+      final request = sheets.BatchUpdateSpreadsheetRequest(
+        requests: [
+          sheets.Request(
+            updateCells: sheets.UpdateCellsRequest(
+              rows: [rowDetails.data],
+              fields: 'userEnteredValue,userEnteredFormat',
+              start: sheets.GridCoordinate(
+                sheetId: sheetId,
+
+                // Inserts the row at the top
+                rowIndex: rowDetails.row,
+                columnIndex: rowDetails.col,
+              ),
+            ),
+          ),
+        ],
+      );
+      allUpdateRequests.add(request);
+    }
+    return allUpdateRequests;
   }
 
 
   // Writes the current time to the Google Sheet for the given user.
   Future<void> writeSigning() async {
-    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
-    final serviceAccount = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
 
-    // Get authenticated HTTP client
-    final client = await clientViaServiceAccount(serviceAccount, _scopes);
-
-    final urlGet = Uri.parse('https://sheets.googleapis.com/v4/spreadsheets/$_spreadsheetId/values/$_currentSheet');
-
-
-    final response = await client.get(urlGet);
-    List<dynamic>? signingsSheet;
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      signingsSheet = data['values'];
-      developer.log('Data retrieved successfully: $signingsSheet');
-    } else {
-      developer.log('Error retrieving data: ${response.statusCode}');
+    // Reads the whole signings sheet
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheetId);
+    final signingsSheet = response.values;
+    if (signingsSheet == null || signingsSheet.isEmpty) {
+      developer.log('Error retrieving data');
       return;
+    } else {
+      developer.log('Data retrieved successfully: $signingsSheet');
     }
 
     // Check if the user is already in the sheet
-    int userIndex = 0; // If userIndex is not found, it will remain 0
-    for (List<dynamic> row in signingsSheet!) {
+    int userIndex = -1; // If userIndex is not found, it will remain -1
+    for (List<dynamic> row in signingsSheet) {
       if (row[0] == employee!.getFullName()) {
         developer.log('Found user ${employee!.getFullName()} in row: $row');
         userIndex = signingsSheet.indexOf(row);
@@ -249,62 +264,44 @@ class GoogleSheetsTalker {
       }
     }
 
-
-    // Takes the signing sheet data and creates a new row with the current time.
-    final signingsRow = getNewSigningsRow(employee?.signings);
-    sheets.RowData newHeaders = sheets.RowData(values: []);
-    List<String> headers = signingsSheet[0].cast<String>();
-    
-    // The + 1 includes the name in the row length
-    if (signingsRow.values!.length + 1 > headers.length) {
-      newHeaders = getNewHeaders(headers);
+    // If the user is not on the signings sheet the function return
+    if (userIndex == -1) {
+      developer.log('${employee!.getFullName()} was not found on signings sheet.');
+      return;
     }
 
 
-    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    // Takes the signing sheet data and creates a new row with the current time.
+    final signingsRow = getNewSigningsRow(employee?.signings);
 
+    // Gets a new headers row if the headers need to be extended
+    sheets.RowData newHeaders = sheets.RowData(values: []);
+    List<String> currentHeaders = signingsSheet[0].cast<String>();
+    
+    // The + 1 includes the name in the row length
+    if (signingsRow.values!.length + 1 > currentHeaders.length) {
+      newHeaders = getNewHeaders(currentHeaders);
+    }
+
+
+    // Gets the sheetID which is needed to build requests
     final spreadsheet = await sheetsApi.spreadsheets.get(_spreadsheetId);
-    final sheet = spreadsheet.sheets?.firstWhere(
-      (s) => s.properties?.title == _currentSheet,
-    );
+    final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _currentSheetId,);
     final sheetId = sheet?.properties?.sheetId;
 
-    // Build the request
-    final signingRequest = sheets.BatchUpdateSpreadsheetRequest(
-      requests: [
-        sheets.Request(
-          updateCells: sheets.UpdateCellsRequest(
-            rows: [signingsRow],
-            fields: 'userEnteredValue,userEnteredFormat',
-            start: sheets.GridCoordinate(
-              sheetId: sheetId,
-              rowIndex: userIndex,
-              columnIndex: 1, // Starting column is after the employee name
-            ),
-          ),
-        ),
-      ],
-    );
-    await sheetsApi.spreadsheets.batchUpdate(signingRequest, _spreadsheetId);
+    // Builds an array of all the rows that need to be updated in the sheet
+    final allRowUpdateDetails = [];
+    allRowUpdateDetails.add((data: signingsRow, row:userIndex, col:1));
+    if (newHeaders.values!.isNotEmpty) {
+      allRowUpdateDetails.add((data: newHeaders, row:0, col:0));
+    }
 
-    // Build the request
-    final headerRequest = sheets.BatchUpdateSpreadsheetRequest(
-      requests: [
-        sheets.Request(
-          updateCells: sheets.UpdateCellsRequest(
-            rows: [newHeaders],
-            fields: 'userEnteredValue,userEnteredFormat',
-            start: sheets.GridCoordinate(
-              sheetId: sheetId,
+    List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, sheetId);
 
-              // Inserts the row at the top
-              rowIndex: 0,
-              columnIndex: 0,
-            ),
-          ),
-        ),
-      ],
-    );
-    await sheetsApi.spreadsheets.batchUpdate(headerRequest, _spreadsheetId);
+
+    // Submits header and signing request
+    for (var request in allSpreadsheetRequests) {
+      await sheetsApi.spreadsheets.batchUpdate(request, _spreadsheetId);
+    }
   }
 }

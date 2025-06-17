@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
+import 'package:googleapis/drive/v3.dart' as drive;
 
 
 class Employee {
@@ -48,6 +49,127 @@ class GoogleSheetsTalker {
 
   GoogleSheetsTalker() : employee = null;
   GoogleSheetsTalker.sign(this.employee);
+
+
+
+  // Gets the timesheet name for the week
+  static String getTimesheetName() {
+    var today = DateTime.now();
+    var dayOfWeek = today.day; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    var daysUntilSunday = (7 - dayOfWeek) % 7;
+
+    // If today is Sunday, treat it as the end of this week
+    if (daysUntilSunday == 0) {
+      daysUntilSunday = 7;
+    }
+
+    var nextSunday = today.add(Duration(days: daysUntilSunday));
+
+    DateFormat formatter = DateFormat('dd/mm/yyyy');
+    final String formatted = formatter.format(nextSunday);
+
+    return "Week ending on $formatted";
+  }
+
+
+  // Searches the google drive for the spreadsheet and if found returns true
+  static Future<bool> checkForTimesheets(String spreadsheetName) async {
+    final scopes = [ drive.DriveApi.driveReadonlyScope,];
+    final accountCredentials = ServiceAccountCredentials.fromJson('assets/haj-reception.json');
+    final client = await clientViaServiceAccount(accountCredentials, scopes);
+    final driveApi = drive.DriveApi(client);
+
+    final query =
+        "name contains '$spreadsheetName' and mimeType = 'application/vnd.google-apps.spreadsheet'";
+    final fileList = await driveApi.files.list(q: query, spaces: 'drive');
+
+    bool spreadsheetFound = false;
+    if (fileList.files != null && fileList.files!.isNotEmpty) {
+      for (var file in fileList.files!) {
+        developer.log('Found: ${file.name} (${file.id})');
+        spreadsheetFound = true;
+      }
+    } else {
+      developer.log('No spreadsheet found.');
+    }
+
+    client.close();
+    return spreadsheetFound;
+  }
+
+  
+  sheets.RowData getEmployeeRows(List<Employee>? allEmployees) {
+    sheets.RowData employeeRows = sheets.RowData(values: []);
+    for (Employee employee in allEmployees!) {
+      employeeRows.values!.add(sheets.CellData.fromJson({
+        'userEnteredValue': {'stringValue': employee.getFullName()},
+        'userEnteredFormat': {
+          'textFormat': {'bold': false}
+        }
+      }));
+    }
+    return employeeRows;
+  }
+
+
+  void createTimesheet(String timesheetName) async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    List<Employee>? allEmployees = await retrieveEmployees();
+    List<String> headers = [];
+    sheets.RowData headerRow = getNewHeaders(headers);
+    sheets.RowData employeeRow = getEmployeeRows(allEmployees);
+
+    // Create new spreadsheet
+    final spreadsheet = sheets.Spreadsheet();
+    spreadsheet.properties = sheets.SpreadsheetProperties()
+    ..title = timesheetName;
+    sheetsApi.spreadsheets.create(spreadsheet);
+
+    List<String> days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+
+    final List<sheets.Request> allSheetrequests = [];
+
+    for (var day in days) {
+      // Adds the sheets to the spreadsheet
+      final addSheetRequest = sheets.Request.fromJson({
+        "addSheet": {
+          "properties": {
+            "title": day,
+          }
+        }
+      });
+      allSheetrequests.add(addSheetRequest);
+    }
+    
+
+    final batchUpdateRequest = sheets.BatchUpdateSpreadsheetRequest(
+      requests: allSheetrequests,
+    );
+
+    // This creates all the sheets in the timesheet.  Monday to Sunday.
+    await sheetsApi.spreadsheets.batchUpdate(
+      batchUpdateRequest,
+      spreadsheet.spreadsheetId!,
+    );
+
+
+    // Builds an array of all the rows that need to be updated in the sheet
+      final allRowUpdateDetails = [];
+      allRowUpdateDetails.add((data: headerRow, row:0, col:0));
+      allRowUpdateDetails.add((data: employeeRow, row:0, col:0));
+
+    for (var day in days) {
+      final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == day,);
+      final sheetId = sheet?.properties?.sheetId;
+
+
+      List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, sheetId);
+      for(var request in allSpreadsheetRequests) {
+        await sheetsApi.spreadsheets.batchUpdate(request, _spreadsheetId);
+      }
+    }    
+  }
 
 
   Future<String> getButtonText() async {
@@ -194,12 +316,12 @@ class GoogleSheetsTalker {
 
 
   // Returns a list of all the employees
-  Future<List<dynamic>?> retrieveEmployees() async {
+  Future<List<Employee>?> retrieveEmployees() async {
     final range = "A:B"; // Reads all the values in columns A and B
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_employeeSheetId, range);
     final values = response.values;
-    final allEmployees = [];
+    final List<Employee> allEmployees = [];
     if (values == null || values.isEmpty) {
       developer.log("No employees found");
     } else {

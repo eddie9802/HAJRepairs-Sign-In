@@ -19,7 +19,6 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
 
   // Function to get matched employees based on search input
   Future<List<Employee>> getSearchedEmployees(String search) async {
-    callAppsScript();
     List<Employee> matched = [];
     final employees = await _employees;
     for (var employee in employees!) {

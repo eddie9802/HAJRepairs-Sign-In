@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 import 'google_sheets_talker.dart';
 
 class EmployeeReception extends StatefulWidget {

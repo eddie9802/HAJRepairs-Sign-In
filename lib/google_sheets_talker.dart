@@ -22,9 +22,45 @@ class Employee {
 }
 
 class GoogleSheetsTalker {
-  static const _spreadsheetId = '15cVVDR83OxLY0WP_H2oamygbSX6MnAKyJyX_M37VPRk';
   static final String _currentSheetId = getTodaysSheet();
   static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
+
+
+  static Future<String?> getCurrentTimesheetId() async{
+    String timesheetName = getTimesheetName();
+
+    final scopes = [ drive.DriveApi.driveReadonlyScope,];
+    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
+    final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
+    final client = await clientViaServiceAccount(credentials, scopes);
+    final driveApi = drive.DriveApi(client);
+    String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
+    var files = await listFilesInFolder(driveApi, employeeReceptionFolderId);
+
+    developer.log("here");
+
+    String? timesheetId;
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        developer.log(file.name!);
+        developer.log(timesheetName);
+        if (timesheetName == file.name) {
+          developer.log('Found: ${file.name} (${file.id})');
+          developer.log(file.name!);
+          developer.log(file.id!);
+          timesheetId = file.id;
+        }
+      }
+    } else {
+      developer.log('No spreadsheet found.');
+    }
+
+    developer.log('There $timesheetId!');
+
+    client.close();
+    return timesheetId;
+
+  }
 
 
   // Returns the day of the week as a string depending on the day of the week
@@ -55,7 +91,7 @@ class GoogleSheetsTalker {
   // Gets the timesheet name for the week
   static String getTimesheetName() {
     var today = DateTime.now();
-    var dayOfWeek = today.day; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    var dayOfWeek = today.weekday; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     var daysUntilSunday = (7 - dayOfWeek) % 7;
 
     // If today is Sunday, treat it as the end of this week
@@ -65,29 +101,42 @@ class GoogleSheetsTalker {
 
     var nextSunday = today.add(Duration(days: daysUntilSunday));
 
-    DateFormat formatter = DateFormat('dd/mm/yyyy');
+    DateFormat formatter = DateFormat('dd/MM/yyyy');
     final String formatted = formatter.format(nextSunday);
 
     return "Week ending on $formatted";
+  }
+
+  // folderId = the ID of the folder you want to search
+  static Future<List<drive.File>> listFilesInFolder(drive.DriveApi driveApi, String folderId,) async {
+    final fileList = await driveApi.files.list(
+      q: "'$folderId' in parents and trashed = false",
+      $fields: "files(id, name, mimeType)",
+      spaces: 'drive',
+      supportsAllDrives: true, // optional if using shared/team drives
+    );
+
+    return fileList.files ?? [];
   }
 
 
   // Searches the google drive for the spreadsheet and if found returns true
   static Future<bool> checkForTimesheets(String spreadsheetName) async {
     final scopes = [ drive.DriveApi.driveReadonlyScope,];
-    final accountCredentials = ServiceAccountCredentials.fromJson('assets/haj-reception.json');
-    final client = await clientViaServiceAccount(accountCredentials, scopes);
+    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
+    final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
+    final client = await clientViaServiceAccount(credentials, scopes);
     final driveApi = drive.DriveApi(client);
-
-    final query =
-        "name contains '$spreadsheetName' and mimeType = 'application/vnd.google-apps.spreadsheet'";
-    final fileList = await driveApi.files.list(q: query, spaces: 'drive');
+    String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
+    var files = await listFilesInFolder(driveApi, employeeReceptionFolderId);
 
     bool spreadsheetFound = false;
-    if (fileList.files != null && fileList.files!.isNotEmpty) {
-      for (var file in fileList.files!) {
-        developer.log('Found: ${file.name} (${file.id})');
-        spreadsheetFound = true;
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (spreadsheetName == file.name) {
+          developer.log('Found: ${file.name} (${file.id})');
+          spreadsheetFound = true;
+        }
       }
     } else {
       developer.log('No spreadsheet found.');
@@ -123,7 +172,9 @@ class GoogleSheetsTalker {
     final spreadsheet = sheets.Spreadsheet();
     spreadsheet.properties = sheets.SpreadsheetProperties()
     ..title = timesheetName;
-    sheetsApi.spreadsheets.create(spreadsheet);
+    final createdSpreadsheet = await sheetsApi.spreadsheets.create(spreadsheet);
+
+    developer.log(createdSpreadsheet.spreadsheetId!);
 
     List<String> days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -150,14 +201,14 @@ class GoogleSheetsTalker {
     // This creates all the sheets in the timesheet.  Monday to Sunday.
     await sheetsApi.spreadsheets.batchUpdate(
       batchUpdateRequest,
-      spreadsheet.spreadsheetId!,
+      createdSpreadsheet.spreadsheetId!,
     );
 
 
     // Builds an array of all the rows that need to be updated in the sheet
       final allRowUpdateDetails = [];
-      allRowUpdateDetails.add((data: headerRow, row:0, col:0));
-      allRowUpdateDetails.add((data: employeeRow, row:0, col:0));
+      allRowUpdateDetails.add((data: headerRow, row:1, col:1));
+      allRowUpdateDetails.add((data: employeeRow, row:1, col:1));
 
     for (var day in days) {
       final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == day,);
@@ -166,9 +217,33 @@ class GoogleSheetsTalker {
 
       List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, sheetId);
       for(var request in allSpreadsheetRequests) {
-        await sheetsApi.spreadsheets.batchUpdate(request, _spreadsheetId);
+        await sheetsApi.spreadsheets.batchUpdate(request, createdSpreadsheet.spreadsheetId!);
       }
-    }    
+    }
+        // Use the Drive API to add permissions (you need Drive API client)
+    final permission = drive.Permission()
+      ..type = 'user'
+      ..role = 'writer'
+      ..emailAddress = 'hajrepairsreception@gmail.com';
+
+
+    final scopes = [ drive.DriveApi.driveFileScope,];
+    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
+    final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
+    final client = await clientViaServiceAccount(credentials, scopes);
+    final driveApi = drive.DriveApi(client);
+
+    String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
+    await driveApi.files.update(
+      drive.File(),
+      createdSpreadsheet.spreadsheetId!,
+      addParents: employeeReceptionFolderId,
+      removeParents: 'root', // Optional: removes it from the default root
+      supportsAllDrives: true,
+    );
+    developer.log("New timesheet created.");
+    await driveApi.permissions.create(permission, createdSpreadsheet.spreadsheetId!);
+    client.close();
   }
 
 
@@ -176,7 +251,8 @@ class GoogleSheetsTalker {
     String? signing;
     sheets.SheetsApi sheetsApi = await getSheetsApi();
 
-    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheetId,);
+    String? currentTimesheetId = await getCurrentTimesheetId();
+    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, _currentSheetId,);
 
     if (response.values != null) {
       for (final row in response.values!) {
@@ -229,7 +305,7 @@ class GoogleSheetsTalker {
   Future<sheets.SheetsApi> getSheetsApi() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
     final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
-    final scopes = [sheets.SheetsApi.spreadsheetsScope];
+    final scopes = [sheets.SheetsApi.spreadsheetsScope, 'https://www.googleapis.com/auth/drive.file'];
 
     final httpClient = await clientViaServiceAccount(credentials, scopes);
 
@@ -369,7 +445,8 @@ class GoogleSheetsTalker {
 
     // Reads the whole signings sheet
     sheets.SheetsApi sheetsApi = await getSheetsApi();
-    final response = await sheetsApi.spreadsheets.values.get(_spreadsheetId, _currentSheetId);
+    String? currentTimesheetId = await getCurrentTimesheetId();
+    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, _currentSheetId);
     final signingsSheet = response.values;
     if (signingsSheet == null || signingsSheet.isEmpty) {
       developer.log('Error retrieving data');
@@ -409,7 +486,7 @@ class GoogleSheetsTalker {
 
 
     // Gets the sheetID which is needed to build requests
-    final spreadsheet = await sheetsApi.spreadsheets.get(_spreadsheetId);
+    final spreadsheet = await sheetsApi.spreadsheets.get(currentTimesheetId);
     final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _currentSheetId,);
     final sheetId = sheet?.properties?.sheetId;
 
@@ -425,7 +502,7 @@ class GoogleSheetsTalker {
 
     // Submits header and signing request
     for (var request in allSpreadsheetRequests) {
-      await sheetsApi.spreadsheets.batchUpdate(request, _spreadsheetId);
+      await sheetsApi.spreadsheets.batchUpdate(request, currentTimesheetId);
     }
   }
 }

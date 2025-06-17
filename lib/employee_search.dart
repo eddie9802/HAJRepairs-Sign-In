@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 import 'google_sheets_talker.dart';
 import 'employee_signing.dart';
-import 'apps_script_runner.dart';
 
 class EmployeeSearch extends StatefulWidget {
   const EmployeeSearch({super.key});
@@ -74,7 +72,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
                         return Padding(
                           padding: EdgeInsets.only(bottom: 8.0),
                           child: ListTile(
-                              title: Text(_matchedEmployees[index].forename + ' ' + _matchedEmployees[index].surname),
+                              title: Text('${_matchedEmployees[index].forename} ${_matchedEmployees[index].surname}'),
                               onTap: () {
                                 Navigator.push(
                                   context,

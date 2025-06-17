@@ -37,25 +37,16 @@ class GoogleSheetsTalker {
     String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
     var files = await listFilesInFolder(driveApi, employeeReceptionFolderId);
 
-    developer.log("here");
 
     String? timesheetId;
     if (files.isNotEmpty) {
       for (var file in files) {
-        developer.log(file.name!);
-        developer.log(timesheetName);
         if (timesheetName == file.name) {
           developer.log('Found: ${file.name} (${file.id})');
-          developer.log(file.name!);
-          developer.log(file.id!);
           timesheetId = file.id;
         }
       }
-    } else {
-      developer.log('No spreadsheet found.');
     }
-
-    developer.log('There $timesheetId!');
 
     client.close();
     return timesheetId;

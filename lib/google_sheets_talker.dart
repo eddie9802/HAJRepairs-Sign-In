@@ -110,33 +110,6 @@ class GoogleSheetsTalker {
     return fileList.files ?? [];
   }
 
-
-  // Searches the google drive for the spreadsheet and if found returns true
-  static Future<bool> checkForTimesheets(String spreadsheetName) async {
-    final scopes = [ drive.DriveApi.driveReadonlyScope,];
-    final jsonStr = await rootBundle.loadString('assets/haj-reception.json');
-    final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
-    final client = await clientViaServiceAccount(credentials, scopes);
-    final driveApi = drive.DriveApi(client);
-    String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
-    var files = await listFilesInFolder(driveApi, employeeReceptionFolderId);
-
-    bool spreadsheetFound = false;
-    if (files.isNotEmpty) {
-      for (var file in files) {
-        if (spreadsheetName == file.name) {
-          developer.log('Found: ${file.name} (${file.id})');
-          spreadsheetFound = true;
-        }
-      }
-    } else {
-      developer.log('No spreadsheet found.');
-    }
-
-    client.close();
-    return spreadsheetFound;
-  }
-
   
   sheets.RowData getEmployeeRows(List<Employee>? allEmployees) {
     sheets.RowData employeeRows = sheets.RowData(values: []);

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'employee_search.dart';
-import 'google_sheets_talker.dart';
-import 'apps_script_runner.dart';
 
 void main() {
   runApp(MaterialApp(home: MainApp()));
@@ -46,15 +44,7 @@ class _MainAppState extends State<MainApp> {
                       style: TextStyle(fontSize: 28),
                       ),
                   onPressed: () async {
-                    if (_employeeTypes[index] == 'Employee') {
-                      //callAppsScript();
-                      // String weeklyTimesheetName = GoogleSheetsTalker.getTimesheetName();
-                      
-                      // // if timesheet is not found, create the timesheet
-                      // if (!await GoogleSheetsTalker.checkForTimesheets(weeklyTimesheetName)) {
-                      //     GoogleSheetsTalker().createTimesheet(weeklyTimesheetName);
-                      // }
-                      
+                    if (_employeeTypes[index] == 'Employee') {              
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => EmployeeSearch()),

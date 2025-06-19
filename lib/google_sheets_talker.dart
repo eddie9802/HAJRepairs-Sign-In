@@ -154,31 +154,6 @@ class GoogleSheetsTalker {
   }
 
 
-  List<Employee> processEmployeeList(List<dynamic>? employeesData) {
-    if (employeesData == null || employeesData.isEmpty) {
-      return [];
-    }
-
-    List<Employee> employees = [];
-    for (var row in employeesData) {
-      if (row.length < 2 || row[0] == '') {
-        developer.log('Row does not contain enough data: $row');
-        continue; // Skip rows that do not have at least two columns
-      }
-      // Extract forename and surname from the row
-      String forename = row[0]?.toString() ?? '';
-      String surname = row[1]?.toString() ?? '';
-      Employee employee = Employee(
-        forename: forename,
-        surname: surname,
-      );
-      employees.add(employee);   
-    }
-    // Assuming the employee names are in the first column
-    return employees;
-  }
-
-
   // Retrieves the Google Sheets API client using service account credentials.
   Future<sheets.SheetsApi> getSheetsApi() async {
     final jsonStr = await rootBundle.loadString('assets/haj-reception.json');

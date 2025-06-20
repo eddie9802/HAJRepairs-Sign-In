@@ -17,7 +17,7 @@ class _MainAppState extends State<MainApp> {
   final List<String> _employeeTypes = [
     'Customer',
     'Supplier',
-    'Employee'
+    'Colleague'
   ];
 
   @override
@@ -30,7 +30,7 @@ class _MainAppState extends State<MainApp> {
             Image.asset('assets/images/haj-logo.png'),
             Padding(padding: EdgeInsets.only(bottom: 80.0)),
             Text(
-                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Employee?',
+                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center
             ),
@@ -44,7 +44,7 @@ class _MainAppState extends State<MainApp> {
                       style: TextStyle(fontSize: 28),
                       ),
                   onPressed: () async {
-                    if (_employeeTypes[index] == 'Employee') {              
+                    if (_employeeTypes[index] == 'Colleague') {              
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => EmployeeSearch()),

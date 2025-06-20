@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'employee_search.dart';
+import 'customer_form.dart';
 
 void main() {
-  runApp(MaterialApp(home: MainApp()));
+  runApp(MaterialApp(home: MainApp(), debugShowCheckedModeBanner: false,));
 }
 
 class MainApp extends StatefulWidget {
@@ -48,6 +49,11 @@ class _MainAppState extends State<MainApp> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => EmployeeSearch()),
+                      );
+                    } else if (_employeeTypes[index] == 'Customer') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CustomerForm()),
                       );
                     }
                   },

@@ -50,7 +50,6 @@ class GoogleSheetsTalker {
 
     client.close();
     return timesheetId;
-
   }
 
 

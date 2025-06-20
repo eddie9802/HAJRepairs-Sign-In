@@ -25,6 +25,8 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
         matched.add(employee);
       }
     }
+
+  matched.sort((a, b) => a.getFullName().toLowerCase().compareTo(b.getFullName().toLowerCase()));
     return matched;
   }
 

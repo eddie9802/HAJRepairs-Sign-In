@@ -10,12 +10,21 @@ class CustomerForm extends StatefulWidget {
 
 class _CustomerFormState extends State<CustomerForm> {
 
-  late List<String> _customerForm;
+  final List<String> _customerForm = ["Name", "Company", "Contact Number", "Registration Number", "Reason For Visit"];
+  late List<TextEditingController> _controllers;
 
   @override
   void initState() {
     super.initState();
-    _customerForm = ["Name", "Company", "Contact Number"];
+    _controllers = List.generate(_customerForm.length, (_) => TextEditingController());
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
 
@@ -33,12 +42,17 @@ class _CustomerFormState extends State<CustomerForm> {
                 children: [
                   Padding(padding: EdgeInsets.only(top: 40.0)),
                     ...List.generate(_customerForm.length, (index) {
+                      bool isReasonForVisit = _customerForm[index] == "Reason For Visit";
                       return Padding(
                         padding: EdgeInsets.only(bottom: 40.0),
                         child:
                         SizedBox(
                           width: 800,
                           child: TextField(
+                            controller: _controllers[index],
+                            maxLength: isReasonForVisit ? 250 : null,
+                            keyboardType: isReasonForVisit ? TextInputType.multiline : null,
+                            maxLines: isReasonForVisit ? null : 1,
                             onChanged: (value) => developer.log("Hello"),
                             decoration: InputDecoration(
                             labelText: _customerForm[index],
@@ -51,25 +65,10 @@ class _CustomerFormState extends State<CustomerForm> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 40.0),
                   child:
-                  SizedBox(
-                    width: 800,
-                    child: TextField(
-                      maxLength: 250,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      onChanged: (value) => developer.log("Hello"),
-                      decoration: InputDecoration(
-                        labelText: "Reason For Visit",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  )
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 40.0),
-                  child:
                   ElevatedButton(
-                    onPressed: () {developer.log("Hello");},
+                    onPressed: () {
+                      
+                    },
                     child: Text("Submit"))
                 )
               ],

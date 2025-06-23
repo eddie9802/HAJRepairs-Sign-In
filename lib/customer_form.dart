@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
 import 'package:googleapis/cloudsearch/v1.dart';
+import 'google_sheets_talker.dart';
 
 class CustomerForm extends StatefulWidget {
   const CustomerForm({super.key}); // Optional constructor with key
@@ -27,6 +28,23 @@ class _CustomerFormState extends State<CustomerForm> {
       controller.dispose();
     }
     super.dispose();
+  }
+
+
+  Future<dynamic> showCustomerDialog(String? popUpText) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(''),
+        content: Text(popUpText!),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
 
@@ -68,7 +86,7 @@ class _CustomerFormState extends State<CustomerForm> {
                   padding: EdgeInsets.only(bottom: 40.0),
                   child:
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       DateTime now = DateTime.now();
 
                       int year = now.year;
@@ -81,10 +99,16 @@ class _CustomerFormState extends State<CustomerForm> {
                         formData[_customerForm[i]] = _controllers[i].text;                   
                       }
                       formData["Date"] = date;
+                      
+                      
+                      bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
 
-                      formData.forEach((key, value) {
-                        print('$key: $value');
-                      });
+                      if (isUploaded) {
+                        await showCustomerDialog("Your details have successfully been taken");
+                        Navigator.of(context).pop();
+                      } else {
+                        await showCustomerDialog("An error has occurred");
+                      }
                     },
                     child: Text("Submit"))
                 )

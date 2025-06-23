@@ -24,6 +24,7 @@ class Employee {
 class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
   static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
+  static final String _customerDetailsId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -50,6 +51,48 @@ class GoogleSheetsTalker {
 
     client.close();
     return timesheetId;
+  }
+
+
+
+  Future<bool> uploadCustomerData(Map<String, String> formData) async {
+    try {
+      sheets.SheetsApi sheetsApi = await getSheetsApi();
+      String range = "A:F";
+      final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, range);
+      var customerDetailsRows = response.values;
+      List<String>? allCustomerDetails = [formData["Name"]!, formData["Company"]!, formData["Contact Number"].toString(), formData["Registration Number"]!, formData["Date"]!, formData["Reason For Visit"]!];
+      
+      // Puts all of the customer data into a row data object
+      sheets.RowData newCustomerDetailsRow = sheets.RowData(values: []);
+      for (var i = 0; i < allCustomerDetails.length; i++) {
+        var cell = allCustomerDetails[i];
+        newCustomerDetailsRow.values!.add(sheets.CellData.fromJson({
+        'userEnteredValue': {'stringValue': cell},
+        'userEnteredFormat': {
+          'textFormat': {'bold': false}
+        }
+        }));
+      }
+      var allRowUpdateDetails = [];
+
+      // Gets the sheetID which is needed to build requests
+      final customerDetailsSpeadsheet = await sheetsApi.spreadsheets.get(_customerDetailsId);
+      final sheet = customerDetailsSpeadsheet.sheets?.firstWhere((s) => s.properties?.title == "All Details",);
+      final allDetailsSheetId = sheet?.properties?.sheetId;
+
+      int newRowIndex = customerDetailsRows!.length;
+      allRowUpdateDetails.add((data: newCustomerDetailsRow, row:newRowIndex, col:0));
+      List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, allDetailsSheetId);
+
+          // Submits header and signing request
+      for (var request in allSpreadsheetRequests) {
+        await sheetsApi.spreadsheets.batchUpdate(request, _customerDetailsId);
+      }
+      return true;
+    } catch(e) {
+      return false;
+    }
   }
 
 

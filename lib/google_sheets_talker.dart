@@ -68,7 +68,8 @@ class GoogleSheetsTalker {
         values: [allCustomerDetails], // <- wrap your List<String> in another list
       );
 
-      // Appends the details to the end of the customer deatils sheet
+      // Appends the details to the end of the customer details sheet
+      // This allows for concurrency
       await sheetsApi.spreadsheets.values.append(
         valueRange,
         _customerDetailsId,

@@ -60,6 +60,7 @@ class _CustomerFormState extends State<CustomerForm> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Text("Please fill in the form"),
                   Padding(padding: EdgeInsets.only(top: 40.0)),
                     ...List.generate(_customerForm.length, (index) {
                       bool isReasonForVisit = _customerForm[index] == "Reason For Visit";

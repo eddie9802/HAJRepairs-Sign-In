@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
+import 'package:googleapis/cloudsearch/v1.dart';
+
 class CustomerForm extends StatefulWidget {
   const CustomerForm({super.key}); // Optional constructor with key
 
@@ -67,7 +69,22 @@ class _CustomerFormState extends State<CustomerForm> {
                   child:
                   ElevatedButton(
                     onPressed: () {
-                      
+                      DateTime now = DateTime.now();
+
+                      int year = now.year;
+                      int month = now.month;
+                      int day = now.day;
+
+                      String date = "$day/$month/$year";
+                      Map<String, String> formData = {};
+                      for (var i = 0; i < _controllers.length; i++) {
+                        formData[_customerForm[i]] = _controllers[i].text;                   
+                      }
+                      formData["Date"] = date;
+
+                      formData.forEach((key, value) {
+                        print('$key: $value');
+                      });
                     },
                     child: Text("Submit"))
                 )

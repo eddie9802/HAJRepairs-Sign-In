@@ -54,41 +54,53 @@ class GoogleSheetsTalker {
   }
 
 
+  // Puts all of the customer data into a row data object
+  sheets.RowData getCustomerRows(List<String>? allCustomerDetails) {
+    sheets.RowData newCustomerDetailsRow = sheets.RowData(values: []);
+    for (var i = 0; i < allCustomerDetails!.length; i++) {
+      var cell = allCustomerDetails[i];
+      newCustomerDetailsRow.values!.add(sheets.CellData.fromJson({
+      'userEnteredValue': {'stringValue': cell},
+      'userEnteredFormat': {
+        'textFormat': {'bold': false}
+      }
+      }));
+    }
+    return newCustomerDetailsRow;
+  }
 
+
+  // Takes all the customer data and uploads it to the customer data spreadsheet
   Future<bool> uploadCustomerData(Map<String, String> formData) async {
     try {
       sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+      // Gets the customer details sheet
       String range = "A:F";
       final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, range);
       var customerDetailsRows = response.values;
+
+      // Creates the row to be inserted into customer details
       List<String>? allCustomerDetails = [formData["Name"]!, formData["Company"]!, formData["Contact Number"].toString(), formData["Registration Number"]!, formData["Date"]!, formData["Reason For Visit"]!];
-      
-      // Puts all of the customer data into a row data object
-      sheets.RowData newCustomerDetailsRow = sheets.RowData(values: []);
-      for (var i = 0; i < allCustomerDetails.length; i++) {
-        var cell = allCustomerDetails[i];
-        newCustomerDetailsRow.values!.add(sheets.CellData.fromJson({
-        'userEnteredValue': {'stringValue': cell},
-        'userEnteredFormat': {
-          'textFormat': {'bold': false}
-        }
-        }));
-      }
-      var allRowUpdateDetails = [];
+      sheets.RowData newCustomerDetailsRow = getCustomerRows(allCustomerDetails);
 
       // Gets the sheetID which is needed to build requests
       final customerDetailsSpeadsheet = await sheetsApi.spreadsheets.get(_customerDetailsId);
       final sheet = customerDetailsSpeadsheet.sheets?.firstWhere((s) => s.properties?.title == "All Details",);
       final allDetailsSheetId = sheet?.properties?.sheetId;
 
+      // Puts the sheet row and creates a spreadsheet request
+      var allRowUpdateDetails = [];
       int newRowIndex = customerDetailsRows!.length;
       allRowUpdateDetails.add((data: newCustomerDetailsRow, row:newRowIndex, col:0));
       List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, allDetailsSheetId);
 
-          // Submits header and signing request
+      // Submits spreadsheet request
       for (var request in allSpreadsheetRequests) {
         await sheetsApi.spreadsheets.batchUpdate(request, _customerDetailsId);
       }
+
+      // If upload was a success then return true else return false
       return true;
     } catch(e) {
       return false;

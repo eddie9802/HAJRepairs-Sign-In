@@ -25,42 +25,46 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.only(left: 300.0, right: 300.0, top: 50.0),
-        child: Column(
-          children: [
-            Image.asset('assets/images/haj-logo.png'),
-            Padding(padding: EdgeInsets.only(bottom: 80.0)),
-            Text(
-                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center
-            ),
-            Padding(padding: EdgeInsets.only(bottom: 40.0)),
-            ...List.generate(_employeeTypes.length, (index) {
-              return Padding(
-                padding: EdgeInsets.only(bottom: 20.0),
-                child: TextButton(
-                  child: Text(
-                      _employeeTypes[index],
-                      style: TextStyle(fontSize: 28),
-                      ),
-                  onPressed: () async {
-                    if (_employeeTypes[index] == 'Colleague') {              
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EmployeeSearch()),
-                      );
-                    } else if (_employeeTypes[index] == 'Customer') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CustomerForm()),
-                      );
-                    }
-                  },
-                ),
-              );
-            }),
-          ],
+        padding: EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
+        child: 
+        Center(
+          child:
+            Column(
+            children: [
+              Image.asset('assets/images/haj-logo.png'),
+              Padding(padding: EdgeInsets.only(bottom: 10.0)),
+              Text(
+                  'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center
+              ),
+              Padding(padding: EdgeInsets.only(bottom: 40.0)),
+              ...List.generate(_employeeTypes.length, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 20.0),
+                  child: TextButton(
+                    child: Text(
+                        _employeeTypes[index],
+                        style: TextStyle(fontSize: 28),
+                        ),
+                    onPressed: () async {
+                      if (_employeeTypes[index] == 'Colleague') {              
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EmployeeSearch()),
+                        );
+                      } else if (_employeeTypes[index] == 'Customer') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CustomerForm()),
+                        );
+                      }
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );

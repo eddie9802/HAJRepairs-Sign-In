@@ -3,21 +3,21 @@ import 'dart:developer' as developer;
 
 import 'google_sheets_talker.dart';
 
-class CustomerForm extends StatefulWidget {
-  const CustomerForm({super.key}); // Optional constructor with key
+class CustomerFormSignIn extends StatefulWidget {
+  const CustomerFormSignIn({super.key}); // Optional constructor with key
 
   @override
-    _CustomerFormState createState() => _CustomerFormState();
+    _CustomerFormSignInState createState() => _CustomerFormSignInState();
 }
 
-class _CustomerFormState extends State<CustomerForm> {
+class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
-  final List<String> _customerForm = ["Name", "Company", "Contact Number", "Registration Number", "Reason For Visit"];
-  final List<String> _customerFormQuestions = [
-                                              "What is your name?",
+  final List<String> _CustomerFormSignIn = ["Name", "Company", "Name", "Driver Number", "Reason For Visit"];
+  final List<String> _CustomerFormSignInQuestions = [
+                                              "What is your registration?",
                                               "What company are you from?",
-                                              "What is your contact number?",
-                                              "What is your vehicle's registration number?",
+                                              "What is your name?",
+                                              "What is your driver number?  If not applicable, press Next.",
                                               "What is your reason for visiting?"
                                               ];
 
@@ -31,7 +31,7 @@ class _CustomerFormState extends State<CustomerForm> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_customerForm.length, (_) => TextEditingController());
+    _controllers = List.generate(_CustomerFormSignIn.length, (_) => TextEditingController());
   }
 
   @override
@@ -64,7 +64,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    if (_controllers[_currentStep].text.trim().isEmpty) {
+    if (_controllers[_currentStep].text.trim().isEmpty && _CustomerFormSignIn[_currentStep] != "Driver Number") {
       setState(() {
         _currentTextField = "required";
       });
@@ -84,7 +84,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
       // Goes to next question if there is another one
       // else, submit the form
-      if (_currentStep < _customerForm.length - 1){
+      if (_currentStep < _CustomerFormSignIn.length - 1){
         _goToNextQuestion();
       } else {
         _submitForm();
@@ -94,7 +94,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
   void _goToNextQuestion() {
     setState(() {
-      if (_currentStep < _customerForm.length - 1) {
+      if (_currentStep < _CustomerFormSignIn.length - 1) {
         _currentStep++;
       }
     });
@@ -113,7 +113,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
-      formData[_customerForm[i]] = _controllers[i].text;
+      formData[_CustomerFormSignIn[i]] = _controllers[i].text;
     }
     formData["Date"] = date;
     
@@ -171,7 +171,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
   @override
   Widget build(BuildContext context) {
-    bool isReasonForVisit = _customerForm[_currentStep] == "Reason For Visit";
+    bool isReasonForVisit = _CustomerFormSignIn[_currentStep] == "Reason For Visit";
     return Stack(
       children: [
         Scaffold(
@@ -186,29 +186,23 @@ class _CustomerFormState extends State<CustomerForm> {
                   children: [
                     SizedBox(
                       width: 800,
-                      child: 
-                        Stack(
-                          children: [
-                            Center(
-                              child: Text(
-                                _customerFormQuestions[_currentStep],
-                                style: TextStyle(fontSize: 24),
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              bottom: 0,
-                              child: Text(
-                                "Question ${_currentStep + 1} of ${_customerFormQuestions.length}",
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: 
+                          Text(
+                            "Question ${_currentStep + 1} of ${_CustomerFormSignInQuestions.length}",
+                            style: TextStyle(fontSize: 18),
+                          ),
                       ),
+                    ),
+                    Center(
+                      child: Text(
+                        _CustomerFormSignInQuestions[_currentStep],
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
                     Padding(
-                        padding: EdgeInsets.only(bottom: 20.0, top: 40.0),
+                        padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
                         child:
                         SizedBox(
                           width: 800,
@@ -238,7 +232,7 @@ class _CustomerFormState extends State<CustomerForm> {
                           SizedBox(width: 20),
                           ElevatedButton(
                             onPressed: _validateQuestion,
-                            child: Text( _currentStep == _customerForm.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                            child: Text( _currentStep == _CustomerFormSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
                           )
                         ],
                       ),

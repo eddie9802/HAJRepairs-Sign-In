@@ -48,6 +48,25 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
   }
 
 
+   // Returns an AppBar widget which waits for the keyboard to unfocus before popping context
+  PreferredSizeWidget? getAppbar() {
+    return(
+        AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+              Future.delayed(Duration(milliseconds: 200), () {
+                Navigator.of(context).maybePop();
+              });
+            },
+          ),
+        title: Text("Colleague Reception"),
+      )
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -67,7 +86,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
 
       return(
         Scaffold(
-          appBar: AppBar(title: Text('Colleague Reception')),
+          appBar: getAppbar(),
           body:
           Center(
             child: Column(

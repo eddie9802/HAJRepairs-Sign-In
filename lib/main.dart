@@ -3,19 +3,34 @@ import 'employee_search.dart';
 import 'customer_form.dart';
 
 void main() {
-  runApp(MaterialApp(home: MainApp(), debugShowCheckedModeBanner: false,));
+  runApp(MainApp());
 }
 
-class MainApp extends StatefulWidget {
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
-  State<MainApp> createState() => _MainAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'HAJ Reception',
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: child!,
+        );
+      },
+      home: MainPage(), // Your first screen (with the Scaffold, logo, etc.)
+    );
+  }
 }
 
-class _MainAppState extends State<MainApp> {
 
-  final List<String> _employeeTypes = [
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
+
+  
+  static const List<String> _employeeTypes = [
     'Customer',
     'Supplier',
     'Colleague'
@@ -25,40 +40,38 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
-        child: 
-        Center(
-          child:
-            Column(
+        padding: const EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
+        child: Center(
+          child: Column(
             children: [
               Image.asset('assets/images/haj-logo.png'),
-              Padding(padding: EdgeInsets.only(bottom: 10.0)),
-              Text(
-                  'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center
+              const SizedBox(height: 10.0),
+              const Text(
+                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              Padding(padding: EdgeInsets.only(bottom: 40.0)),
-              ...List.generate(_employeeTypes.length, (index) {
+              const SizedBox(height: 40.0),
+              ..._employeeTypes.map((type) {
                 return Padding(
-                  padding: EdgeInsets.only(bottom: 20.0),
+                  padding: const EdgeInsets.only(bottom: 20.0),
                   child: TextButton(
-                    child: Text(
-                        _employeeTypes[index],
-                        style: TextStyle(fontSize: 28),
-                        ),
-                    onPressed: () async {
-                      if (_employeeTypes[index] == 'Colleague') {              
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => EmployeeSearch()),
-                        );
-                      } else if (_employeeTypes[index] == 'Customer') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CustomerForm()),
-                        );
+                    child: Text(type, style: const TextStyle(fontSize: 28)),
+                    onPressed: () {
+                      Widget targetPage;
+
+                      if (type == 'Colleague') {
+                        targetPage = EmployeeSearch();
+                      } else if (type == 'Customer') {
+                        targetPage = CustomerForm();
+                      } else {
+                        return; // Handle Supplier or add more cases
                       }
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => targetPage),
+                      );
                     },
                   ),
                 );
@@ -70,7 +83,6 @@ class _MainAppState extends State<MainApp> {
     );
   }
 }
-
 
 
 

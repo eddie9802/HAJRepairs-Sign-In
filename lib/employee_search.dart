@@ -94,6 +94,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
                           child: ListTile(
                               title: Text('${_matchedEmployees[index].forename} ${_matchedEmployees[index].surname}'),
                               onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => EmployeeReception(employee: _matchedEmployees[index])),

@@ -160,10 +160,11 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
               color: Colors.black.withAlpha(77),
               dismissible: false,
             ),
+
+            Center(
+              child: CircularProgressIndicator(),
+            ),
           ]
-            // Center(
-            //   child: CircularProgressIndicator(),
-            // ),
           ],
         );
       },

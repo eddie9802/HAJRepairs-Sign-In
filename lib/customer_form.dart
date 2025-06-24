@@ -226,7 +226,6 @@ class _CustomerFormState extends State<CustomerForm> {
                           ),
                         )
                     ),
-                  SizedBox(height: 20),
                   Center(
                     child:
                       Row(

@@ -50,7 +50,10 @@ class _CustomerFormState extends State<CustomerForm> {
         content: Text(popUpText!),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              Navigator.of(context).pop();
+              },
             child: Text('OK'),
           ),
         ],
@@ -104,6 +107,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
     bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
     if (isUploaded) {
+      FocusManager.instance.primaryFocus?.unfocus();
       await showCustomerDialog("Your details have successfully been taken");
       Navigator.of(context).pop();
     } else {

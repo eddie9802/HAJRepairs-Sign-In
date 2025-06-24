@@ -31,7 +31,10 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
         content: Text('$signing at ${widget.employee.signings.last} successful!'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              Navigator.of(context).pop();
+            },
             child: Text('OK'),
           ),
         ],

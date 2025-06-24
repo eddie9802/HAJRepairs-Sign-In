@@ -38,10 +38,28 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
     });
   }
 
+  // Returns an AppBar widget which waits for the keyboard to unfocus before popping context
+  PreferredSizeWidget? getAppbar() {
+    return(
+        AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+              Future.delayed(Duration(milliseconds: 200), () {
+                Navigator.of(context).maybePop();
+              });
+            },
+          ),
+        title: Text("Colleague Search"),
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Colleague Search')),
+      appBar: getAppbar(),
       body:
         Center(
           child:

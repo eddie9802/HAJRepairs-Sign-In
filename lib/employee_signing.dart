@@ -16,6 +16,7 @@ class EmployeeReception extends StatefulWidget {
 
 class _EmployeeReceptionState extends State<EmployeeReception> {
   late Future<String> _buttonTextFuture;
+  bool _signButtonPressed = false;
 
   @override
   void initState() {
@@ -84,69 +85,88 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
           signingButtonText = snapshot.data ?? 'No data';
         }
 
-      return(
-        Scaffold(
-          appBar: getAppbar(),
-          body:
-          Center(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('What would you like to do, ${widget.employee.forename}?', style: TextStyle(fontSize: 24)),
-                ),
-                TextButton(
-                  onPressed:() async {
-                    String? signing = snapshot.data;
-                    await signEmployee(context, signing);
+      return
+        Stack(
+          children: [
+            Scaffold(
+            appBar: getAppbar(),
+            body:
+              Center(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('What would you like to do, ${widget.employee.forename}?', style: TextStyle(fontSize: 24)),
+                    ),
+                    TextButton(
+                      onPressed:() async {
+                        String? signing = snapshot.data;
 
-                    setState(() {
-                      _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
-                    });
+                        setState(() {
+                          _signButtonPressed = true;
+                        });
 
-                    // Returns to home screen
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    
-                  },
-                  child:  
-                    Text(signingButtonText, style: TextStyle(fontSize: 24))
+                        await signEmployee(context, signing);
+
+                        setState(() {
+                          _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
+                        });
+
+                        // Returns to home screen
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        
+                      },
+                      child:  
+                        Text(signingButtonText, style: TextStyle(fontSize: 24))
+                    ),
+                    Padding(padding: EdgeInsets.only(bottom: 40.0)),
+                    Expanded( 
+                      child:
+                      SizedBox(
+                        width: 400,
+                        child: 
+                          ListView(
+                            children: [
+                              ...List.generate(widget.employee.signings.length, (index) {
+                                if (index % 2 == 0) {
+                                  return 
+                                    Center(child: 
+                                    Padding(
+                                      padding: EdgeInsets.only(bottom: 20.0),
+                                      child: Text('Sign In: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      );
+                                } else {
+                                  return
+                                    Center(child: 
+                                    Padding(
+                                      padding: EdgeInsets.only(bottom: 20.0),
+                                      child: Text('Sign Out: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      );
+                                }
+                              }),
+                            ]
+                          ),
+                        )
+                    ),
+                  ],
                 ),
-                Padding(padding: EdgeInsets.only(bottom: 40.0)),
-                Expanded( 
-                  child:
-                  SizedBox(
-                    width: 400,
-                    child: 
-                      ListView(
-                        children: [
-                          ...List.generate(widget.employee.signings.length, (index) {
-                            if (index % 2 == 0) {
-                              return 
-                                Center(child: 
-                                Padding(
-                                  padding: EdgeInsets.only(bottom: 20.0),
-                                  child: Text('Sign In: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
-                                  );
-                            } else {
-                              return
-                                Center(child: 
-                                Padding(
-                                  padding: EdgeInsets.only(bottom: 20.0),
-                                  child: Text('Sign Out: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
-                                  );
-                            }
-                          }),
-                        ]
-                      ),
-                    )
-                )
-              ],
+              ),
             ),
-          ),
-        )
-      );
-    }
+
+          // Blocks all user input while the signing occurs
+          if (_signButtonPressed) ...[
+            ModalBarrier(
+              color: Colors.black.withAlpha(77),
+              dismissible: false,
+            ),
+          ]
+            // Center(
+            //   child: CircularProgressIndicator(),
+            // ),
+          ],
+        );
+      },
     );
   }
 }

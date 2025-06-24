@@ -41,7 +41,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Employee Search')),
+      appBar: AppBar(title: Text('Colleague Search')),
       body:
         Center(
           child:

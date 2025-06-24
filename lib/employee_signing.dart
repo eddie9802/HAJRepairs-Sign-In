@@ -64,7 +64,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
 
       return(
         Scaffold(
-          appBar: AppBar(title: Text('Employee Reception')),
+          appBar: AppBar(title: Text('Colleague Reception')),
           body:
           Center(
             child: Column(

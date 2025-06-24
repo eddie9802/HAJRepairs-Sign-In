@@ -23,6 +23,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
   final Map<String, String> _fieldText = {"default": "", "required": "This field is required"};
   String _currentTextField = "default";
+  bool _signButtonPressed = false;
   
   late List<TextEditingController> _controllers;
   int _currentStep = 0;
@@ -51,7 +52,6 @@ class _CustomerFormState extends State<CustomerForm> {
         actions: [
           TextButton(
             onPressed: () {
-              FocusManager.instance.primaryFocus?.unfocus();
               Navigator.of(context).pop();
               },
             child: Text('OK'),
@@ -63,7 +63,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
 
   // Checks if the question is not empty
-  void _validateQuestion() {
+  void _validateQuestion() async {
     if (_controllers[_currentStep].text.trim().isEmpty) {
       setState(() {
         _currentTextField = "required";
@@ -75,6 +75,13 @@ class _CustomerFormState extends State<CustomerForm> {
         _currentTextField = "default";
       }
 
+    // Dismiss keyboard cleanly
+    FocusScope.of(context).unfocus();
+
+    // Wait a little to ensure the keyboard is fully gone
+    await Future.delayed(const Duration(milliseconds: 300));
+
+
       // Goes to next question if there is another one
       // else, submit the form
       if (_currentStep < _customerForm.length - 1){
@@ -82,12 +89,10 @@ class _CustomerFormState extends State<CustomerForm> {
       } else {
         _submitForm();
       }
-      
     }
   }
 
   void _goToNextQuestion() {
-    FocusScope.of(context).unfocus(); // Puts the keyboard away when the question changes
     setState(() {
       if (_currentStep < _customerForm.length - 1) {
         _currentStep++;
@@ -96,6 +101,13 @@ class _CustomerFormState extends State<CustomerForm> {
   }
 
   void _submitForm() async {
+
+    // Signals that the application should block
+    setState(() {
+      _signButtonPressed = true;
+    });
+
+
     DateTime now = DateTime.now();
     String date = "${now.day}/${now.month}/${now.year}";
 
@@ -104,14 +116,21 @@ class _CustomerFormState extends State<CustomerForm> {
       formData[_customerForm[i]] = _controllers[i].text;
     }
     formData["Date"] = date;
+    
 
     bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
+
+    await Future.delayed(Duration(milliseconds: 200));
     if (isUploaded) {
-      FocusManager.instance.primaryFocus?.unfocus();
-      await showCustomerDialog("Your details have successfully been taken");
-      Navigator.of(context).pop();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await showCustomerDialog("Your details have successfully been taken");
+        Navigator.of(context).pop();
+      });
     } else {
       await showCustomerDialog("An error has occurred");
+      setState(() {
+         _signButtonPressed = false;
+      });
     }
   }
 
@@ -119,11 +138,12 @@ class _CustomerFormState extends State<CustomerForm> {
   // Goes back to the previous question
   void _goToPreviousQuestion() {
 
+    FocusScope.of(context).unfocus(); // Puts the keyboard away when the question changes
+
     // Ensures text field label is at the default
     if (_currentTextField == "required") {
       _currentTextField = "default";
     }
-    FocusScope.of(context).unfocus(); // Puts the keyboard away when the question changes
     setState(() {
       if (_currentStep > 0) {
         _currentStep--;
@@ -152,62 +172,95 @@ class _CustomerFormState extends State<CustomerForm> {
   @override
   Widget build(BuildContext context) {
     bool isReasonForVisit = _customerForm[_currentStep] == "Reason For Visit";
-    return Scaffold(
-      appBar: getAppbar(),
-      body: Center(
-        child:
-          SingleChildScrollView(
-            child:
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(_customerFormQuestions[_currentStep],
-                    style: TextStyle(fontSize: 24),),
-                  Padding(
-                      padding: EdgeInsets.only(bottom: 40.0, top: 40.0),
-                      child:
-                      SizedBox(
-                        width: 800,
-                        child: TextField(
-                          controller: _controllers[_currentStep],
-                          maxLength: isReasonForVisit ? 250 : null,
-                          keyboardType: isReasonForVisit ? TextInputType.multiline : null,
-                          maxLines: isReasonForVisit ? null : 1,
-                          decoration: InputDecoration(
-                            labelText: _fieldText[_currentTextField],
-                            labelStyle: TextStyle(color: Colors.red),
-                            border: OutlineInputBorder(),
+    return Stack(
+      children: [
+        Scaffold(
+        appBar: getAppbar(),
+        body: Center(
+          child:
+            SingleChildScrollView(
+              child:
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 800,
+                      child: 
+                        Stack(
+                          children: [
+                            Center(
+                              child: Text(
+                                _customerFormQuestions[_currentStep],
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              child: Text(
+                                "Question ${_currentStep + 1} of ${_customerFormQuestions.length}",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Padding(
+                        padding: EdgeInsets.only(bottom: 20.0, top: 40.0),
+                        child:
+                        SizedBox(
+                          width: 800,
+                          child: TextField(
+                            enabled: _signButtonPressed ? false : true,
+                            controller: _controllers[_currentStep],
+                            maxLength: isReasonForVisit ? 250 : null,
+                            keyboardType: isReasonForVisit ? TextInputType.multiline : null,
+                            maxLines: isReasonForVisit ? null : 1,
+                            decoration: InputDecoration(
+                              labelText: _fieldText[_currentTextField],
+                              labelStyle: TextStyle(color: Colors.red),
+                              border: OutlineInputBorder(),
+                            ),
                           ),
-                        ),
-                      )
-                  ),
-                Text(
-                  "Question ${_currentStep + 1} of ${_customerFormQuestions.length}",
-                  style: TextStyle(fontSize: 18),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child:
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _currentStep == 0 ? null : _goToPreviousQuestion,
-                          child: Text("Back", style: TextStyle(fontSize: 24)),
-                        ),
-                        SizedBox(width: 40),
-                        ElevatedButton(
-                          onPressed: _validateQuestion,
-                          child: Text( _currentStep == _customerForm.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
                         )
-                      ],
                     ),
-                  )
-              ],
+                  SizedBox(height: 20),
+                  Center(
+                    child:
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _currentStep == 0 ? null : _goToPreviousQuestion,
+                            child: Text("Back", style: TextStyle(fontSize: 24)),
+                          ),
+                          SizedBox(width: 20),
+                          ElevatedButton(
+                            onPressed: _validateQuestion,
+                            child: Text( _currentStep == _customerForm.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                          )
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
+                  // Blocks all user input while the signing occurs
+        if (_signButtonPressed) ...[
+          ModalBarrier(
+            color: Colors.black.withAlpha(77),
+            dismissible: false,
+          ),
+
+          Center(
+            child: CircularProgressIndicator(),
+          ),
+        ]
+      ],
     );
   }
 }

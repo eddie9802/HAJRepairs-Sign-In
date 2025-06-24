@@ -81,10 +81,15 @@ class _CustomerFormState extends State<CustomerForm> {
                             child: Text("Sign in", style: TextStyle(fontSize: 24)),
                           ),
                           SizedBox(width: 20),
-                          // ElevatedButton(
-                          //   onPressed: _validateQuestion,
-                          //   child: Text("Sign out", style: TextStyle(fontSize: 24)),
-                          // )
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => CustomerFormSignOut()),
+                                );
+                            }
+                            child: Text("Sign out", style: TextStyle(fontSize: 24)),
+                          )
                         ],
                       ),
                     ),

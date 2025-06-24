@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'employee_search.dart';
-import 'customer_form.dart';
+import 'customer_form_sign_in.dart';
 
 void main() {
   runApp(MainApp());
@@ -13,6 +13,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HAJ Reception',
+      debugShowCheckedModeBanner: false,
       builder: (context, child) {
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -29,7 +30,7 @@ class MainApp extends StatelessWidget {
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
-  
+
   static const List<String> _employeeTypes = [
     'Customer',
     'Supplier',

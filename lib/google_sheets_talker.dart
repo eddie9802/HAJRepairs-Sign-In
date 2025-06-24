@@ -60,7 +60,15 @@ class GoogleSheetsTalker {
       sheets.SheetsApi sheetsApi = await getSheetsApi();
 
       // Creates the row to be inserted into customer details
-      List<String>? allCustomerDetails = [formData["Name"]!, formData["Company"]!, formData["Contact Number"].toString(), formData["Registration Number"]!, formData["Date"]!, formData["Reason For Visit"]!];
+      List<String>? allCustomerDetails = [
+                                          formData["Registration"]!,
+                                          formData["Company"]!,
+                                          formData["Name"]!,
+                                          formData["Driver Number"]!.toString(),
+                                          formData["Reason For Visit"]!,
+                                          formData["Date"]!,
+                                          formData["Sign in"]!
+                                          ];
 
 
       // Wraps the customer detauls in a value range

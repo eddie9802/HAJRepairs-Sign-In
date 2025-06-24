@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
+
 
 import 'google_sheets_talker.dart';
 
@@ -7,13 +9,13 @@ class CustomerFormSignIn extends StatefulWidget {
   const CustomerFormSignIn({super.key}); // Optional constructor with key
 
   @override
-    _CustomerFormSignInState createState() => _CustomerFormSignInState();
+    _customerFormSignInState createState() => _customerFormSignInState();
 }
 
-class _CustomerFormSignInState extends State<CustomerFormSignIn> {
+class _customerFormSignInState extends State<CustomerFormSignIn> {
 
-  final List<String> _CustomerFormSignIn = ["Name", "Company", "Name", "Driver Number", "Reason For Visit"];
-  final List<String> _CustomerFormSignInQuestions = [
+  final List<String> _customerFormSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
+  final List<String> _customerFormSignInQuestions = [
                                               "What is your registration?",
                                               "What company are you from?",
                                               "What is your name?",
@@ -31,7 +33,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_CustomerFormSignIn.length, (_) => TextEditingController());
+    _controllers = List.generate(_customerFormSignIn.length, (_) => TextEditingController());
   }
 
   @override
@@ -64,7 +66,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    if (_controllers[_currentStep].text.trim().isEmpty && _CustomerFormSignIn[_currentStep] != "Driver Number") {
+    if (_controllers[_currentStep].text.trim().isEmpty && _customerFormSignIn[_currentStep] != "Driver Number") {
       setState(() {
         _currentTextField = "required";
       });
@@ -84,7 +86,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
       // Goes to next question if there is another one
       // else, submit the form
-      if (_currentStep < _CustomerFormSignIn.length - 1){
+      if (_currentStep < _customerFormSignIn.length - 1){
         _goToNextQuestion();
       } else {
         _submitForm();
@@ -94,7 +96,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
   void _goToNextQuestion() {
     setState(() {
-      if (_currentStep < _CustomerFormSignIn.length - 1) {
+      if (_currentStep < _customerFormSignIn.length - 1) {
         _currentStep++;
       }
     });
@@ -113,9 +115,14 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
-      formData[_CustomerFormSignIn[i]] = _controllers[i].text;
+      formData[_customerFormSignIn[i]] = _controllers[i].text;
     }
     formData["Date"] = date;
+    formData["Sign in"] = DateFormat('h:mm a').format(now);
+
+    if (formData["Driver Number"]!.trim().isEmpty) {
+      formData["Driver Number"] = "N/A";
+    }
     
 
     bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
@@ -171,7 +178,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
 
   @override
   Widget build(BuildContext context) {
-    bool isReasonForVisit = _CustomerFormSignIn[_currentStep] == "Reason For Visit";
+    bool isReasonForVisit = _customerFormSignIn[_currentStep] == "Reason For Visit";
     return Stack(
       children: [
         Scaffold(
@@ -190,14 +197,14 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
                         alignment: Alignment.centerRight,
                         child: 
                           Text(
-                            "Question ${_currentStep + 1} of ${_CustomerFormSignInQuestions.length}",
+                            "Question ${_currentStep + 1} of ${_customerFormSignInQuestions.length}",
                             style: TextStyle(fontSize: 18),
                           ),
                       ),
                     ),
                     Center(
                       child: Text(
-                        _CustomerFormSignInQuestions[_currentStep],
+                        _customerFormSignInQuestions[_currentStep],
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
@@ -232,7 +239,7 @@ class _CustomerFormSignInState extends State<CustomerFormSignIn> {
                           SizedBox(width: 20),
                           ElevatedButton(
                             onPressed: _validateQuestion,
-                            child: Text( _currentStep == _CustomerFormSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                            child: Text( _currentStep == _customerFormSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
                           )
                         ],
                       ),

@@ -232,6 +232,8 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                             ),
                           )
                       ),
+                  if (_currentStep == 0 || _currentStep == 1)
+                    SizedBox(height:20),
                   Center(
                     child:
                       Row(

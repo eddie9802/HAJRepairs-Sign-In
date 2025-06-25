@@ -71,8 +71,10 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   void _validateQuestion() async {
 
     // If the user answered yes to the first two questions then submit the form
-    if (_currentStep == 2 && _controllers[0].text == "Yes" && _controllers[1].text == "No") {
-      _submitForm();
+    if (_currentStep == 2 && _controllers[0].text == "Yes" && _controllers[1].text == "Yes") {
+      String driverName = widget.customer.signInDriverName;
+      int? driverNumber = widget.customer.signInDriverNumber;
+      _signOut(driverName, driverNumber);
     } else {
       String input = _controllers[_currentStep].text.trim();
       if (input.isEmpty) {
@@ -113,7 +115,10 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     });
   }
 
-  void _submitForm() async {
+
+  void _signOut(String driverName, int? driverNumber) async {
+
+    CustomerHAJ customer = widget.customer;
 
     // Signals that the application should block
     setState(() {
@@ -122,21 +127,17 @@ class CustomerSignOutState extends State<CustomerSignOut> {
 
 
     DateTime now = DateTime.now();
-    String date = "${now.day}/${now.month}/${now.year}";
-
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
       formData[_customerFormSignOut[i]] = _controllers[i].text;
     }
-    formData["Date"] = date;
-    formData["Sign in"] = DateFormat('h:mm a').format(now);
 
-    if (formData["Driver Number"]!.trim().isEmpty) {
-      formData["Driver Number"] = "N/A";
-    }
+    formData["Name"] = driverName;
+    formData["Number"] = driverNumber == null ? "N/A" : driverNumber.toString();
+    formData["Sign out"] = DateFormat('h:mm a').format(now);
     
 
-    bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
+    bool isUploaded = await GoogleSheetsTalker().updateCustomerData(customer, formData);
 
     await Future.delayed(Duration(milliseconds: 200));
     if (isUploaded) {
@@ -256,9 +257,9 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                                   onPressed: () {
                                     setState(() {
                                       _controllers[_currentStep].text = "No";
-                                      _currentStep++;
+                                      _currentStep == 1 ? _currentStep++ : null;
                                     });
-                                    _currentStep == 2 ?_validateQuestion() : null;
+                                    _currentStep == 1 ?_validateQuestion() : null;
                                   },
                                   child: Text("No", style: TextStyle(fontSize: 24)),
                                 ),

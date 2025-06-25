@@ -58,6 +58,27 @@ class GoogleSheetsTalker {
 }
 
 
+Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOutDetails) async {
+  sheets.SheetsApi sheetsApi = await getSheetsApi();
+  final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
+  final values = response.values;
+  final List<CustomerHAJ> allCustomers = [];
+  if (values == null || values.isEmpty) {
+    print("No customers found");
+  } else {
+
+    // .skip(1) skips the header row
+    for (var row in values.skip(1)) {
+      String registration = row[0].toString();
+      if (customer.registration == registration) {
+        print("Customer found!");
+      }
+    }
+  }
+  return false;
+}
+
+
   Future<List<CustomerHAJ>> retrieveCustomers() async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");

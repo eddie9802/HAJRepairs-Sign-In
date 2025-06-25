@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
-
+import 'customerHAJ.dart';
+import 'customer_sign_out_details.dart';
 
 import 'google_sheets_talker.dart';
 
@@ -15,7 +16,29 @@ class CustomerFormSignOut extends StatefulWidget {
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   bool _signButtonPressed = false;
-  final Future<List<dynamic>?> _allCustomers = GoogleSheetsTalker().retrieveCustomers();
+  final Future<List<CustomerHAJ>> _allCustomersFuture = GoogleSheetsTalker().retrieveCustomers();
+
+
+    List<CustomerHAJ> _matchedCustomers = [];
+
+  // Function to get matched customers based on search input
+  Future<List<CustomerHAJ>> getMatchingCustomers(String reg) async {
+    List<CustomerHAJ> matched = [];
+    final allCustomers = await _allCustomersFuture;
+    for (var customer in allCustomers) {
+      if (customer.registration.toLowerCase().startsWith(reg.toLowerCase()) && reg.isNotEmpty) {
+        matched.add(customer);
+      }
+    }
+    return matched;
+  }
+
+  void setMatchedCustomers(String reg) async {
+    List<CustomerHAJ> matches = await getMatchingCustomers(reg);
+    setState(() => 
+    _matchedCustomers = matches
+    ,);
+  }
 
 
   // Returns an AppBar widget which waits for the keyboard to unfocus before popping context
@@ -40,41 +63,66 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getAppbar(),
-      body: SingleChildScrollView(
+      body: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
+          alignment: Alignment.topCenter, // Ensures horizontal centering, vertical top
           child:
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
-              alignment: Alignment.topCenter, // Ensures horizontal centering, vertical top
-              child:
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Center(
-                      child: Text(
-                        "Please enter your vehicle's registration number",
-                        style: TextStyle(fontSize: 24),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text(
+                    "Please enter your vehicle's registration number",
+                    style: TextStyle(fontSize: 24),
+                  ),
+                ),
+                Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child:
+                    SizedBox(
+                      width: 400,
+                      child: TextField(
+                        enabled: _signButtonPressed ? false : true,
+                        onChanged: (value) => setMatchedCustomers(value),
+                        decoration: InputDecoration(
+                          //labelText: _fieldText[_currentTextField],
+                          labelStyle: TextStyle(color: Colors.red),
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
-                        child:
-                        SizedBox(
-                          width: 600,
-                          child: TextField(
-                            enabled: _signButtonPressed ? false : true,
-                            decoration: InputDecoration(
-                              //labelText: _fieldText[_currentTextField],
-                              labelStyle: TextStyle(color: Colors.red),
-                              border: OutlineInputBorder(),
-                            ),
+                    )
+                ),
+              Expanded(
+                child:
+                SizedBox(
+                width: 400,
+                height: 600,
+                child: ListView(
+                  padding: EdgeInsets.all(16.0),
+                  children: [
+                    ...List.generate(_matchedCustomers.length, (index) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 8.0),
+                        child: ListTile(
+                            title: Text(_matchedCustomers[index].registration),
+                            onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => CustomerSignOutDetails(customer: _matchedCustomers[index])),
+                              );
+                            },
                           ),
-                        )
-                    ),
-                ],
+                        );
+                      }),
+                    ]
+                  ),
+                ),
               ),
-            )
-        ),
-      );
-    }
+            ],
+          ),
+        )
+    );
+  }
 }

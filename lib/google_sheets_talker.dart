@@ -45,7 +45,20 @@ class GoogleSheetsTalker {
   }
 
 
-  Future<List<dynamic>?> retrieveCustomers() async {
+  String convertDecimalToTime(num decimal) {
+  // Total seconds in a day = 24 * 60 * 60
+  int totalSeconds = (decimal * 86400).round();
+
+  int hours = totalSeconds ~/ 3600;
+  int minutes = (totalSeconds % 3600) ~/ 60;
+
+  // Format with leading zeros
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  return '$hours:${twoDigits(minutes)}';
+}
+
+
+  Future<List<CustomerHAJ>> retrieveCustomers() async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
     final values = response.values;
@@ -63,7 +76,7 @@ class GoogleSheetsTalker {
         String reasonForVisit = row[4].toString();
         String date = row[5].toString();
         String signIn = row[6].toString();
-        String signOut = row[6].toString();
+        String signOut = "";
 
         // Creates a CustomerHAJ instance for each customer
         allCustomers.add(CustomerHAJ(
@@ -95,7 +108,8 @@ class GoogleSheetsTalker {
                                           formData["Driver Number"]!.toString(),
                                           formData["Reason For Visit"]!,
                                           formData["Date"]!,
-                                          formData["Sign in"]!
+                                          formData["Sign in"]!,
+                                          "N/A"
                                           ];
 
 

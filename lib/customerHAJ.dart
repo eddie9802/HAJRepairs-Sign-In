@@ -5,7 +5,7 @@ class CustomerHAJ {
   final int? driverNumber;
   final String reasonForVisit;
   final String date;
-  final String signIn;
+  final Object? signIn;
   final String signOut;
 
 

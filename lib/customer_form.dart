@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haj_repairs_sign_in/customer_form_sign_in.dart';
+import 'package:haj_repairs_sign_in/customer_form_sign_out.dart';
 import 'dart:developer' as developer;
 
 import 'google_sheets_talker.dart';
@@ -87,7 +88,7 @@ class _CustomerFormState extends State<CustomerForm> {
                                   context,
                                   MaterialPageRoute(builder: (context) => CustomerFormSignOut()),
                                 );
-                            }
+                            },
                             child: Text("Sign out", style: TextStyle(fontSize: 24)),
                           )
                         ],

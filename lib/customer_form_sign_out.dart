@@ -14,6 +14,8 @@ class CustomerFormSignOut extends StatefulWidget {
 
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
+  bool _signButtonPressed = false;
+
 
   // Returns an AppBar widget which waits for the keyboard to unfocus before popping context
   PreferredSizeWidget? getAppbar() {
@@ -47,20 +49,20 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 800,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: 
-                          Text(
-                            "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                      ),
-                    ),
+                    // SizedBox(
+                    //   width: 800,
+                    //   child: Align(
+                    //     alignment: Alignment.centerRight,
+                    //     child: 
+                    //       Text(
+                    //         "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
+                    //         style: TextStyle(fontSize: 18),
+                    //       ),
+                    //   ),
+                    // ),
                     Center(
                       child: Text(
-                        _customerFormSignOutQuestions[_currentStep],
+                        "Please enter your vehicle's registration number",
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
@@ -71,12 +73,8 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                           width: 800,
                           child: TextField(
                             enabled: _signButtonPressed ? false : true,
-                            controller: _controllers[_currentStep],
-                            maxLength: isReasonForVisit ? 250 : null,
-                            keyboardType: isReasonForVisit ? TextInputType.multiline : null,
-                            maxLines: isReasonForVisit ? null : 1,
                             decoration: InputDecoration(
-                              labelText: _fieldText[_currentTextField],
+                              //labelText: _fieldText[_currentTextField],
                               labelStyle: TextStyle(color: Colors.red),
                               border: OutlineInputBorder(),
                             ),
@@ -89,14 +87,14 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ElevatedButton(
-                            onPressed: _currentStep == 0 ? null : _goToPreviousQuestion,
+                            onPressed:() => {print("hello people of middle earth")},
                             child: Text("Back", style: TextStyle(fontSize: 24)),
                           ),
-                          SizedBox(width: 20),
-                          ElevatedButton(
-                            onPressed: _validateQuestion,
-                            child: Text( _currentStep == _customerFormSignOut.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
-                          )
+                          // SizedBox(width: 20),
+                          // ElevatedButton(
+                          //   onPressed: _validateQuestion,
+                          //   child: Text( _currentStep == _customerFormSignOut.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                          // )
                         ],
                       ),
                     ),
@@ -105,6 +103,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
             ),
           ),
         ),
+      ],
     );
   }
 }

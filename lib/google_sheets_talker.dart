@@ -71,12 +71,11 @@ class GoogleSheetsTalker {
       for (var row in values.skip(1)) {
         String registration = row[0].toString();
         String company = row[1].toString();
-        String driverName = row[2].toString();
-        int? driverNumber = row[3] is String ? null : int.parse(row[3].toString());
-        String reasonForVisit = row[4].toString();
-        String date = row[5].toString();
+        String reasonForVisit = row[2].toString();
+        String date = row[3].toString();
+        String driverName = row[4].toString();
+        int? driverNumber = row[5] is String ? null : int.parse(row[3].toString());
         String signIn = row[6].toString();
-        String signOut = "";
 
         // Creates a CustomerHAJ instance for each customer
         allCustomers.add(CustomerHAJ(
@@ -89,7 +88,7 @@ class GoogleSheetsTalker {
           reasonForVisit: reasonForVisit,
           date: date,
           signIn: signIn,
-          signOut: signOut
+          signOut: null
         ));
       }
     }

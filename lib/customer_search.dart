@@ -54,7 +54,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
               });
             },
           ),
-        title: Text("Customer Form"),
+        title: Text("Customer Search"),
       )
     );
   }
@@ -106,8 +106,10 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                         padding: EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
                             title: Text(_matchedCustomers[index].registration),
-                            onTap: () {
+                            onTap: () async {
                               FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+                              // Wait a little to ensure the keyboard is fully gone
+                              await Future.delayed(const Duration(milliseconds: 200));
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => CustomerSignOutDetails(customer: _matchedCustomers[index])),

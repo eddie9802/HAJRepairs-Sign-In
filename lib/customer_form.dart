@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haj_repairs_sign_in/customer_form_sign_in.dart';
-import 'package:haj_repairs_sign_in/customer_form_sign_out.dart';
+import 'package:haj_repairs_sign_in/customer_search.dart';
 import 'dart:developer' as developer;
 
 import 'google_sheets_talker.dart';
@@ -67,6 +67,7 @@ class _CustomerFormState extends State<CustomerForm> {
                           ],
                         ),
                       ),
+                  Padding(padding: EdgeInsets.symmetric(vertical: 10)),
                   Center(
                     child:
                       Row(
@@ -81,7 +82,7 @@ class _CustomerFormState extends State<CustomerForm> {
                             },
                             child: Text("Sign in", style: TextStyle(fontSize: 24)),
                           ),
-                          SizedBox(width: 20),
+                          SizedBox(width: 40),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(

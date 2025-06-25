@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'customer_sign_out.dart';
+import 'customerHAJ.dart';
 import 'dart:developer' as developer;
 
 
 import 'google_sheets_talker.dart';
 
-class CustomerFormSignIn extends StatefulWidget {
-  const CustomerFormSignIn({super.key}); // Optional constructor with key
+class CustomerSignOut extends StatefulWidget {
+
+  final CustomerHAJ customer;
+
+  const CustomerSignOut({super.key, required this.customer}); // Optional constructor with key
 
   @override
-    _customerFormSignInState createState() => _customerFormSignInState();
+    CustomerSignOutState createState() => CustomerSignOutState();
 }
 
-class _customerFormSignInState extends State<CustomerFormSignIn> {
+class CustomerSignOutState extends State<CustomerSignOut> {
 
-  final List<String> _customerFormSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
-  final List<String> _customerFormSignInQuestions = [
-                                              "What is your registration?",
-                                              "What company are you from?",
-                                              "What is your name?",
-                                              "What is your driver number?  If not applicable, press Next.",
-                                              "What is your reason for visiting?"
-                                              ];
+  final List<String> _customerFormSignOut = ["Name Question", "Number Question", "Name", "Number"];
+  final Map<String, String> _customerFormSignOutQuestions = {};
 
   final Map<String, String> _fieldText = {"default": "", "required": "This field is required"};
   String _currentTextField = "default";
@@ -33,7 +32,11 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_customerFormSignIn.length, (_) => TextEditingController());
+    _controllers = List.generate(_customerFormSignOut.length, (_) => TextEditingController()); // Creates two controllers for the name and number
+    _customerFormSignOutQuestions["Name Question"] = "Are you ${widget.customer.driverName}?";
+    _customerFormSignOutQuestions["Number Question"] = "Is your driver number: ${widget.customer.driverNumber == null ? 'N/A' : widget.customer.driverNumber.toString()}";
+    _customerFormSignOutQuestions["Name"] = "What is your name";
+    _customerFormSignOutQuestions["Number"] = "What is your driver number?  If not applicable, press Next.";
   }
 
   @override
@@ -66,15 +69,19 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    if (_controllers[_currentStep].text.trim().isEmpty && _customerFormSignIn[_currentStep] != "Driver Number") {
+    String input = _controllers[_currentStep].text.trim();
+    if (input.isEmpty) {
       setState(() {
         _currentTextField = "required";
       });
     } else {
-
       // Resets the _currentTextField if it was changed
       if (_currentTextField == "required") {
         _currentTextField = "default";
+      }
+
+      if (_customerFormSignOut[_currentStep] == "Number Question" && input.toLowerCase() == 'no') {
+        _currentStep = 3;
       }
 
     // Dismiss keyboard cleanly
@@ -86,17 +93,18 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
 
       // Goes to next question if there is another one
       // else, submit the form
-      if (_currentStep < _customerFormSignIn.length - 1){
+      if (_currentStep < _customerFormSignOut.length - 1){
         _goToNextQuestion();
       } else {
-        _submitForm();
+        print("Yo yoyoyoyoyo");
+        //_submitForm();
       }
     }
   }
 
   void _goToNextQuestion() {
     setState(() {
-      if (_currentStep < _customerFormSignIn.length - 1) {
+      if (_currentStep < _customerFormSignOut.length - 1) {
         _currentStep++;
       }
     });
@@ -115,7 +123,7 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
-      formData[_customerFormSignIn[i]] = _controllers[i].text;
+      formData[_customerFormSignOut[i]] = _controllers[i].text;
     }
     formData["Date"] = date;
     formData["Sign in"] = DateFormat('h:mm a').format(now);
@@ -178,7 +186,6 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
 
   @override
   Widget build(BuildContext context) {
-    bool isReasonForVisit = _customerFormSignIn[_currentStep] == "Reason For Visit";
     return Stack(
       children: [
         Scaffold(
@@ -197,36 +204,34 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
                         alignment: Alignment.centerRight,
                         child: 
                           Text(
-                            "Question ${_currentStep + 1} of ${_customerFormSignInQuestions.length}",
+                            "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
                             style: TextStyle(fontSize: 18),
                           ),
                       ),
                     ),
                     Center(
                       child: Text(
-                        _customerFormSignInQuestions[_currentStep],
+                        _customerFormSignOutQuestions[_customerFormSignOut[_currentStep]]!,
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
-                    Padding(
-                        padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
-                        child:
-                        SizedBox(
-                          width: 800,
-                          child: TextField(
-                            enabled: _signButtonPressed ? false : true,
-                            controller: _controllers[_currentStep],
-                            maxLength: isReasonForVisit ? 250 : null,
-                            keyboardType: isReasonForVisit ? TextInputType.multiline : null,
-                            maxLines: isReasonForVisit ? null : 1,
-                            decoration: InputDecoration(
-                              labelText: _fieldText[_currentTextField],
-                              labelStyle: TextStyle(color: Colors.red),
-                              border: OutlineInputBorder(),
+                    if (_currentStep > 1)
+                      Padding(
+                          padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
+                          child:
+                          SizedBox(
+                            width: 800,
+                            child: TextField(
+                              enabled: _signButtonPressed ? false : true,
+                              controller:  _controllers[_currentStep],
+                              decoration: InputDecoration(
+                                labelText: _fieldText[_currentTextField],
+                                labelStyle: TextStyle(color: Colors.red),
+                                border: OutlineInputBorder(),
+                              ),
                             ),
-                          ),
-                        )
-                    ),
+                          )
+                      ),
                   Center(
                     child:
                       Row(
@@ -237,10 +242,36 @@ class _customerFormSignInState extends State<CustomerFormSignIn> {
                             child: Text("Back", style: TextStyle(fontSize: 24)),
                           ),
                           SizedBox(width: 20),
-                          ElevatedButton(
-                            onPressed: _validateQuestion,
-                            child: Text( _currentStep == _customerFormSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
-                          )
+                          Row(
+                            children: [
+                              if (_currentStep == 0 || _currentStep == 1)
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _controllers[_currentStep].text = "Yes";
+                                      _currentStep++;
+                                    });
+                                    
+                                  },
+                                  child: Text("Yes", style: TextStyle(fontSize: 24)),
+                                ),
+                              if (_currentStep == 0 || _currentStep == 1)
+                                SizedBox(width: 20),
+                              if (_currentStep == 0 || _currentStep == 1)
+                                ElevatedButton(
+                                  onPressed: _validateQuestion,
+                                  child: Text("No", style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                              if (_currentStep > 1)
+                                SizedBox(width: 20),
+                              if (_currentStep > 1)
+                                ElevatedButton(
+                                  onPressed: _validateQuestion,
+                                  child: Text( _currentStep == _customerFormSignOut.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                                )
+                            ],
+                          ),
                         ],
                       ),
                     ),

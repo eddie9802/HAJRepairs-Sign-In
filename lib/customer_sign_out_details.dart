@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
 import 'customerHAJ.dart';
+import 'customer_sign_out.dart';
 
 import 'google_sheets_talker.dart';
 
 class CustomerSignOutDetails extends StatefulWidget {
 
-final CustomerHAJ customer;
+  final CustomerHAJ customer;
 
   const CustomerSignOutDetails({super.key, required this.customer}); // Optional constructor with key
 
@@ -47,7 +48,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
               });
             },
           ),
-        title: Text("Customer Sign Out Details"),
+        title: Text("Customer Sign Out"),
       )
     );
   }
@@ -71,10 +72,11 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
                     style: TextStyle(fontSize: 24),
                   ),
                 ),
+              Padding(padding: EdgeInsets.symmetric(vertical: 15)),
               Expanded(
                 child:
                 SizedBox(
-                width: 400,
+                width: 600,
                 child: ListView(
                   padding: EdgeInsets.all(16.0),
                   children: [
@@ -82,7 +84,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
                       return Padding(
                         padding: EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
-                            title: Text(customerDetailsList[index]),
+                            title: Text(customerDetailsList[index], style: TextStyle(fontSize: 20)),
                             onTap: () {
                               FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
                             },
@@ -92,6 +94,16 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
                     ]
                   ),
                 ),
+              ),
+              Padding(padding: EdgeInsets.symmetric(vertical: 10)),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => CustomerSignOut(customer: widget.customer)),
+                              );
+                },
+                child: Text("Sign Out", style: TextStyle(fontSize: 24)),
               ),
             ],
           ),

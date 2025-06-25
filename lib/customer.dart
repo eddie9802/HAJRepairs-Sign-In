@@ -2,7 +2,7 @@ class Customer {
   final String registration;
   final String company;
   final String driverName;
-  final int driverNumber;
+  final int? driverNumber;
   final String reasonForVisit;
   final String date;
   final String signIn;

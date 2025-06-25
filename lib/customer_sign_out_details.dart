@@ -26,8 +26,8 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
     CustomerHAJ customer = widget.customer;
     customerDetailsList.add("Registration: ${customer.registration}");
     customerDetailsList.add("Company: ${customer.company}");
-    customerDetailsList.add("Driver Name: ${customer.driverName}");
-    customerDetailsList.add("Driver Number: ${customer.driverNumber == null ? 'N/A' : customer.driverNumber.toString()}");
+    customerDetailsList.add("Driver Name: ${customer.signInDriverName}");
+    customerDetailsList.add("Driver Number: ${customer.signInDriverNumber == null ? 'N/A' : customer.signInDriverNumber.toString()}");
     customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
     customerDetailsList.add("Date: ${customer.date}");
     customerDetailsList.add("Sign In Time: ${customer.signIn.toString()}");

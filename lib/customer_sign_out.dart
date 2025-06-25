@@ -33,8 +33,8 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   void initState() {
     super.initState();
     _controllers = List.generate(_customerFormSignOut.length, (_) => TextEditingController()); // Creates two controllers for the name and number
-    _customerFormSignOutQuestions["Name Question"] = "Are you ${widget.customer.driverName}?";
-    _customerFormSignOutQuestions["Number Question"] = "Is your driver number: ${widget.customer.driverNumber == null ? 'N/A' : widget.customer.driverNumber.toString()}";
+    _customerFormSignOutQuestions["Name Question"] = "Are you ${widget.customer.signInDriverName}?";
+    _customerFormSignOutQuestions["Number Question"] = "Is your driver number: ${widget.customer.signInDriverNumber == null ? 'N/A' : widget.customer.signInDriverNumber.toString()}";
     _customerFormSignOutQuestions["Name"] = "What is your name";
     _customerFormSignOutQuestions["Number"] = "What is your driver number?  If not applicable, press Next.";
   }
@@ -69,35 +69,38 @@ class CustomerSignOutState extends State<CustomerSignOut> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    String input = _controllers[_currentStep].text.trim();
-    if (input.isEmpty) {
-      setState(() {
-        _currentTextField = "required";
-      });
+
+    // If the user answered yes to the first two questions then submit the form
+    if (_currentStep == 2 && _controllers[0].text == "Yes" && _controllers[1].text == "No") {
+      _submitForm();
     } else {
-      // Resets the _currentTextField if it was changed
-      if (_currentTextField == "required") {
-        _currentTextField = "default";
-      }
-
-      if (_customerFormSignOut[_currentStep] == "Number Question" && input.toLowerCase() == 'no') {
-        _currentStep = 3;
-      }
-
-    // Dismiss keyboard cleanly
-    FocusScope.of(context).unfocus();
-
-    // Wait a little to ensure the keyboard is fully gone
-    await Future.delayed(const Duration(milliseconds: 200));
-
-
-      // Goes to next question if there is another one
-      // else, submit the form
-      if (_currentStep < _customerFormSignOut.length - 1){
-        _goToNextQuestion();
+      String input = _controllers[_currentStep].text.trim();
+      if (input.isEmpty) {
+        setState(() {
+          _currentTextField = "required";
+        });
       } else {
-        print("Yo yoyoyoyoyo");
-        //_submitForm();
+        // Resets the _currentTextField if it was changed
+        if (_currentTextField == "required") {
+          _currentTextField = "default";
+        }
+
+
+      // Dismiss keyboard cleanly
+      FocusScope.of(context).unfocus();
+
+      // Wait a little to ensure the keyboard is fully gone
+      await Future.delayed(const Duration(milliseconds: 200));
+
+
+        // Goes to next question if there is another one
+        // else, submit the form
+        if (_currentStep < _customerFormSignOut.length - 1){
+          _goToNextQuestion();
+        } else {
+          print("Yo yoyoyoyoyo");
+          //_submitForm();
+        }
       }
     }
   }
@@ -198,17 +201,17 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 800,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: 
-                          Text(
-                            "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                      ),
-                    ),
+                    // SizedBox(
+                    //   width: 800,
+                    //   child: Align(
+                    //     alignment: Alignment.centerRight,
+                    //     child: 
+                    //       Text(
+                    //         "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
+                    //         style: TextStyle(fontSize: 18),
+                    //       ),
+                    //   ),
+                    // ),
                     Center(
                       child: Text(
                         _customerFormSignOutQuestions[_customerFormSignOut[_currentStep]]!,
@@ -253,7 +256,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                                       _controllers[_currentStep].text = "Yes";
                                       _currentStep++;
                                     });
-                                    
+                                    _currentStep == 2 ?_validateQuestion() : null;
                                   },
                                   child: Text("Yes", style: TextStyle(fontSize: 24)),
                                 ),
@@ -261,9 +264,14 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                                 SizedBox(width: 20),
                               if (_currentStep == 0 || _currentStep == 1)
                                 ElevatedButton(
-                                  onPressed: _validateQuestion,
-                                  child: Text("No", style: TextStyle(fontSize: 24),
-                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _controllers[_currentStep].text = "No";
+                                      _currentStep++;
+                                    });
+                                    _currentStep == 2 ?_validateQuestion() : null;
+                                  },
+                                  child: Text("No", style: TextStyle(fontSize: 24)),
                                 ),
                               if (_currentStep > 1)
                                 SizedBox(width: 20),

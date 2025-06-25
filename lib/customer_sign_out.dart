@@ -201,17 +201,6 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // SizedBox(
-                    //   width: 800,
-                    //   child: Align(
-                    //     alignment: Alignment.centerRight,
-                    //     child: 
-                    //       Text(
-                    //         "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
-                    //         style: TextStyle(fontSize: 18),
-                    //       ),
-                    //   ),
-                    // ),
                     Center(
                       child: Text(
                         _customerFormSignOutQuestions[_customerFormSignOut[_currentStep]]!,

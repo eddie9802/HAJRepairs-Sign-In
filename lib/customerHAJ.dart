@@ -1,8 +1,10 @@
 class CustomerHAJ {
   final String registration;
   final String company;
-  final String driverName;
-  final int? driverNumber;
+  final String signInDriverName;
+  final int? signInDriverNumber;
+  final String signOutDriverName;
+  final int? signOutDriverNumber;
   final String reasonForVisit;
   final String date;
   final Object? signIn;
@@ -13,8 +15,10 @@ class CustomerHAJ {
   CustomerHAJ({
     required this.registration,
     required this.company,
-    required this.driverName,
-    required this.driverNumber,
+    required this.signInDriverName,
+    required this.signInDriverNumber,
+    required this.signOutDriverName,
+    required this.signOutDriverNumber,
     required this.reasonForVisit,
     required this.date,
     required this.signIn,

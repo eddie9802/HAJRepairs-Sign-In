@@ -15,6 +15,7 @@ class CustomerFormSignOut extends StatefulWidget {
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   bool _signButtonPressed = false;
+  final Future<List<dynamic>?> _allCustomers = GoogleSheetsTalker().retrieveCustomers();
 
 
   // Returns an AppBar widget which waits for the keyboard to unfocus before popping context
@@ -37,29 +38,18 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-        appBar: getAppbar(),
-        body: Center(
+    return Scaffold(
+      appBar: getAppbar(),
+      body: SingleChildScrollView(
           child:
-            SingleChildScrollView(
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
+              alignment: Alignment.topCenter, // Ensures horizontal centering, vertical top
               child:
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // SizedBox(
-                    //   width: 800,
-                    //   child: Align(
-                    //     alignment: Alignment.centerRight,
-                    //     child: 
-                    //       Text(
-                    //         "Question ${_currentStep + 1} of ${_customerFormSignOutQuestions.length}",
-                    //         style: TextStyle(fontSize: 18),
-                    //       ),
-                    //   ),
-                    // ),
                     Center(
                       child: Text(
                         "Please enter your vehicle's registration number",
@@ -70,7 +60,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                         padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
                         child:
                         SizedBox(
-                          width: 800,
+                          width: 600,
                           child: TextField(
                             enabled: _signButtonPressed ? false : true,
                             decoration: InputDecoration(
@@ -81,29 +71,10 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                           ),
                         )
                     ),
-                  Center(
-                    child:
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            onPressed:() => {print("hello people of middle earth")},
-                            child: Text("Back", style: TextStyle(fontSize: 24)),
-                          ),
-                          // SizedBox(width: 20),
-                          // ElevatedButton(
-                          //   onPressed: _validateQuestion,
-                          //   child: Text( _currentStep == _customerFormSignOut.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
-                          // )
-                        ],
-                      ),
-                    ),
                 ],
               ),
-            ),
-          ),
+            )
         ),
-      ],
-    );
-  }
+      );
+    }
 }

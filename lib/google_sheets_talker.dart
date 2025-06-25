@@ -1,25 +1,16 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:googleapis/admin/directory_v1.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'employee.dart';
+import 'customerHAJ.dart';
 
 
-class Employee {
-  final String forename;
-  final String surname;
-  String? lastSigningTime;
-  List<String> signings = [];
 
-  Employee({required this.forename, required this.surname});
-
-
-  String getFullName() {
-    return '$forename $surname';
-  }
-}
 
 class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
@@ -51,6 +42,43 @@ class GoogleSheetsTalker {
 
     client.close();
     return timesheetId;
+  }
+
+
+  Future<List<dynamic>?> retrieveCustomers() async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
+    final values = response.values;
+    final List<CustomerHAJ> allCustomers = [];
+    if (values == null || values.isEmpty) {
+      print("No customers found");
+    } else {
+
+      // .skip(1) skips the header row
+      for (var row in values.skip(1)) {
+        String registration = row[0].toString();
+        String company = row[1].toString();
+        String driverName = row[2].toString();
+        int? driverNumber = row[3] is String ? null : int.parse(row[3].toString());
+        String reasonForVisit = row[4].toString();
+        String date = row[5].toString();
+        String signIn = row[6].toString();
+        String signOut = row[6].toString();
+
+        // Creates a CustomerHAJ instance for each customer
+        allCustomers.add(CustomerHAJ(
+          registration: registration,
+          company: company,
+          driverName: driverName,
+          driverNumber: driverNumber,
+          reasonForVisit: reasonForVisit,
+          date: date,
+          signIn: signIn,
+          signOut: signOut
+        ));
+      }
+    }
+    return allCustomers;
   }
 
 

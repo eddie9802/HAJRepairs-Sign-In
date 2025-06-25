@@ -1,4 +1,4 @@
-class Customer {
+class CustomerHAJ {
   final String registration;
   final String company;
   final String driverName;
@@ -10,7 +10,7 @@ class Customer {
 
 
 
-  Customer({
+  CustomerHAJ({
     required this.registration,
     required this.company,
     required this.driverName,

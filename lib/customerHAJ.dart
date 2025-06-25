@@ -3,7 +3,7 @@ class CustomerHAJ {
   final String company;
   final String signInDriverName;
   final int? signInDriverNumber;
-  final String signOutDriverName;
+  final String? signOutDriverName;
   final int? signOutDriverNumber;
   final String reasonForVisit;
   final String date;

@@ -82,8 +82,10 @@ class GoogleSheetsTalker {
         allCustomers.add(CustomerHAJ(
           registration: registration,
           company: company,
-          driverName: driverName,
-          driverNumber: driverNumber,
+          signInDriverName: driverName,
+          signInDriverNumber: driverNumber,
+          signOutDriverName: null,
+          signOutDriverNumber: null,
           reasonForVisit: reasonForVisit,
           date: date,
           signIn: signIn,
@@ -104,12 +106,14 @@ class GoogleSheetsTalker {
       List<String>? allCustomerDetails = [
                                           formData["Registration"]!,
                                           formData["Company"]!,
-                                          formData["Name"]!,
-                                          formData["Driver Number"]!.toString(),
                                           formData["Reason For Visit"]!,
                                           formData["Date"]!,
+                                          formData["Name"]!,
+                                          formData["Driver Number"]!.toString(),
                                           formData["Sign in"]!,
-                                          "N/A"
+                                          '',
+                                          '',
+                                          'N/A'
                                           ];
 
 
@@ -124,7 +128,7 @@ class GoogleSheetsTalker {
         valueRange,
         _customerDetailsId,
         "All Details!A:F",
-        valueInputOption: "USER_ENTERED",
+        valueInputOption: "RAW",
         insertDataOption: "INSERT_ROWS"
       );
 

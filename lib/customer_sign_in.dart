@@ -111,7 +111,7 @@ class CustomerSignInState extends State<CustomerSignIn> {
 
 
     DateTime now = DateTime.now();
-    String date = "${now.day}/${now.month}/${now.year}";
+    String date = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {

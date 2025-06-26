@@ -19,7 +19,7 @@ class CustomerSignOut extends StatefulWidget {
 
 class CustomerSignOutState extends State<CustomerSignOut> {
 
-  final List<String> _customerFormSignOut = ["Name Question", "Number Question", "Name", "Number"];
+  final List<String> _customerFormSignOut = ["Initial", "Name", "Number"];
   final Map<String, String> _customerFormSignOutQuestions = {};
 
   final Map<String, String> _fieldText = {"default": "", "required": "This field is required"};
@@ -32,11 +32,10 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_customerFormSignOut.length, (_) => TextEditingController()); // Creates two controllers for the name and number
-    _customerFormSignOutQuestions["Name Question"] = "Are you ${widget.customer.signInDriverName}?";
-    _customerFormSignOutQuestions["Number Question"] = "Is your driver number: ${widget.customer.signInDriverNumber == null ? 'N/A' : widget.customer.signInDriverNumber.toString()}";
-    _customerFormSignOutQuestions["Name"] = "What is your name";
-    _customerFormSignOutQuestions["Number"] = "What is your driver number?  If not applicable, press Next.";
+    _controllers = List.generate(_customerFormSignOut.length - 1, (_) => TextEditingController()); // Creates two controllers for the name and number
+    _customerFormSignOutQuestions[_customerFormSignOut[0]] = "Are you ${widget.customer.signInDriverName} with driver number: ${widget.customer.signInDriverNumber == null ? 'N/A' : widget.customer.signInDriverNumber.toString()}?";
+    _customerFormSignOutQuestions[_customerFormSignOut[1]] = "What is your name";
+    _customerFormSignOutQuestions[_customerFormSignOut[2]] = "What is your driver number?  If not applicable, press Next.";
   }
 
   @override
@@ -67,42 +66,46 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   }
 
 
+
+
+
   // Checks if the question is not empty
   void _validateQuestion() async {
+    if (_currentStep == 0) {
+      return;
+    }
 
-    // If the user answered yes to the first two questions then submit the form
-    if (_currentStep == 2 && _controllers[0].text == "Yes" && _controllers[1].text == "Yes") {
-      String driverName = widget.customer.signInDriverName;
-      int? driverNumber = widget.customer.signInDriverNumber;
-      _signOut(driverName, driverNumber);
+    String? input = _controllers[_currentStep - 1].text;
+    print(input);
+    if (input.isEmpty && _currentStep == 1) {
+
+      setState(() {
+        _currentTextField = "required";
+      });
+
     } else {
-      String input = _controllers[_currentStep].text.trim();
-      if (input.isEmpty) {
-        setState(() {
-          _currentTextField = "required";
-        });
+
+      // Resets the _currentTextField if it was changed
+      if (_currentTextField == "required") {
+        _currentTextField = "default";
+      }
+
+
+    // Dismiss keyboard cleanly
+    FocusScope.of(context).unfocus();
+
+    // Wait a little to ensure the keyboard is fully gone
+    await Future.delayed(const Duration(milliseconds: 200));
+
+
+      // Goes to next question if there is another one
+      // else, submit the form
+      if (_currentStep < _customerFormSignOut.length - 1){
+        _goToNextQuestion();
       } else {
-        // Resets the _currentTextField if it was changed
-        if (_currentTextField == "required") {
-          _currentTextField = "default";
-        }
-
-
-      // Dismiss keyboard cleanly
-      FocusScope.of(context).unfocus();
-
-      // Wait a little to ensure the keyboard is fully gone
-      await Future.delayed(const Duration(milliseconds: 200));
-
-
-        // Goes to next question if there is another one
-        // else, submit the form
-        if (_currentStep < _customerFormSignOut.length - 1){
-          _goToNextQuestion();
-        } else {
-          print("Yo yoyoyoyoyo");
-          //_submitForm();
-        }
+        String driverName = widget.customer.signInDriverName;
+        int? driverNumber = int.tryParse(_controllers[1].text);
+        _signOut(driverName, driverNumber);
       }
     }
   }
@@ -134,7 +137,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     formData["Sign Out Driver Name"] = driverName;
     formData["Sign Out Driver Number"] = driverNumber == null ? "N/A" : driverNumber.toString();
     formData["Sign Out"] = DateFormat('h:mm a').format(now);
-    formData["Sign Out Date"] = "${now.day}/${now.month}/${now.year}";
+    formData["Sign Out Date"] = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
     
 
     bool isUploaded = await GoogleSheetsTalker().updateCustomerData(customer, formData);
@@ -142,6 +145,8 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     await Future.delayed(Duration(milliseconds: 200));
     if (isUploaded) {
       await showCustomerDialog("Your details have successfully been taken");
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
@@ -207,7 +212,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
-                    if (_currentStep > 1)
+                    if (_currentStep > 0)
                       Padding(
                           padding: EdgeInsets.only(bottom: 20.0, top: 20.0),
                           child:
@@ -215,7 +220,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                             width: 800,
                             child: TextField(
                               enabled: _signButtonPressed ? false : true,
-                              controller:  _controllers[_currentStep],
+                              controller:  _currentStep > 0 ? _controllers[_currentStep-1] : null,
                               decoration: InputDecoration(
                                 labelText: _fieldText[_currentTextField],
                                 labelStyle: TextStyle(color: Colors.red),
@@ -224,7 +229,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                             ),
                           )
                       ),
-                  if (_currentStep == 0 || _currentStep == 1)
+                  if (_currentStep == 0)
                     SizedBox(height:20),
                   Center(
                     child:
@@ -238,36 +243,32 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                           SizedBox(width: 20),
                           Row(
                             children: [
-                              if (_currentStep == 0 || _currentStep == 1)
+                              if (_currentStep == 0)
                                 ElevatedButton(
                                   onPressed: () {
-                                    setState(() {
-                                      _controllers[_currentStep].text = "Yes";
-                                      _currentStep++;
-                                    });
-                                    _validateQuestion();
+                                    String driverName = widget.customer.signInDriverName;
+                                    int? driverNumber = widget.customer.signInDriverNumber;
+                                    _signOut(driverName, driverNumber);
                                   },
                                   child: Text("Yes", style: TextStyle(fontSize: 24)),
                                 ),
-                              if (_currentStep == 0 || _currentStep == 1)
+                              if (_currentStep == 0)
                                 SizedBox(width: 20),
-                              if (_currentStep == 0 || _currentStep == 1)
+                              if (_currentStep == 0)
                                 ElevatedButton(
                                   onPressed: () {
                                     setState(() {
-                                      _controllers[_currentStep].text = "No";
-                                      _currentStep == 1 ? _currentStep++ : null;
+                                      _currentStep++;
                                     });
-                                    _currentStep == 1 ?_validateQuestion() : null;
                                   },
                                   child: Text("No", style: TextStyle(fontSize: 24)),
                                 ),
                               if (_currentStep > 1)
                                 SizedBox(width: 20),
-                              if (_currentStep > 1)
+                              if (_currentStep > 0)
                                 ElevatedButton(
                                   onPressed: _validateQuestion,
-                                  child: Text( _currentStep == _customerFormSignOut.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                                  child: Text( _currentStep == 1 ? "Next" : "Submit", style: TextStyle(fontSize: 24)),
                                 )
                             ],
                           ),

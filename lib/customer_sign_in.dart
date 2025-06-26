@@ -66,7 +66,9 @@ class CustomerSignInState extends State<CustomerSignIn> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    if (_controllers[_currentStep].text.trim().isEmpty) {
+
+    String userInput = _controllers[_currentStep].text.trim();
+    if (userInput.isEmpty) {
       setState(() {
         _currentTextField = "required";
       });
@@ -76,6 +78,10 @@ class CustomerSignInState extends State<CustomerSignIn> {
       if (_currentTextField == "required") {
         _currentTextField = "default";
       }
+
+    if (_customerFormSignIn[_currentStep] == "Registration") {
+        _controllers[_currentStep].text = userInput.toUpperCase().replaceAll(' ', '');
+    }
 
     // Dismiss keyboard cleanly
     FocusScope.of(context).unfocus();

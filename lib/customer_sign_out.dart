@@ -22,7 +22,11 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   final List<String> _customerFormSignOut = ["Initial", "Name", "Number"];
   final Map<String, String> _customerFormSignOutQuestions = {};
 
-  final Map<String, String> _fieldText = {"default": "", "required": "This field is required"};
+   final Map<String, String> _fieldText = {
+                                        "default": "",
+                                        "required": "This field is required",
+                                        "invalid phone number": "Please enter a valid 11 digit phone number"
+                                        };
   String _currentTextField = "default";
   bool _signButtonPressed = false;
   
@@ -66,7 +70,10 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   }
 
 
-
+  bool isValidPhoneNumber(String input) {
+    final phoneRegExp = RegExp(r'^\d{11}$');
+    return phoneRegExp.hasMatch(input);
+  }
 
 
   // Checks if the question is not empty
@@ -83,8 +90,12 @@ class CustomerSignOutState extends State<CustomerSignOut> {
         _currentTextField = "required";
       });
 
-    } else {
+    } else if (_customerFormSignOut[_currentStep] == "Number" && !isValidPhoneNumber(input)) {
+      setState(() {
+        _currentTextField = "invalid phone number";
+      });
 
+    } else {
       // Resets the _currentTextField if it was changed
       if (_currentTextField == "required") {
         _currentTextField = "default";
@@ -119,6 +130,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   }
 
 
+  // Takes the users details and signs out their vehicles
   void _signOut(String driverName, String driverNumber) async {
     CustomerHAJ customer = widget.customer;
 

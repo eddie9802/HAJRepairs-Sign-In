@@ -148,17 +148,15 @@ bool isValidPhoneNumber(String input) {
     }
     
 
-    bool isUploaded = await GoogleSheetsTalker().uploadCustomerData(formData);
+    (bool, String) response = await GoogleSheetsTalker().signCustomerIn(formData);
 
-    await Future.delayed(Duration(milliseconds: 200));
-    if (isUploaded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await showCustomerDialog("Your details have successfully been taken");
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      });
+    // response.$1 is the success of the sign in
+    if (response.$1) {
+      await showCustomerDialog(response.$2);
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
     } else {
-      await showCustomerDialog("An error has occurred");
+      await showCustomerDialog("An error has occurred: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });

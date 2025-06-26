@@ -47,20 +47,6 @@ class GoogleSheetsTalker {
   }
 
 
-  String convertDecimalToTime(num decimal) {
-  // Total seconds in a day = 24 * 60 * 60
-  int totalSeconds = (decimal * 86400).round();
-
-  int hours = totalSeconds ~/ 3600;
-  int minutes = (totalSeconds % 3600) ~/ 60;
-
-  // Format with leading zeros
-  String twoDigits(int n) => n.toString().padLeft(2, '0');
-  return '$hours:${twoDigits(minutes)}';
-}
-
-
-
 sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   var row = sheets.RowData(values: []);
   for (var cell in customerDetailsList) {
@@ -73,61 +59,6 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   }
     return row;
   }
-
-
-Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOutDetails) async {
-  sheets.SheetsApi sheetsApi = await getSheetsApi();
-  final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
-  final rows = response.values;
-
-  bool updateSuccessful = false;
-  if (rows == null || rows.isEmpty) {
-    print("No customers found");
-  } else {
-
-    List<Object?> customerDetailsList = [];
-    int? customerRowIndex;
-    for (var i = 1; i < rows.length; i++) {
-      customerDetailsList = rows[i];
-      String registration = customerDetailsList[0].toString();
-      if (customer.registration == registration) {
-        customerDetailsList.add(signOutDetails["Sign Out Driver Name"]);
-        customerDetailsList.add(signOutDetails["Sign Out Driver Number"]);
-        customerDetailsList.add(signOutDetails["Sign Out Date"]);
-        customerDetailsList.add(signOutDetails["Sign Out"]);
-        customerRowIndex = i;
-        break;
-      }
-    }
-    if (customerRowIndex != null) {
-
-      // Gets the sheetID which is needed to build requests
-      final spreadsheet = await sheetsApi.spreadsheets.get(_customerSpreadsheetId);
-      final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _signedInCustomerSheet,);
-      final sheetId = sheet?.properties?.sheetId;
-
-
-      sheets.RowData customerDetailsRow = getCustomerRow(customerDetailsList);
-
-      // Builds an array of all the rows that need to be updated in the sheet
-      final allRowUpdateDetails = [];
-      allRowUpdateDetails.add((data: customerDetailsRow, row:customerRowIndex, col:0));
-      List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, sheetId);
-
-      // Submits header and signing request
-      for (var request in allSpreadsheetRequests) {
-        var response = await sheetsApi.spreadsheets.batchUpdate(request, _customerSpreadsheetId);
-
-        // Check that the spreadsheet ID matches
-        if (response.spreadsheetId == _customerSpreadsheetId) {
-          print("Spreadsheet updated successfully.");
-          updateSuccessful = true;
-        }
-      }
-    }
-  }
-  return updateSuccessful;
-}
 
 
   Future<List<CustomerHAJ>> retrieveCustomers() async {
@@ -232,7 +163,9 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
     }
   }
 
-Future<bool> deleteRow(int rowNumber) async {
+
+
+Future<bool> deleteRowfromSignedIn(int rowNumber) async {
   sheets.SheetsApi sheetsApi = await getSheetsApi();
 
   // Gets the sheetID which is needed to build requests
@@ -267,6 +200,7 @@ Future<bool> deleteRow(int rowNumber) async {
 }
 
 
+  // Writes the customer to the sign out sheet and remove them from the sign in
   Future<bool> signCustomerOut(CustomerHAJ customer) async {
     bool rowDeleted = false;
     bool successfullyWritten = await writeToSignedOutCustomers(customer);
@@ -274,11 +208,52 @@ Future<bool> deleteRow(int rowNumber) async {
     if (successfullyWritten) {
       int? customerRowNum = await getCustomerRowNum(customer);
       if (customerRowNum != null) {
-        rowDeleted = await deleteRow(customerRowNum);
+        rowDeleted = await deleteRowfromSignedIn(customerRowNum);
       }
     }
 
     return rowDeleted;
+  }
+
+
+  // Checks if the given customer is already signed in
+  Future<bool> hasCustomerSignedIn(String customerReg) async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
+    final rows = response.values;
+
+    for (var row in rows!) {
+      String reg = row[0].toString();
+      if (reg == customerReg) {
+        return true;
+      } 
+    }
+
+    // Customer has not signed in
+    return false;
+  }
+
+
+
+  // Signs the customer in
+  Future<(bool, String)> signCustomerIn(Map<String, String> formData) async {
+    (bool, String) response = (false, "");
+    String registration = formData["Registration"]!;
+
+    bool signedIn = await hasCustomerSignedIn(registration);
+
+    if (!signedIn) {
+      if (await uploadCustomerData(formData)) {
+        response = (true, "Your vehicle has successfully been signed in");
+      } else {
+        response = (false, "Sign in failed");
+      }
+    } else {
+      response = (false, "Vehicle has already been signed in");
+    }
+
+
+    return response;
   }
 
 

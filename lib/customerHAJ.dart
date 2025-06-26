@@ -6,7 +6,8 @@ class CustomerHAJ {
   final String? signOutDriverName;
   final int? signOutDriverNumber;
   final String reasonForVisit;
-  final String date;
+  final String signInDate;
+  final String signOutDate;
   final String? signIn;
   final String? signOut;
 
@@ -20,7 +21,8 @@ class CustomerHAJ {
     required this.signOutDriverName,
     required this.signOutDriverNumber,
     required this.reasonForVisit,
-    required this.date,
+    required this.signInDate,
+    required this.signOutDate,
     required this.signIn,
     required this.signOut
     });

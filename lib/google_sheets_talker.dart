@@ -16,6 +16,7 @@ class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
   static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
   static final String _customerDetailsId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
+  static final String _customerDetailsSheet = "All Details";
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -58,24 +59,74 @@ class GoogleSheetsTalker {
 }
 
 
+
+sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
+  var row = sheets.RowData(values: []);
+  for (var cell in customerDetailsList) {
+    print(cell);
+    row.values!.add(sheets.CellData.fromJson({
+      'userEnteredValue': {'stringValue': cell},
+      'userEnteredFormat': {
+        'textFormat': {'bold': false}
+      }
+    }));
+  }
+    return row;
+  }
+
+
 Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOutDetails) async {
   sheets.SheetsApi sheetsApi = await getSheetsApi();
   final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
-  final values = response.values;
-  final List<CustomerHAJ> allCustomers = [];
-  if (values == null || values.isEmpty) {
+  final rows = response.values;
+
+  bool updateSuccessful = false;
+  if (rows == null || rows.isEmpty) {
     print("No customers found");
   } else {
 
-    // .skip(1) skips the header row
-    for (var row in values.skip(1)) {
-      String registration = row[0].toString();
+    List<Object?> customerDetailsList = [];
+    int? customerRowIndex;
+    for (var i = 1; i < rows.length; i++) {
+      customerDetailsList = rows[i];
+      String registration = customerDetailsList[0].toString();
       if (customer.registration == registration) {
-        print("Customer found!");
+        customerDetailsList.add(signOutDetails["Sign Out Driver Name"]);
+        customerDetailsList.add(signOutDetails["Sign Out Driver Number"]);
+        customerDetailsList.add(signOutDetails["Sign Out Date"]);
+        customerDetailsList.add(signOutDetails["Sign Out"]);
+        customerRowIndex = i;
+        break;
+      }
+    }
+    if (customerRowIndex != null) {
+
+      // Gets the sheetID which is needed to build requests
+      final spreadsheet = await sheetsApi.spreadsheets.get(_customerDetailsId);
+      final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _customerDetailsSheet,);
+      final sheetId = sheet?.properties?.sheetId;
+
+
+      sheets.RowData customerDetailsRow = getCustomerRow(customerDetailsList);
+
+      // Builds an array of all the rows that need to be updated in the sheet
+      final allRowUpdateDetails = [];
+      allRowUpdateDetails.add((data: customerDetailsRow, row:customerRowIndex, col:0));
+      List<dynamic> allSpreadsheetRequests = getSpreadsheetRequests(allRowUpdateDetails, sheetId);
+
+      // Submits header and signing request
+      for (var request in allSpreadsheetRequests) {
+        var response = await sheetsApi.spreadsheets.batchUpdate(request, _customerDetailsId);
+
+        // Check that the spreadsheet ID matches
+        if (response.spreadsheetId == _customerDetailsId) {
+          print("Spreadsheet updated successfully.");
+          updateSuccessful = true;
+        }
       }
     }
   }
-  return false;
+  return updateSuccessful;
 }
 
 
@@ -93,21 +144,22 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
         String registration = row[0].toString();
         String company = row[1].toString();
         String reasonForVisit = row[2].toString();
-        String date = row[3].toString();
-        String driverName = row[4].toString();
-        int? driverNumber = row[5] is String ? null : int.parse(row[3].toString());
+        String signInDriverName = row[3].toString();
+        int? signInDriverNumber = row[4] is String ? null : int.parse(row[4].toString());
+        String signInDate = row[5].toString();
         String signIn = row[6].toString();
 
         // Creates a CustomerHAJ instance for each customer
         allCustomers.add(CustomerHAJ(
           registration: registration,
           company: company,
-          signInDriverName: driverName,
-          signInDriverNumber: driverNumber,
+          reasonForVisit: reasonForVisit,
+          signInDriverName: signInDriverName,
+          signInDriverNumber: signInDriverNumber,
           signOutDriverName: null,
           signOutDriverNumber: null,
-          reasonForVisit: reasonForVisit,
-          date: date,
+          signInDate: signInDate,
+          signOutDate: null,
           signIn: signIn,
           signOut: null
         ));
@@ -127,13 +179,10 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
                                           formData["Registration"]!,
                                           formData["Company"]!,
                                           formData["Reason For Visit"]!,
-                                          formData["Date"]!,
                                           formData["Name"]!,
                                           formData["Driver Number"]!.toString(),
+                                          formData["Date"]!,
                                           formData["Sign in"]!,
-                                          '',
-                                          '',
-                                          'N/A'
                                           ];
 
 

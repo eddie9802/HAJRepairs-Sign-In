@@ -117,7 +117,6 @@ class CustomerSignOutState extends State<CustomerSignOut> {
 
 
   void _signOut(String driverName, int? driverNumber) async {
-
     CustomerHAJ customer = widget.customer;
 
     // Signals that the application should block
@@ -132,19 +131,19 @@ class CustomerSignOutState extends State<CustomerSignOut> {
       formData[_customerFormSignOut[i]] = _controllers[i].text;
     }
 
-    formData["Name"] = driverName;
-    formData["Number"] = driverNumber == null ? "N/A" : driverNumber.toString();
-    formData["Sign out"] = DateFormat('h:mm a').format(now);
+    formData["Sign Out Driver Name"] = driverName;
+    formData["Sign Out Driver Number"] = driverNumber == null ? "N/A" : driverNumber.toString();
+    formData["Sign Out"] = DateFormat('h:mm a').format(now);
+    formData["Sign Out Date"] = "${now.day}/${now.month}/${now.year}";
     
 
     bool isUploaded = await GoogleSheetsTalker().updateCustomerData(customer, formData);
 
     await Future.delayed(Duration(milliseconds: 200));
     if (isUploaded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await showCustomerDialog("Your details have successfully been taken");
-        Navigator.of(context).pop();
-      });
+      await showCustomerDialog("Your details have successfully been taken");
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
     } else {
       await showCustomerDialog("An error has occurred");
       setState(() {
@@ -183,7 +182,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
               });
             },
           ),
-        title: Text("Customer Form"),
+        title: Text("Customer Sign Out"),
       )
     );
   }
@@ -246,7 +245,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                                       _controllers[_currentStep].text = "Yes";
                                       _currentStep++;
                                     });
-                                    _currentStep == 2 ?_validateQuestion() : null;
+                                    _validateQuestion();
                                   },
                                   child: Text("Yes", style: TextStyle(fontSize: 24)),
                                 ),

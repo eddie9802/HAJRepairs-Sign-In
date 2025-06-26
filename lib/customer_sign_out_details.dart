@@ -29,7 +29,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
     customerDetailsList.add("Driver Name: ${customer.signInDriverName}");
     customerDetailsList.add("Driver Number: ${customer.signInDriverNumber == null ? 'N/A' : customer.signInDriverNumber.toString()}");
     customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
-    customerDetailsList.add("Date: ${customer.date}");
+    customerDetailsList.add("Sign In Date: ${customer.signInDate}");
     customerDetailsList.add("Sign In Time: ${customer.signIn.toString()}");
     return customerDetailsList;
   }

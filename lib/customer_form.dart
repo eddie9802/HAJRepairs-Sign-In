@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haj_repairs_sign_in/customer_form_sign_in.dart';
+import 'package:haj_repairs_sign_in/customer_sign_in.dart';
 import 'package:haj_repairs_sign_in/customer_search.dart';
 import 'dart:developer' as developer;
 
@@ -77,7 +77,7 @@ class _CustomerFormState extends State<CustomerForm> {
                             onPressed: () {
                               Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => CustomerFormSignIn()),
+                                  MaterialPageRoute(builder: (context) => CustomerSignIn()),
                                 );
                             },
                             child: Text("Sign in", style: TextStyle(fontSize: 24)),

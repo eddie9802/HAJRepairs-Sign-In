@@ -19,7 +19,7 @@ class CustomerSignInState extends State<CustomerSignIn> {
                                               "What is your registration?",
                                               "What company are you from?",
                                               "What is your name?",
-                                              "What is your driver number?  If not applicable, press Next.",
+                                              "What is your contact number?",
                                               "What is your reason for visiting?"
                                               ];
 
@@ -66,7 +66,7 @@ class CustomerSignInState extends State<CustomerSignIn> {
 
   // Checks if the question is not empty
   void _validateQuestion() async {
-    if (_controllers[_currentStep].text.trim().isEmpty && _customerFormSignIn[_currentStep] != "Driver Number") {
+    if (_controllers[_currentStep].text.trim().isEmpty) {
       setState(() {
         _currentTextField = "required";
       });
@@ -131,6 +131,7 @@ class CustomerSignInState extends State<CustomerSignIn> {
     if (isUploaded) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await showCustomerDialog("Your details have successfully been taken");
+        Navigator.of(context).pop();
         Navigator.of(context).pop();
       });
     } else {

@@ -23,7 +23,11 @@ class CustomerSignInState extends State<CustomerSignIn> {
                                               "What is your reason for visiting?"
                                               ];
 
-  final Map<String, String> _fieldText = {"default": "", "required": "This field is required"};
+  final Map<String, String> _fieldText = {
+                                        "default": "",
+                                        "required": "This field is required",
+                                        "invalid phone number": "Please enter a valid 11 digit phone number"
+                                        };
   String _currentTextField = "default";
   bool _signButtonPressed = false;
   
@@ -43,6 +47,12 @@ class CustomerSignInState extends State<CustomerSignIn> {
     }
     super.dispose();
   }
+
+
+bool isValidPhoneNumber(String input) {
+  final phoneRegExp = RegExp(r'^\d{11}$');
+  return phoneRegExp.hasMatch(input);
+}
 
 
   Future<dynamic> showCustomerDialog(String? popUpText) {
@@ -72,11 +82,18 @@ class CustomerSignInState extends State<CustomerSignIn> {
       setState(() {
         _currentTextField = "required";
       });
+    } else if (_customerFormSignIn[_currentStep] == "Driver Number" && !isValidPhoneNumber(userInput)) {
+      setState(() {
+        _currentTextField = "invalid phone number";
+      });
     } else {
 
+
       // Resets the _currentTextField if it was changed
-      if (_currentTextField == "required") {
-        _currentTextField = "default";
+      if (_currentTextField != "default") {
+        setState(() {
+          _currentTextField = "default";
+        });
       }
 
     if (_customerFormSignIn[_currentStep] == "Registration") {

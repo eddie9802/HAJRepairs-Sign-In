@@ -5,14 +5,14 @@ import 'dart:developer' as developer;
 
 import 'google_sheets_talker.dart';
 
-class CustomerFormSignIn extends StatefulWidget {
-  const CustomerFormSignIn({super.key}); // Optional constructor with key
+class CustomerSignIn extends StatefulWidget {
+  const CustomerSignIn({super.key}); // Optional constructor with key
 
   @override
-    _customerFormSignInState createState() => _customerFormSignInState();
+    CustomerSignInState createState() => CustomerSignInState();
 }
 
-class _customerFormSignInState extends State<CustomerFormSignIn> {
+class CustomerSignInState extends State<CustomerSignIn> {
 
   final List<String> _customerFormSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
   final List<String> _customerFormSignInQuestions = [

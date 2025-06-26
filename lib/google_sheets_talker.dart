@@ -63,7 +63,6 @@ class GoogleSheetsTalker {
 sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   var row = sheets.RowData(values: []);
   for (var cell in customerDetailsList) {
-    print(cell);
     row.values!.add(sheets.CellData.fromJson({
       'userEnteredValue': {'stringValue': cell},
       'userEnteredFormat': {

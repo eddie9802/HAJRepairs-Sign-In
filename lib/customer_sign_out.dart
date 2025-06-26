@@ -33,9 +33,9 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   void initState() {
     super.initState();
     _controllers = List.generate(_customerFormSignOut.length - 1, (_) => TextEditingController()); // Creates two controllers for the name and number
-    _customerFormSignOutQuestions[_customerFormSignOut[0]] = "Are you ${widget.customer.signInDriverName} with driver number: ${widget.customer.signInDriverNumber == null ? 'N/A' : widget.customer.signInDriverNumber.toString()}?";
-    _customerFormSignOutQuestions[_customerFormSignOut[1]] = "What is your name";
-    _customerFormSignOutQuestions[_customerFormSignOut[2]] = "What is your driver number?  If not applicable, press Next.";
+    _customerFormSignOutQuestions[_customerFormSignOut[0]] = "Are you ${widget.customer.signInDriverName}?";
+    _customerFormSignOutQuestions[_customerFormSignOut[1]] = "What is your name?";
+    _customerFormSignOutQuestions[_customerFormSignOut[2]] = "What is your contact number?";
   }
 
   @override
@@ -77,7 +77,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
 
     String? input = _controllers[_currentStep - 1].text;
     print(input);
-    if (input.isEmpty && _currentStep == 1) {
+    if (input.isEmpty) {
 
       setState(() {
         _currentTextField = "required";
@@ -103,8 +103,8 @@ class CustomerSignOutState extends State<CustomerSignOut> {
       if (_currentStep < _customerFormSignOut.length - 1){
         _goToNextQuestion();
       } else {
-        String driverName = widget.customer.signInDriverName;
-        int? driverNumber = int.tryParse(_controllers[1].text);
+        String driverName = _controllers[0].text;
+        String driverNumber = _controllers[1].text;
         _signOut(driverName, driverNumber);
       }
     }
@@ -119,7 +119,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   }
 
 
-  void _signOut(String driverName, int? driverNumber) async {
+  void _signOut(String driverName, String driverNumber) async {
     CustomerHAJ customer = widget.customer;
 
     // Signals that the application should block
@@ -134,13 +134,14 @@ class CustomerSignOutState extends State<CustomerSignOut> {
       formData[_customerFormSignOut[i]] = _controllers[i].text;
     }
 
-    formData["Sign Out Driver Name"] = driverName;
-    formData["Sign Out Driver Number"] = driverNumber == null ? "N/A" : driverNumber.toString();
-    formData["Sign Out"] = DateFormat('h:mm a').format(now);
-    formData["Sign Out Date"] = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+
+    widget.customer.signOutDriverName = driverName;
+    widget.customer.signOutDriverNumber = driverNumber;
+    widget.customer.signOut = DateFormat('h:mm a').format(now);
+    widget.customer.signOutDate = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
     
 
-    bool isUploaded = await GoogleSheetsTalker().updateCustomerData(customer, formData);
+    bool isUploaded = await GoogleSheetsTalker().signCustomerOut(customer);
 
     await Future.delayed(Duration(milliseconds: 200));
     if (isUploaded) {
@@ -236,6 +237,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                        if (_currentStep > 0)  
                           ElevatedButton(
                             onPressed: _currentStep == 0 ? null : _goToPreviousQuestion,
                             child: Text("Back", style: TextStyle(fontSize: 24)),
@@ -247,7 +249,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                                 ElevatedButton(
                                   onPressed: () {
                                     String driverName = widget.customer.signInDriverName;
-                                    int? driverNumber = widget.customer.signInDriverNumber;
+                                    String driverNumber = widget.customer.signInDriverNumber;
                                     _signOut(driverName, driverNumber);
                                   },
                                   child: Text("Yes", style: TextStyle(fontSize: 24)),

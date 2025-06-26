@@ -15,8 +15,9 @@ import 'customerHAJ.dart';
 class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
   static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
-  static final String _customerDetailsId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
-  static final String _customerDetailsSheet = "All Details";
+  static final String _customerSpreadsheetId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
+  static final String _signedInCustomerSheet = "Signed In Customers";
+    static final String _signedOutCustomerSheet = "Signed Out Customers";
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -76,7 +77,7 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
 
 Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOutDetails) async {
   sheets.SheetsApi sheetsApi = await getSheetsApi();
-  final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
+  final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
   final rows = response.values;
 
   bool updateSuccessful = false;
@@ -101,8 +102,8 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
     if (customerRowIndex != null) {
 
       // Gets the sheetID which is needed to build requests
-      final spreadsheet = await sheetsApi.spreadsheets.get(_customerDetailsId);
-      final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _customerDetailsSheet,);
+      final spreadsheet = await sheetsApi.spreadsheets.get(_customerSpreadsheetId);
+      final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _signedInCustomerSheet,);
       final sheetId = sheet?.properties?.sheetId;
 
 
@@ -115,10 +116,10 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
 
       // Submits header and signing request
       for (var request in allSpreadsheetRequests) {
-        var response = await sheetsApi.spreadsheets.batchUpdate(request, _customerDetailsId);
+        var response = await sheetsApi.spreadsheets.batchUpdate(request, _customerSpreadsheetId);
 
         // Check that the spreadsheet ID matches
-        if (response.spreadsheetId == _customerDetailsId) {
+        if (response.spreadsheetId == _customerSpreadsheetId) {
           print("Spreadsheet updated successfully.");
           updateSuccessful = true;
         }
@@ -131,7 +132,7 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
 
   Future<List<CustomerHAJ>> retrieveCustomers() async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
-    final response = await sheetsApi.spreadsheets.values.get(_customerDetailsId, "All Details");
+    final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
     final values = response.values;
     final List<CustomerHAJ> allCustomers = [];
     if (values == null || values.isEmpty) {
@@ -144,7 +145,7 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
         String company = row[1].toString();
         String reasonForVisit = row[2].toString();
         String signInDriverName = row[3].toString();
-        int? signInDriverNumber = row[4] is String ? null : int.parse(row[4].toString());
+        String signInDriverNumber = row[4].toString();
         String signInDate = row[5].toString();
         String signIn = row[6].toString();
 
@@ -155,16 +156,129 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
           reasonForVisit: reasonForVisit,
           signInDriverName: signInDriverName,
           signInDriverNumber: signInDriverNumber,
-          signOutDriverName: null,
-          signOutDriverNumber: null,
+          signOutDriverName: "",
+          signOutDriverNumber: "",
           signInDate: signInDate,
-          signOutDate: null,
+          signOutDate: "",
           signIn: signIn,
-          signOut: null
+          signOut: ""
         ));
       }
     }
     return allCustomers;
+  }
+
+
+  Future<bool> writeToSignedOutCustomers(CustomerHAJ customer) async {
+    try {
+      sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+      // Creates the row to be inserted into customer details
+      List<String>? allCustomerDetails = [
+                                          customer.registration,
+                                          customer.company,
+                                          customer.reasonForVisit,
+                                          customer.signInDriverName,
+                                          customer.signInDriverNumber,
+                                          customer.signInDate,
+                                          customer.signIn,
+                                          customer.signOutDriverName,
+                                          customer.signOutDriverNumber,
+                                          customer.signOutDate,
+                                          customer.signOut
+                                          ];
+
+
+      // Wraps the customer detauls in a value range
+      final valueRange = sheets.ValueRange(
+        values: [allCustomerDetails], // <- wrap your List<String> in another list
+      );
+
+      // Appends the details to the end of the customer details sheet
+      // This allows for concurrency
+      await sheetsApi.spreadsheets.values.append(
+        valueRange,
+        _customerSpreadsheetId,
+        "$_signedOutCustomerSheet!A:F",
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS");
+    } catch(e) {
+      return false;
+    }
+    return true;
+  }
+
+
+  Future<int?> getCustomerRowNum(CustomerHAJ customer) async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
+    final rows = response.values;
+
+    if (rows == null || rows.isEmpty) {
+      print("No customers found");
+      return null;
+    } else {
+
+      int? customerRowIndex;
+      for (var i = 1; i < rows.length; i++) {
+        var customerDetailsList = rows[i];
+        String registration = customerDetailsList[0].toString();
+        if (customer.registration == registration) {
+          customerRowIndex = i;
+          break;
+        }
+      }
+      return customerRowIndex;
+    }
+  }
+
+Future<bool> deleteRow(int rowNumber) async {
+  sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+  // Gets the sheetID which is needed to build requests
+  final spreadsheet = await sheetsApi.spreadsheets.get(_customerSpreadsheetId);
+  final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _signedInCustomerSheet,);
+  final sheetId = sheet?.properties?.sheetId;
+
+
+  final request = sheets.BatchUpdateSpreadsheetRequest.fromJson({
+    "requests": [
+      {
+        "deleteDimension": {
+          "range": {
+            "sheetId": sheetId,
+            "dimension": "ROWS",
+            "startIndex": rowNumber, // 0-based, inclusive
+            "endIndex": rowNumber + 1 // 0-based, exclusive
+          }
+        }
+      }
+    ]
+  });
+
+  try {
+    await sheetsApi.spreadsheets.batchUpdate(request, _customerSpreadsheetId);
+    print("Row $rowNumber deleted successfully.");
+    return true;
+  } catch (e) {
+    print("Failed to delete row: $e");
+    return false;
+  }
+}
+
+
+  Future<bool> signCustomerOut(CustomerHAJ customer) async {
+    bool rowDeleted = false;
+    bool successfullyWritten = await writeToSignedOutCustomers(customer);
+
+    if (successfullyWritten) {
+      int? customerRowNum = await getCustomerRowNum(customer);
+      if (customerRowNum != null) {
+        rowDeleted = await deleteRow(customerRowNum);
+      }
+    }
+
+    return rowDeleted;
   }
 
 
@@ -194,8 +308,8 @@ Future<bool> updateCustomerData(CustomerHAJ customer, Map<String, String> signOu
       // This allows for concurrency
       await sheetsApi.spreadsheets.values.append(
         valueRange,
-        _customerDetailsId,
-        "All Details!A:F",
+        _customerSpreadsheetId,
+        "Signed In Customers!A:F",
         valueInputOption: "RAW",
         insertDataOption: "INSERT_ROWS"
       );

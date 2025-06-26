@@ -2,14 +2,14 @@ class CustomerHAJ {
   final String registration;
   final String company;
   final String signInDriverName;
-  final int? signInDriverNumber;
-  final String? signOutDriverName;
-  final int? signOutDriverNumber;
+  final String signInDriverNumber;
   final String reasonForVisit;
   final String signInDate;
-  final String? signOutDate;
-  final String? signIn;
-  final String? signOut;
+  final String signIn;
+  String signOutDate;
+  String signOutDriverName;
+  String signOutDriverNumber;
+  String signOut;
 
 
 

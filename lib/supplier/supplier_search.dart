@@ -71,7 +71,7 @@ class _SupplierSearchState extends State<SupplierSearch> {
               children: [
                 Center(
                   child: Text(
-                    "Please enter your vehicle's registration number",
+                    "Please enter your name",
                     style: TextStyle(fontSize: 24),
                   ),
                 ),

@@ -8,6 +8,7 @@ import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'colleague/colleague.dart';
 import 'customer/customerHAJ.dart';
+import 'supplier/supplierHAJ.dart';
 
 
 
@@ -17,7 +18,9 @@ class GoogleSheetsTalker {
   static final String _colleagueSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
   static final String _customerSpreadsheetId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
   static final String _signedInCustomerSheet = "Signed In Customers";
-    static final String _signedOutCustomerSheet = "Signed Out Customers";
+  static final String _signedOutCustomerSheet = "Signed Out Customers";
+  static final String _suppliersSpreadsheetId = "1Ax36ZULNcmovI6z5AGzD3D5GOJy1XLglFchPQtTgjMM";
+  static final String _signedInSuppliersSheet = "Signed In Suppliers";
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -61,6 +64,42 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   }
 
 
+
+  // Returns a list of all the suppliers that are currently signed in
+  Future<List<SupplierHAJ>> retrieveSuppliers() async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_suppliersSpreadsheetId, _signedInSuppliersSheet);
+    final values = response.values;
+    final List<SupplierHAJ> allSuppliers = [];
+    if (values == null || values.isEmpty) {
+      print("No customers found");
+    } else {
+
+      // .skip(1) skips the header row
+      for (var row in values.skip(1)) {
+        String name = row[0].toString();
+        String company = row[1].toString();
+        String reasonForVisit = row[2].toString();
+        String date = row[3].toString();
+        String signIn = row[4].toString();
+
+        // Creates a CustomerHAJ instance for each customer
+        allSuppliers.add(SupplierHAJ(
+          name: name,
+          company: company,
+          reasonForVisit: reasonForVisit,
+          date: date,
+          signIn: signIn,
+          signOut: ""
+        ));
+      }
+    }
+    return allSuppliers;
+  }
+
+
+
+  // Returns a list of all the customers that are currently signed in
   Future<List<CustomerHAJ>> retrieveCustomers() async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);

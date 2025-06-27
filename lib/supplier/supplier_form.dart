@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haj_repairs_sign_in/supplier/supplier_sign_in.dart';
-import 'package:haj_repairs_sign_in/customer/customer_search.dart';
+import 'package:haj_repairs_sign_in/supplier/supplier_search.dart';
 
 class SupplierForm extends StatefulWidget {
   const SupplierForm({super.key}); // Optional constructor with key
@@ -30,7 +30,7 @@ class _SupplierFormState extends State<SupplierForm> {
               });
             },
           ),
-        title: Text("Customer Form"),
+        title: Text("Supplier Form"),
       )
     );
   }
@@ -84,7 +84,7 @@ class _SupplierFormState extends State<SupplierForm> {
                             onPressed: () {
                               Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => SupplierSignOut()),
+                                  MaterialPageRoute(builder: (context) => SupplierSearch()),
                                 );
                             },
                             child: Text("Sign out", style: TextStyle(fontSize: 24)),

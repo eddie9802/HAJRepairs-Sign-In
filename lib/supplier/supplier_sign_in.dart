@@ -192,7 +192,7 @@ bool isValidPhoneNumber(String input) {
               });
             },
           ),
-        title: Text("Customer Sign In"),
+        title: Text("Supplier Sign In"),
       )
     );
   }

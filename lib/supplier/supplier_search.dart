@@ -4,14 +4,14 @@ import 'supplier_sign_out.dart';
 
 import '../google_sheets_talker.dart';
 
-class SupplierSignOut extends StatefulWidget {
-  const SupplierSignOut({super.key}); // Optional constructor with key
+class SupplierSearch extends StatefulWidget {
+  const SupplierSearch({super.key}); // Optional constructor with key
 
   @override
-    _SupplierSignOutState createState() => _SupplierSignOutState();
+    _SupplierSearchState createState() => _SupplierSearchState();
 }
 
-class _SupplierSignOutState extends State<SupplierSignOut> {
+class _SupplierSearchState extends State<SupplierSearch> {
 
   bool _signButtonPressed = false;
   final Future<List<SupplierHAJ>> _allSuppliersFuture = GoogleSheetsTalker().retrieveSuppliers();
@@ -111,7 +111,7 @@ class _SupplierSignOutState extends State<SupplierSignOut> {
                               await Future.delayed(const Duration(milliseconds: 200));
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => SupplierSignOutDetails(supplier: _matchedSuppliers[index])),
+                                MaterialPageRoute(builder: (context) => SupplierSignOut(supplier: _matchedSuppliers[index])),
                               );
                             },
                           ),

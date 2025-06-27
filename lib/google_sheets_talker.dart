@@ -21,6 +21,7 @@ class GoogleSheetsTalker {
   static final String _signedOutCustomerSheet = "Signed Out Customers";
   static final String _suppliersSpreadsheetId = "1Ax36ZULNcmovI6z5AGzD3D5GOJy1XLglFchPQtTgjMM";
   static final String _signedInSuppliersSheet = "Signed In Suppliers";
+    static final String _signedOutSuppliersSheet = "Signed Out Suppliers";
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -61,6 +62,60 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
     }));
   }
     return row;
+  }
+
+
+
+  // Gets the row number the given supplier is on
+  Future<int?> getSupplierRowNum(SupplierHAJ supplier) async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_suppliersSpreadsheetId, _signedInSuppliersSheet);
+    final rows = response.values;
+
+    if (rows == null || rows.isEmpty) {
+      print("No customers found");
+      return null;
+    } else {
+
+      int? supplierRowIndex;
+      for (var i = 1; i < rows.length; i++) {
+        var supplierDetailsList = rows[i];
+        String name = supplierDetailsList[0].toString();
+        String company = supplierDetailsList[1].toString();
+        if (supplier.name == name && supplier.company == company) {
+          supplierRowIndex = i;
+          break;
+        }
+      }
+      return supplierRowIndex;
+    }
+  }
+
+
+    // Writes the customer to the sign out sheet and remove them from the sign in
+  Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
+    bool successfullyWritten = await writeToSignedOutCustomers(customer);
+    (bool, String) response = (false, "");
+
+    if (successfullyWritten) {
+      int? customerRowNum = await getCustomerRowNum(customer);
+
+      if (customerRowNum != null) {
+        bool rowDeleted = await deleteRowfromSignedIn(customerRowNum, _customerSpreadsheetId, _signedInCustomerSheet);
+
+        if (rowDeleted) {
+          response = (true, "Your vehicle has successfully been signed out");
+        } else {
+          response = (false, "Failed to delete the customer row from sign-in sheet");
+        }
+      } else {
+        response = (false, "Failed to find vehicle in sign-in sheet");
+      }
+    } else {
+      response = (false, "Failed to write customer details to sign-out sheet");
+    }
+
+  return response;
   }
 
 
@@ -179,6 +234,7 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   }
 
 
+  // Gets the row number the given customer is on
   Future<int?> getCustomerRowNum(CustomerHAJ customer) async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_customerSpreadsheetId, _signedInCustomerSheet);
@@ -204,12 +260,12 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
 
 
 
-Future<bool> deleteRowfromSignedIn(int rowNumber) async {
+Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String userSheet) async {
   sheets.SheetsApi sheetsApi = await getSheetsApi();
 
   // Gets the sheetID which is needed to build requests
-  final spreadsheet = await sheetsApi.spreadsheets.get(_customerSpreadsheetId);
-  final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _signedInCustomerSheet,);
+  final spreadsheet = await sheetsApi.spreadsheets.get(userSpreadsheet);
+  final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == userSheet,);
   final sheetId = sheet?.properties?.sheetId;
 
 
@@ -229,7 +285,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber) async {
   });
 
   try {
-    await sheetsApi.spreadsheets.batchUpdate(request, _customerSpreadsheetId);
+    await sheetsApi.spreadsheets.batchUpdate(request, userSpreadsheet);
     print("Row $rowNumber deleted successfully.");
     return true;
   } catch (e) {
@@ -239,31 +295,66 @@ Future<bool> deleteRowfromSignedIn(int rowNumber) async {
 }
 
 
-  // Writes the customer to the sign out sheet and remove them from the sign in
-Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
-  bool successfullyWritten = await writeToSignedOutCustomers(customer);
-  (bool, String) response = (false, "");
+  Future<bool> writeToSignedOutSuppliers(SupplierHAJ supplier) async {
+    try {
+      sheets.SheetsApi sheetsApi = await getSheetsApi();
 
-  if (successfullyWritten) {
-    int? customerRowNum = await getCustomerRowNum(customer);
+      // Creates the row to be inserted into customer details
+      List<String>? allSupplierDetails = [
+                                          supplier.name,
+                                          supplier.company,
+                                          supplier.reasonForVisit,
+                                          supplier.date,
+                                          supplier.signIn,
+                                          supplier.signOut,
+                                          ];
 
-    if (customerRowNum != null) {
-      bool rowDeleted = await deleteRowfromSignedIn(customerRowNum);
 
-      if (rowDeleted) {
-        response = (true, "Your vehicle has successfully been signed out");
-      } else {
-        response = (false, "Failed to delete the customer row from sign-in sheet");
-      }
-    } else {
-      response = (false, "Failed to find vehicle in sign-in sheet");
+      // Wraps the customer detauls in a value range
+      final valueRange = sheets.ValueRange(
+        values: [allSupplierDetails], // <- wrap your List<String> in another list
+      );
+
+      // Appends the details to the end of the customer details sheet
+      // This allows for concurrency
+      await sheetsApi.spreadsheets.values.append(
+        valueRange,
+        _suppliersSpreadsheetId,
+        "$_signedOutSuppliersSheet!A:F",
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS");
+    } catch(e) {
+      return false;
     }
-  } else {
-    response = (false, "Failed to write customer details to sign-out sheet");
+    return true;
   }
 
+
+  // Writes the customer to the sign out sheet and remove them from the sign in
+  Future<(bool, String)> signSupplierOut(SupplierHAJ supplier) async {
+    bool successfullyWritten = await writeToSignedOutSuppliers(supplier);
+    (bool, String) response = (false, "");
+
+    if (successfullyWritten) {
+      int? customerRowNum = await getSupplierRowNum(supplier);
+
+      if (customerRowNum != null) {
+        bool rowDeleted = await deleteRowfromSignedIn(customerRowNum, _suppliersSpreadsheetId, _signedInSuppliersSheet);
+
+        if (rowDeleted) {
+          response = (true, "Sign out successful");
+        } else {
+          response = (false, "Failed to delete the supplier row from sign-in sheet");
+        }
+      } else {
+        response = (false, "Failed to find supplier in sign-in sheet");
+      }
+    } else {
+      response = (false, "Failed to write supplier details to sign-out sheet");
+    }
+
   return response;
-}
+  }
 
 
   // Checks if the given customer is already signed in

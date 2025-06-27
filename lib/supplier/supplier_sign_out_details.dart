@@ -1,33 +1,29 @@
 import 'package:flutter/material.dart';
-import 'customerHAJ.dart';
-import 'customer_sign_out.dart';
+import 'supplierHAJ.dart';
+import 'supplier_sign_out.dart';
 
 
-class CustomerSignOutDetails extends StatefulWidget {
+class SupplierSignOutDetails extends StatefulWidget {
 
-  final CustomerHAJ customer;
+  final SupplierHAJ supplier;
 
-  const CustomerSignOutDetails({super.key, required this.customer}); // Optional constructor with key
+  const SupplierSignOutDetails({super.key, required this.supplier}); // Optional constructor with key
 
   @override
-    CustomerSignOutDetailsState createState() => CustomerSignOutDetailsState();
+    SupplierSignOutDetailsState createState() => SupplierSignOutDetailsState();
 }
 
-class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
+class SupplierSignOutDetailsState extends State<SupplierSignOutDetails> {
 
 
 
-  List<String> getCustomerDetailsList() {
-    List<String> customerDetailsList = [];
-    CustomerHAJ customer = widget.customer;
-    customerDetailsList.add("Registration: ${customer.registration}");
-    customerDetailsList.add("Company: ${customer.company}");
-    customerDetailsList.add("Driver Name: ${customer.signInDriverName}");
-    customerDetailsList.add("Contact Number: ${customer.signInDriverNumber}");
-    customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
-    customerDetailsList.add("Sign In Date: ${customer.signInDate}");
-    customerDetailsList.add("Sign In Time: ${customer.signIn.toString()}");
-    return customerDetailsList;
+  List<String> getSupplierDetailsList() {
+    List<String> supplierDetailsList = [];
+    SupplierHAJ supplier = widget.supplier;
+    supplierDetailsList.add("Name: ${supplier.name}");
+    supplierDetailsList.add("Company: ${supplier.company}");
+    supplierDetailsList.add("Driver Name: ${supplier.reasonForVisit}");
+    return supplierDetailsList;
   }
 
 
@@ -44,14 +40,14 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
               });
             },
           ),
-        title: Text("Customer Sign Out Details"),
+        title: Text("Supplier Sign Out Details"),
       )
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    List<String> customerDetailsList = getCustomerDetailsList();
+    List<String> customerDetailsList = getSupplierDetailsList();
     return Scaffold(
       appBar: getAppbar(),
       body: Container(
@@ -64,7 +60,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
               children: [
                 Center(
                   child: Text(
-                    "Customer details for ${widget.customer.registration}",
+                    "Supplier details for ${widget.supplier.name}",
                     style: TextStyle(fontSize: 24),
                   ),
                 ),
@@ -96,7 +92,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
                 onPressed: () {
                   Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => CustomerSignOut(customer: widget.customer)),
+                                MaterialPageRoute(builder: (context) => SupplierSignOut(customer: widget.supplier)),
                               );
                 },
                 child: Text("Sign Out", style: TextStyle(fontSize: 24)),

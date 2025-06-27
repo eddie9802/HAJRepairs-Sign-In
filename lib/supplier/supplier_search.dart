@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
-import 'customer_sign_out_details.dart';
+import 'supplier_sign_out_details.dart';
 
 import '../google_sheets_talker.dart';
 
@@ -14,27 +14,27 @@ class CustomerFormSignOut extends StatefulWidget {
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   bool _signButtonPressed = false;
-  final Future<List<SupplierHAJ>> _allCustomersFuture = GoogleSheetsTalker().retrieveCustomers();
+  final Future<List<SupplierHAJ>> _allSuppliersFuture = GoogleSheetsTalker().retrieveCustomers();
 
 
-    List<SupplierHAJ> _matchedCustomers = [];
+    List<SupplierHAJ> _matchedSuppliers = [];
 
-  // Function to get matched customers based on search input
-  Future<List<SupplierHAJ>> getMatchingCustomers(String reg) async {
+  // Function to get matched suppliers based on search input
+  Future<List<SupplierHAJ>> getMatchingSuppliers(String reg) async {
     List<SupplierHAJ> matched = [];
-    final allCustomers = await _allCustomersFuture;
-    for (var customer in allCustomers) {
-      if (customer.registration.toLowerCase().startsWith(reg.toLowerCase()) && reg.isNotEmpty) {
-        matched.add(customer);
+    final allSuppliers = await _allSuppliersFuture;
+    for (var supplier in allSuppliers) {
+      if (supplier.name.toLowerCase().startsWith(reg.toLowerCase()) && reg.isNotEmpty) {
+        matched.add(supplier);
       }
     }
     return matched;
   }
 
   void setMatchedCustomers(String reg) async {
-    List<SupplierHAJ> matches = await getMatchingCustomers(reg);
+    List<SupplierHAJ> matches = await getMatchingSuppliers(reg);
     setState(() => 
-    _matchedCustomers = matches
+    _matchedSuppliers = matches
     ,);
   }
 
@@ -100,18 +100,18 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                 child: ListView(
                   padding: EdgeInsets.all(16.0),
                   children: [
-                    ...List.generate(_matchedCustomers.length, (index) {
+                    ...List.generate(_matchedSuppliers.length, (index) {
                       return Padding(
                         padding: EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
-                            title: Text(_matchedCustomers[index].registration),
+                            title: Text(_matchedSuppliers[index].name),
                             onTap: () async {
                               FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
                               // Wait a little to ensure the keyboard is fully gone
                               await Future.delayed(const Duration(milliseconds: 200));
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => CustomerSignOutDetails(customer: _matchedCustomers[index])),
+                                MaterialPageRoute(builder: (context) => SupplierSignOutDetails(supplier: _matchedSuppliers[index])),
                               );
                             },
                           ),

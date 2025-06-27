@@ -5,7 +5,7 @@ import 'customerHAJ.dart';
 import 'dart:developer' as developer;
 
 
-import 'google_sheets_talker.dart';
+import '../google_sheets_talker.dart';
 
 class CustomerSignOut extends StatefulWidget {
 

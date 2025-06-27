@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'employee.dart';
-import 'customerHAJ.dart';
+import 'customer/customerHAJ.dart';
 
 
 
@@ -201,32 +201,30 @@ Future<bool> deleteRowfromSignedIn(int rowNumber) async {
 
 
   // Writes the customer to the sign out sheet and remove them from the sign in
-  Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
-    bool rowDeleted = false;
-    bool successfullyWritten = await writeToSignedOutCustomers(customer);
-    (bool, String) response = (false, "");
+Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
+  bool successfullyWritten = await writeToSignedOutCustomers(customer);
+  (bool, String) response = (false, "");
 
-    if (successfullyWritten) {
-      int? customerRowNum = await getCustomerRowNum(customer);
-      if (customerRowNum != null) {
-        rowDeleted = await deleteRowfromSignedIn(customerRowNum);
+  if (successfullyWritten) {
+    int? customerRowNum = await getCustomerRowNum(customer);
 
-        if (rowDeleted) {
-          response = (true, "Your vehicle has successfully been signed out");
-        }
+    if (customerRowNum != null) {
+      bool rowDeleted = await deleteRowfromSignedIn(customerRowNum);
 
+      if (rowDeleted) {
+        response = (true, "Your vehicle has successfully been signed out");
       } else {
-        response = (false, "Failed to find vehicle in sign in sheet");
+        response = (false, "Failed to delete the customer row from sign-in sheet");
       }
     } else {
-      response = (false, "Failed to write customer details to sign out sheet");
+      response = (false, "Failed to find vehicle in sign-in sheet");
     }
-
-    
-    
-
-    return response;
+  } else {
+    response = (false, "Failed to write customer details to sign-out sheet");
   }
+
+  return response;
+}
 
 
   // Checks if the given customer is already signed in

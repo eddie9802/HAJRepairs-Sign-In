@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import 'customerHAJ.dart';
 import 'customer_sign_out_details.dart';
 
-import 'google_sheets_talker.dart';
+import '../google_sheets_talker.dart';
 
 class CustomerFormSignOut extends StatefulWidget {
   const CustomerFormSignOut({super.key}); // Optional constructor with key
@@ -83,6 +83,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                     SizedBox(
                       width: 400,
                       child: TextField(
+                        textCapitalization: TextCapitalization.characters,
                         enabled: _signButtonPressed ? false : true,
                         onChanged: (value) => setMatchedCustomers(value),
                         decoration: InputDecoration(

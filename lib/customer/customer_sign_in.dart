@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
 
 
-import 'google_sheets_talker.dart';
+import '../google_sheets_talker.dart';
 
 class CustomerSignIn extends StatefulWidget {
   const CustomerSignIn({super.key}); // Optional constructor with key
@@ -200,7 +200,6 @@ bool isValidPhoneNumber(String input) {
 
   @override
   Widget build(BuildContext context) {
-    bool isReasonForVisit = _customerFormSignIn[_currentStep] == "Reason For Visit";
     return Stack(
       children: [
         Scaffold(
@@ -236,12 +235,15 @@ bool isValidPhoneNumber(String input) {
                         SizedBox(
                           width: 800,
                           child: TextField(
-                            textCapitalization: isReasonForVisit ? TextCapitalization.sentences : TextCapitalization.words,
+                            textCapitalization:
+                              _customerFormSignIn[_currentStep] == "Reason For Visit" ? TextCapitalization.sentences :
+                              _customerFormSignIn[_currentStep] == "Registration" ?
+                              TextCapitalization.characters : TextCapitalization.words,
                             enabled: _signButtonPressed ? false : true,
                             controller: _controllers[_currentStep],
-                            maxLength: isReasonForVisit ? 250 : null,
-                            keyboardType: isReasonForVisit ? TextInputType.multiline : null,
-                            maxLines: isReasonForVisit ? null : 1,
+                            maxLength: _customerFormSignIn[_currentStep] == "Reason For Visit" ? 250 : null,
+                            keyboardType: _customerFormSignIn[_currentStep] == "Reason For Visit" ? TextInputType.multiline : null,
+                            maxLines: _customerFormSignIn[_currentStep] == "Reason For Visit" ? null : 1,
                             decoration: InputDecoration(
                               labelText: _fieldText[_currentTextField],
                               labelStyle: TextStyle(color: Colors.red),

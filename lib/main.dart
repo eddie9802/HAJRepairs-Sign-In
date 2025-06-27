@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'employee_search.dart';
-import 'customer_form.dart';
+import 'customer/customer_form.dart';
 
 void main() {
   runApp(MainApp());

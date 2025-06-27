@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:haj_repairs_sign_in/customer_sign_in.dart';
-import 'package:haj_repairs_sign_in/customer_search.dart';
+import 'package:haj_repairs_sign_in/customer/customer_sign_in.dart';
+import 'package:haj_repairs_sign_in/customer/customer_search.dart';
 
 class CustomerForm extends StatefulWidget {
   const CustomerForm({super.key}); // Optional constructor with key

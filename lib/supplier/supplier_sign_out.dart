@@ -21,7 +21,9 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     SupplierHAJ supplier = widget.supplier;
     supplierDetails.add("Name: ${supplier.name}");
     supplierDetails.add("Company: ${supplier.company}");
-    supplierDetails.add("Driver Name: ${supplier.reasonForVisit}");
+    supplierDetails.add("Reasons For Visit: ${supplier.reasonForVisit}");
+    supplierDetails.add("Date: ${supplier.date}");
+    supplierDetails.add("Sign In: ${supplier.signIn}");
     return supplierDetails;
   }
 

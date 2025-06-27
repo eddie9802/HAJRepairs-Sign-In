@@ -1,0 +1,18 @@
+class SupplierHAJ {
+  final String name;
+  final String company;
+  final String reasonForVisit;
+  final String signIn;
+  String signOut;
+  
+
+
+
+  SupplierHAJ({
+    required this.name,
+    required this.company,
+    required this.reasonForVisit,
+    required this.signIn,
+    required this.signOut
+    });
+}

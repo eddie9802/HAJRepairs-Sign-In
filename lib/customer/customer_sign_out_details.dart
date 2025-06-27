@@ -48,7 +48,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
               });
             },
           ),
-        title: Text("Customer Sign Out"),
+        title: Text("Customer Sign Out Details"),
       )
     );
   }

@@ -6,7 +6,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'colleague.dart';
+import 'colleague/colleague.dart';
 import 'customer/customerHAJ.dart';
 
 

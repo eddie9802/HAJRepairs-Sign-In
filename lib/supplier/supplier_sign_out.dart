@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
+import 'package:intl/intl.dart';
 import '../google_sheets_talker.dart';
 
 
@@ -48,6 +49,8 @@ class SupplierSignOutState extends State<SupplierSignOut> {
       _signButtonPressed = true;
     });
     
+    DateTime now = DateTime.now();
+    supplier.signOut = DateFormat('h:mm a').format(now);
 
     (bool, String) response = await GoogleSheetsTalker().signSupplierOut(supplier);
 

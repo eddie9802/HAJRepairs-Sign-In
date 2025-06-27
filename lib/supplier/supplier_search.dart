@@ -81,7 +81,7 @@ class _SupplierSearchState extends State<SupplierSearch> {
                     SizedBox(
                       width: 400,
                       child: TextField(
-                        textCapitalization: TextCapitalization.characters,
+                        textCapitalization: TextCapitalization.words,
                         enabled: _signButtonPressed ? false : true,
                         onChanged: (value) => setMatchedSuppliers(value),
                         decoration: InputDecoration(

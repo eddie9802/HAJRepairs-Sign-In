@@ -353,7 +353,7 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
     if (!signedIn) {
       if (await uploadSupplierData(formData)) {
-        response = (true, "Signin successful");
+        response = (true, "Sign in successful");
       } else {
         response = (false, "Sign in failed");
       }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'employee_search.dart';
+import 'colleague_search.dart';
 import 'customer/customer_form.dart';
 
 void main() {
@@ -62,7 +62,7 @@ class MainPage extends StatelessWidget {
                       Widget targetPage;
 
                       if (type == 'Colleague') {
-                        targetPage = EmployeeSearch();
+                        targetPage = ColleagueSearch();
                       } else if (type == 'Customer') {
                         targetPage = CustomerForm();
                       } else {

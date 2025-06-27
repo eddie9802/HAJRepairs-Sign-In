@@ -6,7 +6,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'employee.dart';
+import 'colleague.dart';
 import 'customer/customerHAJ.dart';
 
 
@@ -14,7 +14,7 @@ import 'customer/customerHAJ.dart';
 
 class GoogleSheetsTalker {
   static final String _currentSheetId = getTodaysSheet();
-  static final String _employeeSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
+  static final String _colleagueSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
   static final String _customerSpreadsheetId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
   static final String _signedInCustomerSheet = "Signed In Customers";
     static final String _signedOutCustomerSheet = "Signed Out Customers";
@@ -28,8 +28,8 @@ class GoogleSheetsTalker {
     final credentials = ServiceAccountCredentials.fromJson(json.decode(jsonStr));
     final client = await clientViaServiceAccount(credentials, scopes);
     final driveApi = drive.DriveApi(client);
-    String employeeReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
-    var files = await listFilesInFolder(driveApi, employeeReceptionFolderId);
+    String colleagueReceptionFolderId = "1HIiBFszhTKqfa3rS46lkeGobDCf_Iz1F";
+    var files = await listFilesInFolder(driveApi, colleagueReceptionFolderId);
 
 
     String? timesheetId;
@@ -326,10 +326,10 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
     return days[weekday - 1];
   }
   
-  final Employee? employee;
+  final Colleague? colleague;
 
-  GoogleSheetsTalker() : employee = null;
-  GoogleSheetsTalker.sign(this.employee);
+  GoogleSheetsTalker() : colleague = null;
+  GoogleSheetsTalker.sign(this.colleague);
 
 
 
@@ -365,17 +365,17 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
   }
 
   
-  sheets.RowData getEmployeeRows(List<Employee>? allEmployees) {
-    sheets.RowData employeeRows = sheets.RowData(values: []);
-    for (Employee employee in allEmployees!) {
-      employeeRows.values!.add(sheets.CellData.fromJson({
-        'userEnteredValue': {'stringValue': employee.getFullName()},
+  sheets.RowData getColleagueRows(List<Colleague>? allColleagues) {
+    sheets.RowData colleagueRows = sheets.RowData(values: []);
+    for (Colleague colleague in allColleagues!) {
+      colleagueRows.values!.add(sheets.CellData.fromJson({
+        'userEnteredValue': {'stringValue': colleague.getFullName()},
         'userEnteredFormat': {
           'textFormat': {'bold': false}
         }
       }));
     }
-    return employeeRows;
+    return colleagueRows;
   }
 
 
@@ -388,16 +388,16 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
     if (response.values != null) {
       for (final row in response.values!) {
-        if (row.isNotEmpty && row[0].toString() == employee!.getFullName()) {
+        if (row.isNotEmpty && row[0].toString() == colleague!.getFullName()) {
           // Finds out if the user is signing in or out
           if (row.length % 2 == 0) {
             signing = "Sign Out";
           } else {
             signing = "Sign In";
           }
-          employee?.signings = [];
+          colleague?.signings = [];
           for (int i = 1; i < row.length; i++) {
-            employee?.signings.add(row[i].toString());
+            colleague?.signings.add(row[i].toString());
           }
           break;
         }
@@ -451,7 +451,7 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
     // Add new signing
     DateTime now = DateTime.now();
     String formattedTime = DateFormat('h:mm a').format(now);
-    employee?.signings.add(formattedTime);
+    colleague?.signings.add(formattedTime);
     double timeAsFraction = getTimeAsFraction(formattedTime.toString());
     final cell = sheets.CellData.fromJson({
       'userEnteredValue': {'numberValue': timeAsFraction},
@@ -462,8 +462,8 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
         }
       }
     });
-    employee!.lastSigningTime = formattedTime.toString();
-    developer.log('Signing time has been set: ${employee!.lastSigningTime!}');
+    colleague!.lastSigningTime = formattedTime.toString();
+    developer.log('Signing time has been set: ${colleague!.lastSigningTime!}');
     newRow.values!.add(cell);
     return newRow;
   }
@@ -498,25 +498,25 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
 
 
-  // Returns a list of all the employees
-  Future<List<Employee>?> retrieveEmployees() async {
+  // Returns a list of all the colleagues
+  Future<List<Colleague>?> retrieveColleagues() async {
     final range = "A:B"; // Reads all the values in columns A and B
     sheets.SheetsApi sheetsApi = await getSheetsApi();
-    final response = await sheetsApi.spreadsheets.values.get(_employeeSheetId, range);
+    final response = await sheetsApi.spreadsheets.values.get(_colleagueSheetId, range);
     final values = response.values;
-    final List<Employee> allEmployees = [];
+    final List<Colleague> allColleagues = [];
     if (values == null || values.isEmpty) {
-      developer.log("No employees found");
+      developer.log("No colleagues found");
     } else {
 
       // .skip(1) skips the header row
       for (var row in values.skip(1)) {
         String forename = row[0].toString();
         String surname = row[1].toString();
-        allEmployees.add(Employee(forename: forename, surname: surname));
+        allColleagues.add(Colleague(forename: forename, surname: surname));
       }
     }
-    return allEmployees;
+    return allColleagues;
   }
 
 
@@ -565,8 +565,8 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
     // Check if the user is already in the sheet
     int userIndex = -1; // If userIndex is not found, it will remain -1
     for (List<dynamic> row in signingsSheet) {
-      if (row[0] == employee!.getFullName()) {
-        developer.log('Found user ${employee!.getFullName()} in row: $row');
+      if (row[0] == colleague!.getFullName()) {
+        developer.log('Found user ${colleague!.getFullName()} in row: $row');
         userIndex = signingsSheet.indexOf(row);
         break;
       }
@@ -574,13 +574,13 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
     // If the user is not on the signings sheet the function return
     if (userIndex == -1) {
-      developer.log('${employee!.getFullName()} was not found on signings sheet.');
+      developer.log('${colleague!.getFullName()} was not found on signings sheet.');
       return;
     }
 
 
     // Takes the signing sheet data and creates a new row with the current time.
-    final signingsRow = getNewSigningsRow(employee?.signings);
+    final signingsRow = getNewSigningsRow(colleague?.signings);
 
     // Gets a new headers row if the headers need to be extended
     sheets.RowData newHeaders = sheets.RowData(values: []);

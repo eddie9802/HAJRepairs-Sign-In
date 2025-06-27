@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'google_sheets_talker.dart';
-import 'employee.dart';
-import 'employee_signing.dart';
+import 'colleague.dart';
+import 'colleague_signing.dart';
 
-class EmployeeSearch extends StatefulWidget {
-  const EmployeeSearch({super.key});
+class ColleagueSearch extends StatefulWidget {
+  const ColleagueSearch({super.key});
 
   @override
-  _EmployeeSearchState createState() => _EmployeeSearchState();
+  _ColleagueSearchState createState() => _ColleagueSearchState();
 }
 
-class _EmployeeSearchState extends State<EmployeeSearch> {
+class _ColleagueSearchState extends State<ColleagueSearch> {
 
-  final Future<List<dynamic>?> _employees = GoogleSheetsTalker().retrieveEmployees();
+  final Future<List<dynamic>?> _colleagues = GoogleSheetsTalker().retrieveColleagues();
 
-  List<Employee> _matchedEmployees = [];
+  List<Colleague> _matchedColleagues = [];
 
-  // Function to get matched employees based on search input
-  Future<List<Employee>> getSearchedEmployees(String search) async {
-    List<Employee> matched = [];
-    final employees = await _employees;
-    for (var employee in employees!) {
-      String fullName = '${employee.forename} ${employee.surname}';
+  // Function to get matched colleagues based on search input
+  Future<List<Colleague>> getSearchedColleagues(String search) async {
+    List<Colleague> matched = [];
+    final colleagues = await _colleagues;
+    for (var colleague in colleagues!) {
+      String fullName = '${colleague.forename} ${colleague.surname}';
       if (fullName.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
-        matched.add(employee);
+        matched.add(colleague);
       }
     }
 
@@ -31,11 +31,11 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
     return matched;
   }
 
-// Function to update the matched employees based on user input
-  void setMatchedEmployees(String search) async {
-    final matched = await getSearchedEmployees(search);
+// Function to update the matched colleagues based on user input
+  void setMatchedColleagues(String search) async {
+    final matched = await getSearchedColleagues(search);
     setState(() {
-      _matchedEmployees = matched;
+      _matchedColleagues = matched;
     });
   }
 
@@ -74,7 +74,7 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
                     SizedBox(
                       width: 400,
                       child: TextField(
-                        onChanged: (value) => setMatchedEmployees(value),
+                        onChanged: (value) => setMatchedColleagues(value),
                         decoration: InputDecoration(
                         labelText: 'Enter name',
                         border: OutlineInputBorder(),
@@ -89,16 +89,16 @@ class _EmployeeSearchState extends State<EmployeeSearch> {
                   child: ListView(
                     padding: EdgeInsets.all(16.0),
                     children: [
-                      ...List.generate(_matchedEmployees.length, (index) {
+                      ...List.generate(_matchedColleagues.length, (index) {
                         return Padding(
                           padding: EdgeInsets.only(bottom: 8.0),
                           child: ListTile(
-                              title: Text('${_matchedEmployees[index].forename} ${_matchedEmployees[index].surname}'),
+                              title: Text('${_matchedColleagues[index].forename} ${_matchedColleagues[index].surname}'),
                               onTap: () {
                                 FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => EmployeeReception(employee: _matchedEmployees[index])),
+                                  MaterialPageRoute(builder: (context) => ColleagueReception(colleague: _matchedColleagues[index])),
                                 );
                               },
                             ),

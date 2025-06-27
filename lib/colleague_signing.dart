@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'google_sheets_talker.dart';
-import 'employee.dart';
+import 'colleague.dart';
 import 'dart:developer' as developer;
 
-class EmployeeReception extends StatefulWidget {
+class ColleagueReception extends StatefulWidget {
 
-  final Employee employee;
+  final Colleague colleague;
 
-  const EmployeeReception({super.key, required this.employee});
+  const ColleagueReception({super.key, required this.colleague});
 
 
   @override
-  _EmployeeReceptionState createState() => _EmployeeReceptionState();
+  _ColleagueReceptionState createState() => _ColleagueReceptionState();
 
 }
 
-class _EmployeeReceptionState extends State<EmployeeReception> {
+class _ColleagueReceptionState extends State<ColleagueReception> {
   late Future<String> _buttonTextFuture;
   bool _signButtonPressed = false;
 
   @override
   void initState() {
     super.initState();
-    _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
+    _buttonTextFuture = GoogleSheetsTalker.sign(widget.colleague).getButtonText();
   }
 
-  Future<dynamic> showEmployeeDialog(BuildContext context, String? signing) {
+  Future<dynamic> showColleagueDialog(BuildContext context, String? signing) {
     return showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(''),
-        content: Text('$signing at ${widget.employee.signings.last} successful!'),
+        content: Text('$signing at ${widget.colleague.signings.last} successful!'),
         actions: [
           TextButton(
             onPressed: () {
@@ -44,9 +44,9 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
     );
   }
 
-  Future<void> signEmployee(BuildContext context, String? signing) async {
-    await GoogleSheetsTalker.sign(widget.employee).writeSigning();
-    await showEmployeeDialog(context, signing);
+  Future<void> signColleague(BuildContext context, String? signing) async {
+    await GoogleSheetsTalker.sign(widget.colleague).writeSigning();
+    await showColleagueDialog(context, signing);
   }
 
 
@@ -97,7 +97,7 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                   children: [
                     Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text('What would you like to do, ${widget.employee.forename}?', style: TextStyle(fontSize: 24)),
+                      child: Text('What would you like to do, ${widget.colleague.forename}?', style: TextStyle(fontSize: 24)),
                     ),
                     TextButton(
                       onPressed:() async {
@@ -107,10 +107,10 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                           _signButtonPressed = true;
                         });
 
-                        await signEmployee(context, signing);
+                        await signColleague(context, signing);
 
                         setState(() {
-                          _buttonTextFuture = GoogleSheetsTalker.sign(widget.employee).getButtonText();
+                          _buttonTextFuture = GoogleSheetsTalker.sign(widget.colleague).getButtonText();
                         });
 
                         // Returns to home screen
@@ -129,20 +129,20 @@ class _EmployeeReceptionState extends State<EmployeeReception> {
                         child: 
                           ListView(
                             children: [
-                              ...List.generate(widget.employee.signings.length, (index) {
+                              ...List.generate(widget.colleague.signings.length, (index) {
                                 if (index % 2 == 0) {
                                   return 
                                     Center(child: 
                                     Padding(
                                       padding: EdgeInsets.only(bottom: 20.0),
-                                      child: Text('Sign In: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      child: Text('Sign In: ${widget.colleague.signings[index]}', style: TextStyle(fontSize: 20)))
                                       );
                                 } else {
                                   return
                                     Center(child: 
                                     Padding(
                                       padding: EdgeInsets.only(bottom: 20.0),
-                                      child: Text('Sign Out: ${widget.employee.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      child: Text('Sign Out: ${widget.colleague.signings[index]}', style: TextStyle(fontSize: 20)))
                                       );
                                 }
                               }),

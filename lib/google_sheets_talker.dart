@@ -286,14 +286,15 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
 
     // Checks if the given customer is already signed in
-  Future<bool> hasSupplierSignedIn(String supplierName) async {
+  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany) async {
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     final response = await sheetsApi.spreadsheets.values.get(_suppliersSpreadsheetId, _signedInSuppliersSheet);
     final rows = response.values;
 
     for (var row in rows!) {
       String name = row[0].toString();
-      if (name == supplierName) {
+      String company = row[1].toString();
+      if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {
         return true;
       } 
     }
@@ -346,17 +347,18 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
   Future<(bool, String)> signSupplierIn(Map<String, String> formData) async {
     (bool, String) response = (false, "");
     String name = formData["Name"]!;
+    String company = formData["Company"]!;
 
-    bool signedIn = await hasSupplierSignedIn(name);
+    bool signedIn = await hasSupplierSignedIn(name, company);
 
     if (!signedIn) {
       if (await uploadSupplierData(formData)) {
-        response = (true, "Your vehicle has successfully been signed in");
+        response = (true, "Signin successful");
       } else {
         response = (false, "Sign in failed");
       }
     } else {
-      response = (false, "Vehicle has already been signed in");
+      response = (false, "${formData["Name"]} from ${formData["Company"]} is already signed in");
     }
 
 

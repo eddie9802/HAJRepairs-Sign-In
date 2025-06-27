@@ -128,7 +128,7 @@ bool isValidPhoneNumber(String input) {
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
-      formData[_supplierSignIn[i]] = _controllers[i].text;
+      formData[_supplierSignIn[i]] = _controllers[i].text.trim();
     }
     formData["Date"] = date;
     formData["Sign in"] = DateFormat('h:mm a').format(now);

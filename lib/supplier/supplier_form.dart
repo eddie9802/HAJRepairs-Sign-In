@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:haj_repairs_sign_in/customer/customer_sign_in.dart';
+import 'package:haj_repairs_sign_in/supplier/supplier_sign_in.dart';
 import 'package:haj_repairs_sign_in/customer/customer_search.dart';
 
-class CustomerForm extends StatefulWidget {
-  const CustomerForm({super.key}); // Optional constructor with key
+class SupplierForm extends StatefulWidget {
+  const SupplierForm({super.key}); // Optional constructor with key
 
   @override
-    _CustomerFormState createState() => _CustomerFormState();
+    _SupplierFormState createState() => _SupplierFormState();
 }
 
-class _CustomerFormState extends State<CustomerForm> {
+class _SupplierFormState extends State<SupplierForm> {
 
 
   @override
@@ -74,7 +74,7 @@ class _CustomerFormState extends State<CustomerForm> {
                             onPressed: () {
                               Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => CustomerSignIn()),
+                                  MaterialPageRoute(builder: (context) => SupplierSignIn()),
                                 );
                             },
                             child: Text("Sign in", style: TextStyle(fontSize: 24)),
@@ -84,7 +84,7 @@ class _CustomerFormState extends State<CustomerForm> {
                             onPressed: () {
                               Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => CustomerFormSignOut()),
+                                  MaterialPageRoute(builder: (context) => SupplierSignOut()),
                                 );
                             },
                             child: Text("Sign out", style: TextStyle(fontSize: 24)),

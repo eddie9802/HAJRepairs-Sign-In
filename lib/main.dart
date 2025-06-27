@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
+import 'supplier/supplier_form.dart';
 
 void main() {
   runApp(MainApp());
@@ -65,8 +66,10 @@ class MainPage extends StatelessWidget {
                         targetPage = ColleagueSearch();
                       } else if (type == 'Customer') {
                         targetPage = CustomerForm();
-                      } else {
-                        return; // Handle Supplier or add more cases
+                      } else if (type == 'Supplier') {
+                        targetPage = SupplierForm();
+                      } else{
+                        return;
                       }
 
                       Navigator.push(

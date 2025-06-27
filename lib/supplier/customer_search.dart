@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
-import 'customerHAJ.dart';
+import 'supplierHAJ.dart';
 import 'customer_sign_out_details.dart';
 
 import '../google_sheets_talker.dart';
@@ -16,14 +14,14 @@ class CustomerFormSignOut extends StatefulWidget {
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   bool _signButtonPressed = false;
-  final Future<List<CustomerHAJ>> _allCustomersFuture = GoogleSheetsTalker().retrieveCustomers();
+  final Future<List<SupplierHAJ>> _allCustomersFuture = GoogleSheetsTalker().retrieveCustomers();
 
 
-    List<CustomerHAJ> _matchedCustomers = [];
+    List<SupplierHAJ> _matchedCustomers = [];
 
   // Function to get matched customers based on search input
-  Future<List<CustomerHAJ>> getMatchingCustomers(String reg) async {
-    List<CustomerHAJ> matched = [];
+  Future<List<SupplierHAJ>> getMatchingCustomers(String reg) async {
+    List<SupplierHAJ> matched = [];
     final allCustomers = await _allCustomersFuture;
     for (var customer in allCustomers) {
       if (customer.registration.toLowerCase().startsWith(reg.toLowerCase()) && reg.isNotEmpty) {
@@ -34,7 +32,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
   }
 
   void setMatchedCustomers(String reg) async {
-    List<CustomerHAJ> matches = await getMatchingCustomers(reg);
+    List<SupplierHAJ> matches = await getMatchingCustomers(reg);
     setState(() => 
     _matchedCustomers = matches
     ,);

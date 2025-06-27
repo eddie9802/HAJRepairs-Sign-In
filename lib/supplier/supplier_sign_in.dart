@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
 
 
 import '../google_sheets_talker.dart';
 
-class CustomerSignIn extends StatefulWidget {
-  const CustomerSignIn({super.key}); // Optional constructor with key
+class SupplierSignIn extends StatefulWidget {
+  const SupplierSignIn({super.key}); // Optional constructor with key
 
   @override
-    CustomerSignInState createState() => CustomerSignInState();
+    SupplierSignInState createState() => SupplierSignInState();
 }
 
-class CustomerSignInState extends State<CustomerSignIn> {
+class SupplierSignInState extends State<SupplierSignIn> {
 
-  final List<String> _customerFormSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
-  final List<String> _customerFormSignInQuestions = [
+  final List<String> _supplierSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
+  final List<String> _supplierSignInQuestions = [
                                               "What is your registration?",
                                               "What company are you from?",
                                               "What is your name?",
@@ -37,7 +36,7 @@ class CustomerSignInState extends State<CustomerSignIn> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_customerFormSignIn.length, (_) => TextEditingController());
+    _controllers = List.generate(_supplierSignIn.length, (_) => TextEditingController());
   }
 
   @override
@@ -82,7 +81,7 @@ bool isValidPhoneNumber(String input) {
       setState(() {
         _currentTextField = "required";
       });
-    } else if (_customerFormSignIn[_currentStep] == "Driver Number" && !isValidPhoneNumber(userInput)) {
+    } else if (_supplierSignIn[_currentStep] == "Driver Number" && !isValidPhoneNumber(userInput)) {
       setState(() {
         _currentTextField = "invalid phone number";
       });
@@ -96,7 +95,7 @@ bool isValidPhoneNumber(String input) {
         });
       }
 
-    if (_customerFormSignIn[_currentStep] == "Registration") {
+    if (_supplierSignIn[_currentStep] == "Registration") {
         _controllers[_currentStep].text = userInput.toUpperCase().replaceAll(' ', '');
     }
 
@@ -109,7 +108,7 @@ bool isValidPhoneNumber(String input) {
 
       // Goes to next question if there is another one
       // else, submit the form
-      if (_currentStep < _customerFormSignIn.length - 1){
+      if (_currentStep < _supplierSignIn.length - 1){
         _goToNextQuestion();
       } else {
         _submitForm();
@@ -119,7 +118,7 @@ bool isValidPhoneNumber(String input) {
 
   void _goToNextQuestion() {
     setState(() {
-      if (_currentStep < _customerFormSignIn.length - 1) {
+      if (_currentStep < _supplierSignIn.length - 1) {
         _currentStep++;
       }
     });
@@ -138,7 +137,7 @@ bool isValidPhoneNumber(String input) {
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
-      formData[_customerFormSignIn[i]] = _controllers[i].text;
+      formData[_supplierSignIn[i]] = _controllers[i].text;
     }
     formData["Date"] = date;
     formData["Sign in"] = DateFormat('h:mm a').format(now);
@@ -218,14 +217,14 @@ bool isValidPhoneNumber(String input) {
                         alignment: Alignment.centerRight,
                         child: 
                           Text(
-                            "Question ${_currentStep + 1} of ${_customerFormSignInQuestions.length}",
+                            "Question ${_currentStep + 1} of ${_supplierSignInQuestions.length}",
                             style: TextStyle(fontSize: 18),
                           ),
                       ),
                     ),
                     Center(
                       child: Text(
-                        _customerFormSignInQuestions[_currentStep],
+                        _supplierSignInQuestions[_currentStep],
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
@@ -236,14 +235,14 @@ bool isValidPhoneNumber(String input) {
                           width: 800,
                           child: TextField(
                             textCapitalization:
-                              _customerFormSignIn[_currentStep] == "Reason For Visit" ? TextCapitalization.sentences :
-                              _customerFormSignIn[_currentStep] == "Registration" ?
+                              _supplierSignIn[_currentStep] == "Reason For Visit" ? TextCapitalization.sentences :
+                              _supplierSignIn[_currentStep] == "Registration" ?
                               TextCapitalization.characters : TextCapitalization.words,
                             enabled: _signButtonPressed ? false : true,
                             controller: _controllers[_currentStep],
-                            maxLength: _customerFormSignIn[_currentStep] == "Reason For Visit" ? 250 : null,
-                            keyboardType: _customerFormSignIn[_currentStep] == "Reason For Visit" ? TextInputType.multiline : null,
-                            maxLines: _customerFormSignIn[_currentStep] == "Reason For Visit" ? null : 1,
+                            maxLength: _supplierSignIn[_currentStep] == "Reason For Visit" ? 250 : null,
+                            keyboardType: _supplierSignIn[_currentStep] == "Reason For Visit" ? TextInputType.multiline : null,
+                            maxLines: _supplierSignIn[_currentStep] == "Reason For Visit" ? null : 1,
                             decoration: InputDecoration(
                               labelText: _fieldText[_currentTextField],
                               labelStyle: TextStyle(color: Colors.red),
@@ -264,7 +263,7 @@ bool isValidPhoneNumber(String input) {
                           SizedBox(width: 20),
                           ElevatedButton(
                             onPressed: _validateQuestion,
-                            child: Text( _currentStep == _customerFormSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
+                            child: Text( _currentStep == _supplierSignIn.length - 1 ? "Submit" : "Next", style: TextStyle(fontSize: 24)),
                           )
                         ],
                       ),

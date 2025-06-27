@@ -201,18 +201,31 @@ Future<bool> deleteRowfromSignedIn(int rowNumber) async {
 
 
   // Writes the customer to the sign out sheet and remove them from the sign in
-  Future<bool> signCustomerOut(CustomerHAJ customer) async {
+  Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
     bool rowDeleted = false;
     bool successfullyWritten = await writeToSignedOutCustomers(customer);
+    (bool, String) response = (false, "");
 
     if (successfullyWritten) {
       int? customerRowNum = await getCustomerRowNum(customer);
       if (customerRowNum != null) {
         rowDeleted = await deleteRowfromSignedIn(customerRowNum);
+
+        if (rowDeleted) {
+          response = (true, "Your vehicle has successfully been signed out");
+        }
+
+      } else {
+        response = (false, "Failed to find vehicle in sign in sheet");
       }
+    } else {
+      response = (false, "Failed to write customer details to sign out sheet");
     }
 
-    return rowDeleted;
+    
+    
+
+    return response;
   }
 
 

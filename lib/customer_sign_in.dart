@@ -236,6 +236,7 @@ bool isValidPhoneNumber(String input) {
                         SizedBox(
                           width: 800,
                           child: TextField(
+                            textCapitalization: isReasonForVisit ? TextCapitalization.sentences : TextCapitalization.words,
                             enabled: _signButtonPressed ? false : true,
                             controller: _controllers[_currentStep],
                             maxLength: isReasonForVisit ? 250 : null,

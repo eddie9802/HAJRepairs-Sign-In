@@ -153,17 +153,17 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     widget.customer.signOutDate = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
     
 
-    bool isUploaded = await GoogleSheetsTalker().signCustomerOut(customer);
+    (bool, String) response = await GoogleSheetsTalker().signCustomerOut(customer);
 
     await Future.delayed(Duration(milliseconds: 200));
-    if (isUploaded) {
-      await showCustomerDialog("Your details have successfully been taken");
+    if (response.$1) {
+      await showCustomerDialog(response.$2);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showCustomerDialog("An error has occurred");
+      await showCustomerDialog("Error: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });
@@ -232,6 +232,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
                           SizedBox(
                             width: 800,
                             child: TextField(
+                              textCapitalization: TextCapitalization.words,
                               enabled: _signButtonPressed ? false : true,
                               controller:  _currentStep > 0 ? _controllers[_currentStep-1] : null,
                               decoration: InputDecoration(

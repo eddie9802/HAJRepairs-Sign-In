@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'google_sheets_talker.dart';
+import '../google_sheets_talker.dart';
 import 'colleague.dart';
 import 'dart:developer' as developer;
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colleague_search.dart';
+import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
 
 void main() {

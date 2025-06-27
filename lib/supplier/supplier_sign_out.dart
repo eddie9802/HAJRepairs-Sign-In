@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
-import 'supplier_sign_out.dart';
 
 
-class SupplierSignOutDetails extends StatefulWidget {
+class SupplierSignOut extends StatefulWidget {
 
   final SupplierHAJ supplier;
 
-  const SupplierSignOutDetails({super.key, required this.supplier}); // Optional constructor with key
+  const SupplierSignOut({super.key, required this.supplier}); // Optional constructor with key
 
   @override
-    SupplierSignOutDetailsState createState() => SupplierSignOutDetailsState();
+    SupplierSignOutState createState() => SupplierSignOutState();
 }
 
-class SupplierSignOutDetailsState extends State<SupplierSignOutDetails> {
+class SupplierSignOutState extends State<SupplierSignOut> {
 
 
 
-  List<String> getSupplierDetailsList() {
-    List<String> supplierDetailsList = [];
+  List<String> getSupplierDetails() {
+    List<String> supplierDetails = [];
     SupplierHAJ supplier = widget.supplier;
-    supplierDetailsList.add("Name: ${supplier.name}");
-    supplierDetailsList.add("Company: ${supplier.company}");
-    supplierDetailsList.add("Driver Name: ${supplier.reasonForVisit}");
-    return supplierDetailsList;
+    supplierDetails.add("Name: ${supplier.name}");
+    supplierDetails.add("Company: ${supplier.company}");
+    supplierDetails.add("Driver Name: ${supplier.reasonForVisit}");
+    return supplierDetails;
   }
 
 
@@ -47,7 +46,7 @@ class SupplierSignOutDetailsState extends State<SupplierSignOutDetails> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> customerDetailsList = getSupplierDetailsList();
+    List<String> customerDetailsList = getSupplierDetails();
     return Scaffold(
       appBar: getAppbar(),
       body: Container(

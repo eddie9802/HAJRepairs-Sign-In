@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
 import 'customerHAJ.dart';
 import 'customer_sign_out.dart';
 
-import '../google_sheets_talker.dart';
 
 class CustomerSignOutDetails extends StatefulWidget {
 
@@ -18,7 +15,6 @@ class CustomerSignOutDetails extends StatefulWidget {
 
 class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
 
-  bool _signButtonPressed = false;
 
 
   List<String> getCustomerDetailsList() {
@@ -27,7 +23,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
     customerDetailsList.add("Registration: ${customer.registration}");
     customerDetailsList.add("Company: ${customer.company}");
     customerDetailsList.add("Driver Name: ${customer.signInDriverName}");
-    customerDetailsList.add("Driver Number: ${customer.signInDriverNumber == null ? 'N/A' : customer.signInDriverNumber.toString()}");
+    customerDetailsList.add("Driver Number: ${customer.signInDriverNumber}");
     customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
     customerDetailsList.add("Sign In Date: ${customer.signInDate}");
     customerDetailsList.add("Sign In Time: ${customer.signIn.toString()}");

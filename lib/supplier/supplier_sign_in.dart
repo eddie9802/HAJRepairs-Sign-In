@@ -79,10 +79,6 @@ bool isValidPhoneNumber(String input) {
       setState(() {
         _currentTextField = "required";
       });
-    } else if (_supplierSignIn[_currentStep] == "Driver Number" && !isValidPhoneNumber(userInput)) {
-      setState(() {
-        _currentTextField = "invalid phone number";
-      });
     } else {
 
 
@@ -93,9 +89,6 @@ bool isValidPhoneNumber(String input) {
         });
       }
 
-    if (_supplierSignIn[_currentStep] == "Registration") {
-        _controllers[_currentStep].text = userInput.toUpperCase().replaceAll(' ', '');
-    }
 
     // Dismiss keyboard cleanly
     FocusScope.of(context).unfocus();

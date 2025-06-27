@@ -687,22 +687,22 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
       newHeaders.values!.add(sheets.CellData.fromJson({
         'userEnteredValue': {'stringValue': header},
         'userEnteredFormat': {
-          'textFormat': {'bold': true}
+          'textFormat': {'bold': false}
         }
       }));
     }
 
     newHeaders.values!.add(sheets.CellData.fromJson({
-      'userEnteredValue': {'stringValue': 'In'},
+      'userEnteredValue': {'stringValue': 'Sign In'},
       'userEnteredFormat': {
-        'textFormat': {'bold': true}
+        'textFormat': {'bold': false}
       }
     }));
 
     newHeaders.values!.add(sheets.CellData.fromJson({
-      'userEnteredValue': {'stringValue': 'Out'},
+      'userEnteredValue': {'stringValue': 'Sign Out'},
       'userEnteredFormat': {
-        'textFormat': {'bold': true}
+        'textFormat': {'bold': false}
       }
     }));
     return newHeaders;

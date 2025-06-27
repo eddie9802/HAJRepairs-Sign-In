@@ -156,7 +156,7 @@ bool isValidPhoneNumber(String input) {
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showCustomerDialog("An error has occurred: ${response.$2}");
+      await showCustomerDialog("Error: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });

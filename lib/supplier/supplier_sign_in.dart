@@ -13,13 +13,11 @@ class SupplierSignIn extends StatefulWidget {
 
 class SupplierSignInState extends State<SupplierSignIn> {
 
-  final List<String> _supplierSignIn = ["Registration", "Company", "Name", "Driver Number", "Reason For Visit"];
+  final List<String> _supplierSignIn = ["Name", "Company", "Reason For Visit"];
   final List<String> _supplierSignInQuestions = [
-                                              "What is your registration?",
-                                              "What company are you from?",
                                               "What is your name?",
-                                              "What is your contact number?",
-                                              "What is your reason for visiting?"
+                                              "What company are you from?",
+                                              "What is your reason for visiting?",
                                               ];
 
   final Map<String, String> _fieldText = {
@@ -141,13 +139,9 @@ bool isValidPhoneNumber(String input) {
     }
     formData["Date"] = date;
     formData["Sign in"] = DateFormat('h:mm a').format(now);
-
-    if (formData["Driver Number"]!.trim().isEmpty) {
-      formData["Driver Number"] = "N/A";
-    }
     
 
-    (bool, String) response = await GoogleSheetsTalker().signCustomerIn(formData);
+    (bool, String) response = await GoogleSheetsTalker().signSupplierIn(formData);
 
     // response.$1 is the success of the sign in
     if (response.$1) {

@@ -285,6 +285,86 @@ Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
 
 
 
+    // Checks if the given customer is already signed in
+  Future<bool> hasSupplierSignedIn(String supplierName) async {
+    sheets.SheetsApi sheetsApi = await getSheetsApi();
+    final response = await sheetsApi.spreadsheets.values.get(_suppliersSpreadsheetId, _signedInSuppliersSheet);
+    final rows = response.values;
+
+    for (var row in rows!) {
+      String name = row[0].toString();
+      if (name == supplierName) {
+        return true;
+      } 
+    }
+
+    // Customer has not signed in
+    return false;
+  }
+
+
+
+    // Takes all the customer data and uploads it to the customer data spreadsheet
+  Future<bool> uploadSupplierData(Map<String, String> formData) async {
+    try {
+      sheets.SheetsApi sheetsApi = await getSheetsApi();
+
+      // Creates the row to be inserted into customer details
+      List<String>? allSupplierDetails = [
+                                          formData["Name"]!,
+                                          formData["Company"]!,
+                                          formData["Reason For Visit"]!,
+                                          formData["Date"]!,
+                                          formData["Sign in"]!.toString(),
+                                          ];
+
+
+      // Wraps the customer detauls in a value range
+      final valueRange = sheets.ValueRange(
+        values: [allSupplierDetails], // <- wrap your List<String> in another list
+      );
+
+      // Appends the details to the end of the customer details sheet
+      // This allows for concurrency
+      await sheetsApi.spreadsheets.values.append(
+        valueRange,
+        _suppliersSpreadsheetId,
+        "$_signedInSuppliersSheet!A:F",
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS"
+      );
+
+      // If upload was a success then return true else return false
+      return true;
+    } catch(e) {
+      return false;
+    }
+  }
+
+
+  // Signs the customer in
+  Future<(bool, String)> signSupplierIn(Map<String, String> formData) async {
+    (bool, String) response = (false, "");
+    String name = formData["Name"]!;
+
+    bool signedIn = await hasSupplierSignedIn(name);
+
+    if (!signedIn) {
+      if (await uploadSupplierData(formData)) {
+        response = (true, "Your vehicle has successfully been signed in");
+      } else {
+        response = (false, "Sign in failed");
+      }
+    } else {
+      response = (false, "Vehicle has already been signed in");
+    }
+
+
+    return response;
+  }
+
+
+
   // Signs the customer in
   Future<(bool, String)> signCustomerIn(Map<String, String> formData) async {
     (bool, String) response = (false, "");

@@ -94,8 +94,12 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                           padding: EdgeInsets.only(bottom: 8.0),
                           child: ListTile(
                               title: Text('${_matchedColleagues[index].forename} ${_matchedColleagues[index].surname}'),
-                              onTap: () {
-                                FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+                              onTap: () async {
+                                FocusManager.instance.primaryFocus?.unfocus(); 
+
+                                await Future.delayed(const Duration(milliseconds: 200));
+                                
+                                // Dismiss keyboard
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => ColleagueReception(colleague: _matchedColleagues[index])),

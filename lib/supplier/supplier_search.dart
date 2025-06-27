@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
-import 'supplier_sign_out_details.dart';
+import 'supplier_sign_out.dart';
 
 import '../google_sheets_talker.dart';
 
-class CustomerFormSignOut extends StatefulWidget {
-  const CustomerFormSignOut({super.key}); // Optional constructor with key
+class SupplierSignOut extends StatefulWidget {
+  const SupplierSignOut({super.key}); // Optional constructor with key
 
   @override
-    _CustomerFormSignOutState createState() => _CustomerFormSignOutState();
+    _SupplierSignOutState createState() => _SupplierSignOutState();
 }
 
-class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
+class _SupplierSignOutState extends State<SupplierSignOut> {
 
   bool _signButtonPressed = false;
-  final Future<List<SupplierHAJ>> _allSuppliersFuture = GoogleSheetsTalker().retrieveCustomers();
+  final Future<List<SupplierHAJ>> _allSuppliersFuture = GoogleSheetsTalker().retrieveSuppliers();
 
 
     List<SupplierHAJ> _matchedSuppliers = [];
@@ -31,7 +31,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
     return matched;
   }
 
-  void setMatchedCustomers(String reg) async {
+  void setMatchedSuppliers(String reg) async {
     List<SupplierHAJ> matches = await getMatchingSuppliers(reg);
     setState(() => 
     _matchedSuppliers = matches
@@ -52,7 +52,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
               });
             },
           ),
-        title: Text("Customer Search"),
+        title: Text("Supplier Search"),
       )
     );
   }
@@ -83,7 +83,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                       child: TextField(
                         textCapitalization: TextCapitalization.characters,
                         enabled: _signButtonPressed ? false : true,
-                        onChanged: (value) => setMatchedCustomers(value),
+                        onChanged: (value) => setMatchedSuppliers(value),
                         decoration: InputDecoration(
                           //labelText: _fieldText[_currentTextField],
                           labelStyle: TextStyle(color: Colors.red),

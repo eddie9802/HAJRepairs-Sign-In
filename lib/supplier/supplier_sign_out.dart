@@ -90,10 +90,10 @@ class SupplierSignOutDetailsState extends State<SupplierSignOutDetails> {
               Padding(padding: EdgeInsets.symmetric(vertical: 10)),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => SupplierSignOut(customer: widget.supplier)),
-                              );
+                  // Navigator.push(
+                  //               context,
+                  //               MaterialPageRoute(builder: (context) => SupplierSignOut(customer: widget.supplier)),
+                  //             );
                 },
                 child: Text("Sign Out", style: TextStyle(fontSize: 24)),
               ),

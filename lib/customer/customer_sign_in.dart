@@ -274,7 +274,7 @@ bool isValidPhoneNumber(String input) {
             ),
           ),
         ),
-                  // Blocks all user input while the signing occurs
+        // Blocks all user input while the signing occurs
         if (_signButtonPressed) ...[
           ModalBarrier(
             color: Colors.black.withAlpha(77),

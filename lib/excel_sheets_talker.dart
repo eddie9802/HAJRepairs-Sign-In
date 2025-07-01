@@ -1,0 +1,102 @@
+import 'dart:convert';
+
+import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:http/http.dart' as http;
+
+import 'colleague/colleague.dart';
+import 'spreadsheet_utilities.dart';
+
+
+
+
+  
+class ExcelSheetsTalker {
+
+  final FlutterAppAuth appAuth = FlutterAppAuth();
+
+  final String clientId = '5a2d0943-6c4b-469f-ad01-3b7f33f06e81';
+  final String tenantId = 'dd11dc3e-0fa8-4004-9803-70a802de0faf';
+  final String redirectUrl = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
+  final List<String> scopes = [
+    'openid',
+    'profile',
+    'offline_access',
+    'User.Read',
+    'Files.Read',
+    'Files.Read.All',
+    'Sites.Read.All',
+  ];
+
+  Future<String?> authenticateWithMicrosoft() async {
+    try {
+      final AuthorizationTokenResponse? result =
+          await appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(
+          clientId,
+          redirectUrl,
+          serviceConfiguration: AuthorizationServiceConfiguration(
+            authorizationEndpoint:
+                'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/authorize',
+            tokenEndpoint:
+                'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token',
+          ),
+          scopes: scopes,
+          preferEphemeralSession: true,
+        ),
+      );
+
+      if (result != null) {
+        print("Access Token: ${result.accessToken}");
+        return result.accessToken;
+      }
+    } catch (e) {
+      print("Error during Microsoft auth: $e");
+    }
+
+    return null;
+  }
+
+
+  Future<List<Colleague>?> retrieveColleagues() async {
+    String? accessToken = await authenticateWithMicrosoft();
+    String worksheetName = 'List';
+    String fileId = 'Colleagues.xlsx';
+
+
+    final range = 'A:B';
+    final url = Uri.parse(
+      'https://graph.microsoft.com/v1.0/me/drive/items/$fileId/workbook/worksheets/$worksheetName/range(address=\'$range\')',
+    );
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      print('Error fetching Excel data: ${response.statusCode}');
+      return null;
+    }
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+    final List<dynamic>? values = json['values'];
+
+    if (values == null || values.isEmpty) {
+      print('No colleagues found');
+      return [];
+    }
+
+    final List<Colleague> allColleagues = [];
+
+    for (var row in values.skip(1)) {
+      final String forename = row.length > 0 ? row[0]?.toString() ?? '' : '';
+      final String surname = row.length > 1 ? row[1]?.toString() ?? '' : '';
+      allColleagues.add(Colleague(forename: forename, surname: surname));
+    }
+
+    return allColleagues;
+  }
+}

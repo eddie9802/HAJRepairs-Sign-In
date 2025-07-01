@@ -10,6 +10,8 @@ dependencies:
   intl: ^0.18.1
   googleapis: ^11.4.0
   googleapis_auth: ^1.4.0
+  flutter_appauth: ^6.0.0
+  http: ^1.2.0
   flutter:
     sdk: flutter
 

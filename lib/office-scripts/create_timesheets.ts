@@ -10,6 +10,37 @@ interface ShiftRecord {
     "@odata.etag": string;
 }
 
+class Colleague {
+    constructor(
+        public forename: string,
+        public surname: string,
+        public shiftStart: string,
+        public shiftEnd: string,
+        public lunchDuration: string,
+    ) {}
+
+    get fullName(): string {
+        return `${this.forename} ${this.surname}`;
+    }
+}
+
+
+// Reads all the shift records and creates colleague instances from them
+function getAllColleagues(allShiftRecords: ShiftRecord[]) {
+    let allColleagues = [] as Colleague[];
+    for (let shiftRecord of allShiftRecords) {
+        let colleague = new Colleague(
+                                shiftRecord.Forename,
+                                shiftRecord.Surname,
+                                shiftRecord["Shift Start"],
+                                shiftRecord["Shift End"],
+                                shiftRecord["Lunch Duration (Hours)"]
+                                );
+        allColleagues.push(colleague);
+    }
+    return allColleagues;
+}
+
 
 function parseWrappedJson(input: string): ShiftRecord[]  {
     // Find the first "[" which starts the array
@@ -44,12 +75,21 @@ function createWorksheets(workbook: ExcelScript.Workbook) {
 }
 
 
-function fillInSheets(workbook: ExcelScript.Workbook, colleagues: ShiftRecord[]) {
+function fillInSheets(workbook: ExcelScript.Workbook, allColleagues: Colleague[]) {
     let header = ["Name", "Sign In", "Sign Out"];
     let data = [header];
+
+    for (let colleague of allColleagues) {
+        data.push([colleague.fullName, '', '']);
+    }
+
     for (let day of days) {
-        let sheet = workbook.getWorksheet(day);
-        sheet.getRange("A1").getResizedRange(0, header.length - 1).setValues(data);
+        let sheet = workbook.getWorksheet(day)
+        ;
+        // Resize range to match full data dimensions (rows x columns)
+        let range = sheet.getRange("A1").getResizedRange(data.length - 1, header.length - 1);
+        range.setValues(data);
+
     }
 }
 
@@ -59,12 +99,15 @@ function fillInSheets(workbook: ExcelScript.Workbook, colleagues: ShiftRecord[])
 function main(workbook: ExcelScript.Workbook, rows: string) {
     let sheet = workbook.getActiveWorksheet();
 
-    let colleagues = parseWrappedJson(rows);
-
     // Creates worksheets for each day
     createWorksheets(workbook);
 
-    fillInSheets(workbook, colleagues);
+    // Gets all the colleagues
+    let shiftRecords = parseWrappedJson(rows);
+    let allColleagues = getAllColleagues(shiftRecords);
+
+
+    fillInSheets(workbook, allColleagues);
 
 
 }

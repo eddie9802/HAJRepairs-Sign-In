@@ -13,7 +13,6 @@ import 'supplier/supplierHAJ.dart';
 
 
 class GoogleSheetsTalker {
-  static String _currentSheetId = getTodaysSheet();
   static final String _colleagueSheetId = "1HU9r0InSuab5ydG1HPMG72uhgvfcZJbcDabw5MMApnM";
   static final String _customerSpreadsheetId = "1PR8VlyasFyBFtbWArzMeeRb_OLyubRu7s2qfMBcdctA";
   static final String _signedInCustomerSheet = "Signed In Customers";
@@ -596,7 +595,8 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
     sheets.SheetsApi sheetsApi = await getSheetsApi();
 
     String? currentTimesheetId = await getCurrentTimesheetId();
-    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, _currentSheetId,);
+    String currentSheetId = getTodaysSheet();
+    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, currentSheetId,);
 
     if (response.values != null) {
       for (final row in response.values!) {
@@ -765,7 +765,8 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
     // Reads the whole signings sheet
     sheets.SheetsApi sheetsApi = await getSheetsApi();
     String? currentTimesheetId = await getCurrentTimesheetId();
-    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, _currentSheetId);
+    String currentSheetId = getTodaysSheet();
+    final response = await sheetsApi.spreadsheets.values.get(currentTimesheetId!, currentSheetId);
     final signingsSheet = response.values;
     if (signingsSheet == null || signingsSheet.isEmpty) {
       developer.log('Error retrieving data');
@@ -806,7 +807,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
 
     // Gets the sheetID which is needed to build requests
     final spreadsheet = await sheetsApi.spreadsheets.get(currentTimesheetId);
-    final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == _currentSheetId,);
+    final sheet = spreadsheet.sheets?.firstWhere((s) => s.properties?.title == currentSheetId,);
     final sheetId = sheet?.properties?.sheetId;
 
     // Builds an array of all the rows that need to be updated in the sheet

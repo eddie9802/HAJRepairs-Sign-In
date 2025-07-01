@@ -27,38 +27,36 @@ class ExcelSheetsTalker {
     'Sites.Read.All',
   ];
 
-  Future<String?> authenticateWithMicrosoft() async {
-    try {
-      final AuthorizationTokenResponse? result =
-          await appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          clientId,
-          redirectUrl,
-          serviceConfiguration: AuthorizationServiceConfiguration(
-            authorizationEndpoint:
-                'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/authorize',
-            tokenEndpoint:
-                'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token',
-          ),
-          scopes: scopes,
-          preferEphemeralSession: true,
-        ),
-      );
 
-      if (result != null) {
-        print("Access Token: ${result.accessToken}");
-        return result.accessToken;
-      }
-    } catch (e) {
-      print("Error during Microsoft auth: $e");
-    }
+  Future<String?> authenticateWithClientSecret() async {
+  final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
+  final clientSecret = ''; // Store securely!
 
+  final response = await http.post(
+    Uri.parse(tokenEndpoint),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: {
+      'client_id': clientId,
+      'scope': 'https://graph.microsoft.com/.default',
+      'client_secret': clientSecret,
+      'grant_type': 'client_credentials',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+    return jsonResponse['access_token'] as String?;
+  } else {
+    print('Failed to get token: ${response.statusCode} - ${response.body}');
     return null;
+  }
   }
 
 
   Future<List<Colleague>?> retrieveColleagues() async {
-    String? accessToken = await authenticateWithMicrosoft();
+    String? accessToken = await authenticateWithClientSecret();
     String worksheetName = 'List';
     String fileId = 'Colleagues.xlsx';
 

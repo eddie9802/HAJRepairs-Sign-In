@@ -13,7 +13,7 @@ class ColleagueSearch extends StatefulWidget {
 
 class _ColleagueSearchState extends State<ColleagueSearch> {
 
-  final Future<List<dynamic>?> _colleagues = ExcelSheetsTalker().retrieveColleagues();
+  final Future<List<dynamic>?> _colleagues = GoogleSheetsTalker().retrieveColleagues();
 
   List<Colleague> _matchedColleagues = [];
 

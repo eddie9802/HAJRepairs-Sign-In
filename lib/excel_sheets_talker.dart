@@ -1,9 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_appauth/flutter_appauth.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:http/http.dart' as http;
 import 'colleague/colleague.dart';
 import 'spreadsheet_utilities.dart';
 import 'secret_manager.dart';
@@ -26,31 +25,51 @@ class ExcelSheetsTalker {
 
 
   Future<String?> authenticateWithClientSecret() async {
-  final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
-  final secretManager = await SecretManager.create();
-  await secretManager.loadAndEncrypt();
+    final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
+    final secretManager = await SecretManager.create();
+    await secretManager.loadAndEncrypt();
 
-  final response = await http.post(
-    Uri.parse(tokenEndpoint),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: {
-      'client_id': clientId,
-      'scope': scopes,
-      'client_secret': secretManager.getDecryptedSecret(),
-      'grant_type': 'client_credentials',
-    },
-  );
+    final response = await http.post(
+      Uri.parse(tokenEndpoint),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'client_id': clientId,
+        'scope': scopes,
+        'client_secret': secretManager.getDecryptedSecret(),
+        'grant_type': 'client_credentials',
+      },
+    );
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-    return jsonResponse['access_token'] as String?;
-  } else {
-    print('Failed to get token: ${response.statusCode} - ${response.body}');
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      return jsonResponse['access_token'] as String?;
+    } else {
+      print('Failed to get token: ${response.statusCode} - ${response.body}');
+      return null;
+    }
+  }
+
+
+
+  Future<String?> getSharepointId(String? accessToken) async {
+    // Gets the site id for the sharepoint
+    final response = await http.get(
+      Uri.parse('https://graph.microsoft.com/v1.0/sites/hajrepairs.sharepoint.com:/sites/HAJRepairs'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return response.body;
+    }
+
+    print("Failed to get sharepoint id");
     return null;
   }
-  }
+
 
   Future<List<Colleague>?> retrieveColleagues() async {
 
@@ -59,14 +78,9 @@ class ExcelSheetsTalker {
 
     print(accessToken);
 
-    final siteResponse = await http.get(
-      Uri.parse('https://graph.microsoft.com/v1.0/sites/hajrepairs.sharepoint.com:/sites/HAJRepairs'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
 
-    var siteId = siteResponse.body;
+
+    var siteId = getSharepointId(accessToken);
 
     print("This is the site ID: $siteId");
 

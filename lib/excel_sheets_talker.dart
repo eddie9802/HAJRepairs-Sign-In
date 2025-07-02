@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'colleague/colleague.dart';
 import 'spreadsheet_utilities.dart';
@@ -30,7 +31,7 @@ class ExcelSheetsTalker {
 
   Future<String?> authenticateWithClientSecret() async {
   final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
-  final clientSecret = ''; // Store securely!
+  final clientSecret = dotenv.env['AZURE_SECRET'] ?? ''; // Store securely!
 
   final response = await http.post(
     Uri.parse(tokenEndpoint),

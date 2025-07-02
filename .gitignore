@@ -45,6 +45,7 @@ app.*.map.json
 /android/app/release
 
 /assets/haj-reception.json
+/assets/.env
 
 # Ignore Gradle project-specific cache directory
 .gradle

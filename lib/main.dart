@@ -44,7 +44,7 @@ class MainPage extends StatelessWidget {
   static const List<String> _employeeTypes = [
     'Customer',
     'Supplier',
-    'Colleague'
+    'HAJ Colleague'
   ];
 
   @override
@@ -71,12 +71,13 @@ class MainPage extends StatelessWidget {
                     onPressed: () {
                       Widget targetPage;
 
-                      if (type == 'Colleague') {
-                        targetPage = ColleagueSearch();
-                      } else if (type == 'Customer') {
+
+                      if (type == _employeeTypes[0]) {
                         targetPage = CustomerForm();
-                      } else if (type == 'Supplier') {
+                      } else if (type == _employeeTypes[1]) {
                         targetPage = SupplierForm();
+                      }else if (type == _employeeTypes[2]) {
+                        targetPage = ColleagueSearch();
                       } else{
                         return;
                       }

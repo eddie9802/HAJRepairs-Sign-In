@@ -52,7 +52,6 @@ class ExcelSheetsTalker {
   }
   }
 
-
   Future<List<Colleague>?> retrieveColleagues() async {
 
     String? accessToken = await authenticateWithClientSecret();

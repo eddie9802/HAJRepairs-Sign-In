@@ -58,7 +58,7 @@ class MainPage extends StatelessWidget {
               Image.asset('assets/images/haj-logo.png'),
               const SizedBox(height: 10.0),
               const Text(
-                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or Colleague?',
+                'Welcome to HAJ Repairs.  Are you a Customer, Supplier or HAJ Colleague?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),

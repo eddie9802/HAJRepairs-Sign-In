@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter_appauth/flutter_appauth.dart';
 
@@ -17,11 +18,8 @@ class ExcelSheetsTalker {
 
   final String clientId = '5a2d0943-6c4b-469f-ad01-3b7f33f06e81';
   final String tenantId = 'dd11dc3e-0fa8-4004-9803-70a802de0faf';
+  final String _driveId = "b!9fsUyKGke0y1U3QDUBNiD0pi50qUMWlEob3HI9NOb-Zyp0whTvCySa-hJq1U89Sd";
   final String redirectUrl = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
-  final List<String> scopes = [
-    'Files.ReadWrite.All',
-    'Sites.Read.All',
-  ];
 
 
   Future<String?> authenticateWithClientSecret() async {
@@ -36,7 +34,7 @@ class ExcelSheetsTalker {
       },
       body: {
         'client_id': clientId,
-        'scope': scopes,
+        'scope': 'https://graph.microsoft.com/.default',
         'client_secret': secretManager.getDecryptedSecret(),
         'grant_type': 'client_credentials',
       },
@@ -74,20 +72,28 @@ class ExcelSheetsTalker {
   Future<List<Colleague>?> retrieveColleagues() async {
 
     String? accessToken = await authenticateWithClientSecret();
-    String worksheetName = 'List';
-
-    print(accessToken);
-
+    print(accessToken!.length);
+    String worksheetId = 'List';
 
 
-    var siteId = getSharepointId(accessToken);
+    String? sharepointDetails = await getSharepointId(accessToken);
+
+    final Map<String, dynamic> jsonResponse = jsonDecode(sharepointDetails!);
+    final siteId = jsonResponse['id'] as String;
 
     print("This is the site ID: $siteId");
 
     final range = 'A:B';
+    final segments = ['HAJ-Reception', 'Colleagues.xlsx'];
+    final encodedSegments = segments.map(Uri.encodeComponent).join('/');
     final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/sites/$siteId/drive/root:/Collegues.xlsx',
+      'https://graph.microsoft.com/v1.0/drives/$_driveId/root:/$encodedSegments:/workbook/worksheets/$worksheetId/usedRange(valuesOnly=true)',
     );
+
+    // final url = Uri.parse(
+    //   'https://graph.microsoft.com/v1.0/sites/${siteId}/permissions',
+    // );
+    print('https://graph.microsoft.com/v1.0/sites/${siteId}');
 
     final response = await http.get(
       url,
@@ -99,7 +105,10 @@ class ExcelSheetsTalker {
 
     if (response.statusCode != 200) {
       print('Error fetching Excel data: ${response.statusCode}');
+      print('${response.body}');
       return null;
+    } else {
+      print('${response.body}');
     }
 
     final Map<String, dynamic> json = jsonDecode(response.body);

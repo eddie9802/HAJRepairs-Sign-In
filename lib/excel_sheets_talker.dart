@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'colleague/colleague.dart';
 import 'spreadsheet_utilities.dart';
+import 'secret_manager.dart';
 
 
 
@@ -31,7 +32,8 @@ class ExcelSheetsTalker {
 
   Future<String?> authenticateWithClientSecret() async {
   final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
-  final clientSecret = dotenv.env['AZURE_SECRET'] ?? ''; // Store securely!
+  final secretManager = await SecretManager.create();
+  secretManager.loadAndEncrypt();
 
   final response = await http.post(
     Uri.parse(tokenEndpoint),
@@ -41,7 +43,7 @@ class ExcelSheetsTalker {
     body: {
       'client_id': clientId,
       'scope': 'https://graph.microsoft.com/.default',
-      'client_secret': clientSecret,
+      'client_secret': secretManager.getDecryptedSecret(),
       'grant_type': 'client_credentials',
     },
   );

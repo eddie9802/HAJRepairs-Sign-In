@@ -20,12 +20,7 @@ class ExcelSheetsTalker {
   final String tenantId = 'dd11dc3e-0fa8-4004-9803-70a802de0faf';
   final String redirectUrl = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
   final List<String> scopes = [
-    'openid',
-    'profile',
-    'offline_access',
-    'User.Read',
-    'Files.Read',
-    'Files.Read.All',
+    'Files.ReadWrite.All',
     'Sites.Read.All',
   ];
 
@@ -33,7 +28,7 @@ class ExcelSheetsTalker {
   Future<String?> authenticateWithClientSecret() async {
   final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
   final secretManager = await SecretManager.create();
-  secretManager.loadAndEncrypt();
+  await secretManager.loadAndEncrypt();
 
   final response = await http.post(
     Uri.parse(tokenEndpoint),
@@ -42,7 +37,7 @@ class ExcelSheetsTalker {
     },
     body: {
       'client_id': clientId,
-      'scope': 'https://graph.microsoft.com/.default',
+      'scope': scopes,
       'client_secret': secretManager.getDecryptedSecret(),
       'grant_type': 'client_credentials',
     },
@@ -59,14 +54,26 @@ class ExcelSheetsTalker {
 
 
   Future<List<Colleague>?> retrieveColleagues() async {
+
     String? accessToken = await authenticateWithClientSecret();
     String worksheetName = 'List';
-    String fileId = 'Colleagues.xlsx';
 
+    print(accessToken);
+
+    final siteResponse = await http.get(
+      Uri.parse('https://graph.microsoft.com/v1.0/sites/hajrepairs.sharepoint.com:/sites/HAJRepairs'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    var siteId = siteResponse.body;
+
+    print("This is the site ID: $siteId");
 
     final range = 'A:B';
     final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/me/drive/items/$fileId/workbook/worksheets/$worksheetName/range(address=\'$range\')',
+      'https://graph.microsoft.com/v1.0/sites/$siteId/drive/root:/Collegues.xlsx',
     );
 
     final response = await http.get(

@@ -7,7 +7,7 @@ import 'customer/customer_form.dart';
 import 'supplier/supplier_form.dart';
 
 void main() async {
-  await dotenv.load();
+  await dotenv.load(fileName: "assets/.env");
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeRight,

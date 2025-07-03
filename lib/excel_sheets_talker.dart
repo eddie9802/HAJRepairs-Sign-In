@@ -181,18 +181,9 @@ class ExcelSheetsTalker {
       return;
     }
 
-
-    String? signing;
     for (var row in values.skip(1)) {
       String name = row[0];
       if (row.isNotEmpty && name.toString() == colleague.getFullName()) {
-
-        // Finds out if the user is signing in or out
-        if (row.length % 2 == 0) {
-          signing = "Sign Out";
-        } else {
-          signing = "Sign In";
-        }
 
         // Adds all the signings of the colleague
         colleague.signings = [];

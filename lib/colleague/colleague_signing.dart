@@ -45,7 +45,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   }
 
   Future<void> signColleague(BuildContext context, String? signing) async {
-    await GoogleSheetsTalker.sign(widget.colleague).writeSigning();
+    await ExcelSheetsTalker().writeSigning(widget.colleague);
     await showColleagueDialog(context, signing);
   }
 

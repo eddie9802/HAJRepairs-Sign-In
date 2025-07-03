@@ -223,15 +223,6 @@ class ExcelSheetsTalker {
   }
 
 
-  // Takes a colleague and adds a time to their signings array
-  void addToColleagueSignings(Colleague colleague) {
-    DateTime now = DateTime.now();
-    String formattedTime = DateFormat('h:mm a').format(now);
-    colleague.signings.add(formattedTime);
-  }
-
-
-
   // Writes to the spreadsheet denoted by fileId and the sheet denoted by worksheetId
   Future<bool> writeRowToSpreadsheet(String fileId, String worksheetId, String accessToken,List<String> row, String range) async {
 
@@ -254,7 +245,6 @@ class ExcelSheetsTalker {
       },
       body: body
     );
-    print(response.body);
 
     return response.statusCode == 200;
   }
@@ -293,13 +283,7 @@ class ExcelSheetsTalker {
 
 
   // Writes signing data to excel timesheet
-  Future<bool> writeSigning(Colleague colleague) async {
-
-
-    // Adds signing to colleague
-    addToColleagueSignings(colleague);
-
-
+  Future<(bool, String)> writeSigning(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
@@ -310,11 +294,19 @@ class ExcelSheetsTalker {
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
 
-    var newRow = [colleague.getFullName(), ...colleague.signings];
+    // Creates a new row
+    DateTime now = DateTime.now();
+    String newSigningTime = DateFormat('h:mm a').format(now);
+    var newRow = [colleague.getFullName(), ...colleague.signings, newSigningTime];
+
+    // Pads the row with extra empty cells
     var paddedRow = addPaddingToRow(3, newRow);
+
     // Using the row number the colleague exists on in the spreadsheet the range is calculated
     var range = getRangeString(colleague.rowNumber!, 3);
-    print(range);
-    return await writeRowToSpreadsheet(fileId!, worksheetId, accessToken, paddedRow, range);
+
+    bool success = await writeRowToSpreadsheet(fileId!, worksheetId, accessToken, paddedRow, range);
+
+    return (success, newSigningTime);
   }
 }

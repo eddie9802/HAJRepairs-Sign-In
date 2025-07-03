@@ -50,15 +50,16 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
 
   // Writes the signing to excel online spreadsheet and then displays popup
   Future<void> signColleague(BuildContext context, String? signing) async {
-    bool success = await ExcelSheetsTalker().writeSigning(_colleague);
+    (bool, String) res = await ExcelSheetsTalker().writeSigning(_colleague);
+    bool success = res.$1;
+    String time = res.$2;
     String dialogMessage;
     if (success) {
-      dialogMessage = '$signing at ${_colleague.signings.last} successful!';
+      dialogMessage = '$signing at $time successful!';
     } else {
       dialogMessage = 'Error:  Failed to write to timesheet';
     }
     await showColleagueDialog(context, dialogMessage);
-
   }
 
 

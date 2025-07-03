@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../google_sheets_talker.dart';
+import '../excel_sheets_talker.dart';
 import 'colleague.dart';
 
 class ColleagueReception extends StatefulWidget {
@@ -21,7 +22,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   @override
   void initState() {
     super.initState();
-    _buttonTextFuture = GoogleSheetsTalker.sign(widget.colleague).getButtonText();
+    _buttonTextFuture = ExcelSheetsTalker().getButtonText(widget.colleague);
   }
 
   Future<dynamic> showColleagueDialog(BuildContext context, String? signing) {
@@ -109,7 +110,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                         await signColleague(context, signing);
 
                         setState(() {
-                          _buttonTextFuture = GoogleSheetsTalker.sign(widget.colleague).getButtonText();
+                          _buttonTextFuture = ExcelSheetsTalker().getButtonText(widget.colleague);
                         });
 
                         // Returns to home screen

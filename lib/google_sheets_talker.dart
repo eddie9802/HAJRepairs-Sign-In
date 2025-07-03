@@ -19,7 +19,12 @@ class GoogleSheetsTalker {
   static final String _signedOutCustomerSheet = "Signed Out Customers";
   static final String _suppliersSpreadsheetId = "1Ax36ZULNcmovI6z5AGzD3D5GOJy1XLglFchPQtTgjMM";
   static final String _signedInSuppliersSheet = "Signed In Suppliers";
-    static final String _signedOutSuppliersSheet = "Signed Out Suppliers";
+  static final String _signedOutSuppliersSheet = "Signed Out Suppliers";
+
+  final Colleague? _colleague;
+
+  GoogleSheetsTalker() : _colleague = null;
+  GoogleSheetsTalker.sign(this._colleague);
 
 
   static Future<String?> getCurrentTimesheetId() async{
@@ -536,11 +541,6 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
 
     return days[weekday - 1];
   }
-  
-  final Colleague? colleague;
-
-  GoogleSheetsTalker() : colleague = null;
-  GoogleSheetsTalker.sign(this.colleague);
 
 
 
@@ -590,7 +590,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
   }
 
 
-  Future<String> getButtonText() async {
+  Future<String> getButtonText(Colleague colleague) async {
     String? signing;
     sheets.SheetsApi sheetsApi = await getSheetsApi();
 
@@ -600,16 +600,16 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
 
     if (response.values != null) {
       for (final row in response.values!) {
-        if (row.isNotEmpty && row[0].toString() == colleague!.getFullName()) {
+        if (row.isNotEmpty && row[0].toString() == colleague.getFullName()) {
           // Finds out if the user is signing in or out
           if (row.length % 2 == 0) {
             signing = "Sign Out";
           } else {
             signing = "Sign In";
           }
-          colleague?.signings = [];
+          colleague.signings = [];
           for (int i = 1; i < row.length; i++) {
-            colleague?.signings.add(row[i].toString());
+            colleague.signings.add(row[i].toString());
           }
           break;
         }
@@ -663,7 +663,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
     // Add new signing
     DateTime now = DateTime.now();
     String formattedTime = DateFormat('h:mm a').format(now);
-    colleague?.signings.add(formattedTime);
+    _colleague?.signings.add(formattedTime);
     double timeAsFraction = getTimeAsFraction(formattedTime.toString());
     final cell = sheets.CellData.fromJson({
       'userEnteredValue': {'numberValue': timeAsFraction},
@@ -674,8 +674,8 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
         }
       }
     });
-    colleague!.lastSigningTime = formattedTime.toString();
-    developer.log('Signing time has been set: ${colleague!.lastSigningTime!}');
+    _colleague!.lastSigningTime = formattedTime.toString();
+    developer.log('Signing time has been set: ${_colleague!.lastSigningTime!}');
     newRow.values!.add(cell);
     return newRow;
   }
@@ -778,8 +778,8 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
     // Check if the user is already in the sheet
     int userIndex = -1; // If userIndex is not found, it will remain -1
     for (List<dynamic> row in signingsSheet) {
-      if (row[0] == colleague!.getFullName()) {
-        developer.log('Found user ${colleague!.getFullName()} in row: $row');
+      if (row[0] == _colleague!.getFullName()) {
+        developer.log('Found user ${_colleague!.getFullName()} in row: $row');
         userIndex = signingsSheet.indexOf(row);
         break;
       }
@@ -787,13 +787,13 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
 
     // If the user is not on the signings sheet the function return
     if (userIndex == -1) {
-      developer.log('${colleague!.getFullName()} was not found on signings sheet.');
+      developer.log('${_colleague!.getFullName()} was not found on signings sheet.');
       return;
     }
 
 
     // Takes the signing sheet data and creates a new row with the current time.
-    final signingsRow = getNewSigningsRow(colleague?.signings);
+    final signingsRow = getNewSigningsRow(_colleague?.signings);
 
     // Gets a new headers row if the headers need to be extended
     sheets.RowData newHeaders = sheets.RowData(values: []);

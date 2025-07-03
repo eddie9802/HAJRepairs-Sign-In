@@ -19,7 +19,9 @@ String getTimesheetName() {
   DateFormat formatter = DateFormat('dd/MM/yyyy');
   final String formatted = formatter.format(nextSunday);
 
-  return "Week ending on $formatted";
+  print("Week_ending_on_$formatted.xlsx");
+
+  return "Week_ending_on_$formatted.xlsx";
 }
 
 

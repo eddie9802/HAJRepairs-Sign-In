@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../google_sheets_talker.dart';
 import '../excel_sheets_talker.dart';
 import 'colleague.dart';
+import 'package:intl/intl.dart';
+
 
 class ColleagueReception extends StatefulWidget {
 
@@ -18,19 +20,21 @@ class ColleagueReception extends StatefulWidget {
 class _ColleagueReceptionState extends State<ColleagueReception> {
   late Future<String> _buttonTextFuture;
   bool _signButtonPressed = false;
+  late Colleague _colleague;
 
   @override
   void initState() {
     super.initState();
-    _buttonTextFuture = _getButtonTextFuture(widget.colleague);
+     _colleague = widget.colleague;
+    _buttonTextFuture = _getButtonTextFuture(_colleague);
   }
 
-  Future<dynamic> showColleagueDialog(BuildContext context, String? signing) {
+  Future<dynamic> showColleagueDialog(BuildContext context, String dialogMessage) {
     return showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(''),
-        content: Text('$signing at ${widget.colleague.signings.last} successful!'),
+        content: Text(dialogMessage),
         actions: [
           TextButton(
             onPressed: () {
@@ -44,9 +48,17 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
     );
   }
 
+  // Writes the signing to excel online spreadsheet and then displays popup
   Future<void> signColleague(BuildContext context, String? signing) async {
-    await ExcelSheetsTalker().writeSigning(widget.colleague);
-    await showColleagueDialog(context, signing);
+    bool success = await ExcelSheetsTalker().writeSigning(_colleague);
+    String dialogMessage;
+    if (success) {
+      dialogMessage = '$signing at ${_colleague.signings.last} successful!';
+    } else {
+      dialogMessage = 'Error:  Failed to write to timesheet';
+    }
+    await showColleagueDialog(context, dialogMessage);
+
   }
 
 
@@ -114,7 +126,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                   children: [
                     Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text('What would you like to do, ${widget.colleague.forename}?', style: TextStyle(fontSize: 24)),
+                      child: Text('What would you like to do, ${_colleague.forename}?', style: TextStyle(fontSize: 24)),
                     ),
                     TextButton(
                       onPressed:() async {
@@ -128,7 +140,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                         await signColleague(context, signing);
 
                         setState(() {
-                          _buttonTextFuture = _getButtonTextFuture(widget.colleague);
+                          _buttonTextFuture = _getButtonTextFuture(_colleague);
                         });
 
                         // Returns to home screen
@@ -147,20 +159,20 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                         child: 
                           ListView(
                             children: [
-                              ...List.generate(widget.colleague.signings.length, (index) {
+                              ...List.generate(_colleague.signings.length, (index) {
                                 if (index % 2 == 0) {
                                   return 
                                     Center(child: 
                                     Padding(
                                       padding: EdgeInsets.only(bottom: 20.0),
-                                      child: Text('Sign In: ${widget.colleague.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      child: Text('Sign In: ${_colleague.signings[index]}', style: TextStyle(fontSize: 20)))
                                       );
                                 } else {
                                   return
                                     Center(child: 
                                     Padding(
                                       padding: EdgeInsets.only(bottom: 20.0),
-                                      child: Text('Sign Out: ${widget.colleague.signings[index]}', style: TextStyle(fontSize: 20)))
+                                      child: Text('Sign Out: ${_colleague.signings[index]}', style: TextStyle(fontSize: 20)))
                                       );
                                 }
                               }),

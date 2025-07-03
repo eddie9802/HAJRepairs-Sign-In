@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 
 
 
@@ -114,6 +115,7 @@ class ExcelSheetsTalker {
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     );
 
@@ -162,6 +164,22 @@ class ExcelSheetsTalker {
   }
 
 
+  String getFractionAsTimeString(String fractionStr) {
+    double fraction = double.parse(fractionStr);
+
+    // Convert fraction of day to total seconds
+    int totalSeconds = (fraction * 24 * 60 * 60).round();
+    int hours = totalSeconds ~/ 3600;
+    int minutes = (totalSeconds % 3600) ~/ 60;
+
+    // Create a DateTime object with hours and minutes (date is arbitrary)
+    final time = DateTime(2000, 1, 1, hours, minutes);
+
+    // Format as "h:mm a"
+    return DateFormat('h:mm a').format(time);
+  }
+
+
 
   // Set colleague signing details
   Future<void> setSigningDetails(Colleague colleague) async {
@@ -188,14 +206,15 @@ class ExcelSheetsTalker {
       if (row.isNotEmpty && name.toString() == colleague.getFullName()) {
 
         // Sets the row number that the colleague exists on
-        colleague.rowNumber = i;
+        colleague.rowNumber = i + 1;
 
         // Adds all the signings of the colleague
         colleague.signings = [];
         for (int i = 1; i < row.length; i++) {
           String cell = row[i].toString();
           if (cell.isNotEmpty) {
-            colleague.signings.add(cell);
+            String time = getFractionAsTimeString(cell);
+            colleague.signings.add(time);
           }
         }
         break;
@@ -204,8 +223,83 @@ class ExcelSheetsTalker {
   }
 
 
+  // Takes a colleague and adds a time to their signings array
+  void addToColleagueSignings(Colleague colleague) {
+    DateTime now = DateTime.now();
+    String formattedTime = DateFormat('h:mm a').format(now);
+    colleague.signings.add(formattedTime);
+  }
+
+
+
+  // Writes to the spreadsheet denoted by fileId and the sheet denoted by worksheetId
+  Future<bool> writeRowToSpreadsheet(String fileId, String worksheetId, String accessToken,List<String> row, String range) async {
+
+    // Sends a http request to read the spreadsheet
+    final url = Uri.parse(
+      'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/worksheets/$worksheetId/range(address=\'$range\')'
+    );
+
+
+    final body = jsonEncode({
+      'values': [row],  // single row, so 2D array with one inner array
+    });
+
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: body
+    );
+    print(response.body);
+
+    return response.statusCode == 200;
+  }
+
+
+  // Adds empty cells to the ends of the rows
+  List<String> addPaddingToRow(int nColumns, List<String> row) {
+    if (row.length < nColumns) {
+      int nPads = nColumns - row.length;
+      for (int i = 0; i < nPads; i++) {
+        row.add('');
+      }
+    }
+    return row;
+  }
+
+
+  String getRangeString(int startRow, int nColumns) {
+    // Convert column number (1-based) to Excel column letters, e.g., 1 -> A, 3 -> C, 27 -> AA
+    String columnNumberToLetter(int columnNumber) {
+      var dividend = columnNumber;
+      var columnName = '';
+      while (dividend > 0) {
+        var modulo = (dividend - 1) % 26;
+        columnName = String.fromCharCode(65 + modulo) + columnName;
+        dividend = (dividend - modulo - 1) ~/ 26;
+      }
+      return columnName;
+    }
+
+    String startColumnLetter = columnNumberToLetter(1);  // Always start from column A
+    String endColumnLetter = columnNumberToLetter(nColumns);
+
+    return "$startColumnLetter$startRow:$endColumnLetter$startRow";
+  }
+
+
   // Writes signing data to excel timesheet
-  Future<void> writeSigning(Colleague colleague) async {
+  Future<bool> writeSigning(Colleague colleague) async {
+
+
+    // Adds signing to colleague
+    addToColleagueSignings(colleague);
+
+
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
@@ -215,22 +309,12 @@ class ExcelSheetsTalker {
 
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
-    List<dynamic>? values = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
-    if (values == null || values.isEmpty) {
-      print("Error: $worksheetId sheet for $fileName spreadsheet empty or not found");
-      return;
-    }
-
-
-    var range = 
-    for (var i = 1; i < values.length; i++) {
-      var row = values[i];
-      String name = row[0];
-      if (name == colleague.getFullName()) {
-        
-      }
-    }
-
+    var newRow = [colleague.getFullName(), ...colleague.signings];
+    var paddedRow = addPaddingToRow(3, newRow);
+    // Using the row number the colleague exists on in the spreadsheet the range is calculated
+    var range = getRangeString(colleague.rowNumber!, 3);
+    print(range);
+    return await writeRowToSpreadsheet(fileId!, worksheetId, accessToken, paddedRow, range);
   }
 }

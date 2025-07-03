@@ -103,7 +103,7 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                                 // Dismiss keyboard
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ColleagueReception(colleague: _matchedColleagues[index])),
+                                  MaterialPageRoute(builder: (context) => ColleagueReception(colleague: _matchedColleagues[index],)),
                                 );
                               },
                             ),

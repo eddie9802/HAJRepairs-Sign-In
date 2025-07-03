@@ -7,6 +7,8 @@ class Colleague {
   final String surname;
   String? lastSigningTime;
   List<String> signings = [];
+  int? rowNumber;
+
 
   Colleague({required this.forename, required this.surname});
 

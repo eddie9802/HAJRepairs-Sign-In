@@ -181,9 +181,14 @@ class ExcelSheetsTalker {
       return;
     }
 
-    for (var row in values.skip(1)) {
+    // Adds all the signings to the colleagues signing array
+    for (var i = 1; i < values.length; i++) {
+      var row = values[i];
       String name = row[0];
       if (row.isNotEmpty && name.toString() == colleague.getFullName()) {
+
+        // Sets the row number that the colleague exists on
+        colleague.rowNumber = i;
 
         // Adds all the signings of the colleague
         colleague.signings = [];
@@ -196,5 +201,36 @@ class ExcelSheetsTalker {
         break;
       }
     }
+  }
+
+
+  // Writes signing data to excel timesheet
+  Future<void> writeSigning(Colleague colleague) async {
+
+    // Gets the id of the timesheet that needs to be read
+    String? accessToken = await authenticateWithClientSecret();
+    String fileName = getTimesheetName();
+    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets'];
+    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+
+    // Gets all the values from the spreadsheet
+    String worksheetId = getTodaysSheet();
+    List<dynamic>? values = await readSpreadsheet(fileId!, worksheetId, accessToken);
+
+    if (values == null || values.isEmpty) {
+      print("Error: $worksheetId sheet for $fileName spreadsheet empty or not found");
+      return;
+    }
+
+
+    var range = 
+    for (var i = 1; i < values.length; i++) {
+      var row = values[i];
+      String name = row[0];
+      if (name == colleague.getFullName()) {
+        
+      }
+    }
+
   }
 }

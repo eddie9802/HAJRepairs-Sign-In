@@ -120,6 +120,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                       onPressed:() async {
                         String? signing = snapshot.data;
 
+                        // Locks the screen while the signing data is being uploaded
                         setState(() {
                           _signButtonPressed = true;
                         });
@@ -128,7 +129,6 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
 
                         setState(() {
                           _buttonTextFuture = _getButtonTextFuture(widget.colleague);
-
                         });
 
                         // Returns to home screen

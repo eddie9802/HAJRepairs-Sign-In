@@ -90,7 +90,6 @@ class ExcelSheetsTalker {
 
     final Map<String, dynamic> json = jsonDecode(response.body);
     final List<dynamic> items = json['value'];
-    String fileName = "Colleagues.xlsx";
 
     for(var item in items) {
       if (item['name'] == fileName) {
@@ -163,12 +162,14 @@ class ExcelSheetsTalker {
   }
 
 
-  Future<String> getButtonText(Colleague colleague) async {
+
+  // Set colleague signing details
+  Future<void> setSigningDetails(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
     String fileName = getTimesheetName();
-    final pathSegments = ['HAJ-Reception', 'Timesheets'];
+    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
 
     // Gets all the values from the spreadsheet
@@ -176,8 +177,8 @@ class ExcelSheetsTalker {
     List<dynamic>? values = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
     if (values == null || values.isEmpty) {
-      print('No colleagues found');
-      return "Error: $worksheetId sheet for $fileName spreadsheet empty or not found";
+      print("Error: $worksheetId sheet for $fileName spreadsheet empty or not found");
+      return;
     }
 
 
@@ -196,13 +197,13 @@ class ExcelSheetsTalker {
         // Adds all the signings of the colleague
         colleague.signings = [];
         for (int i = 1; i < row.length; i++) {
-          colleague.signings.add(row[i].toString());
+          String cell = row[i].toString();
+          if (cell.isNotEmpty) {
+            colleague.signings.add(cell);
+          }
         }
         break;
       }
     }
-
-    // Checks the 
-    return signing!;
   }
 }

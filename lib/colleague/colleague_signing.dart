@@ -22,7 +22,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   @override
   void initState() {
     super.initState();
-    _buttonTextFuture = ExcelSheetsTalker().getButtonText(widget.colleague);
+    _buttonTextFuture = _getButtonTextFuture(widget.colleague);
   }
 
   Future<dynamic> showColleagueDialog(BuildContext context, String? signing) {
@@ -69,6 +69,23 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   }
 
 
+  // Returns a future which when awaited will return the text the signing button should display
+  Future<String> _getButtonTextFuture(Colleague colleague) async {
+
+    // Updates the signing details of the colleague
+    await ExcelSheetsTalker().setSigningDetails(colleague);
+
+    String buttonText;
+    // Finds out if the user is signing in or out
+    if (colleague.signings.length % 2 == 0) {
+      buttonText = "Sign In";
+    } else {
+      buttonText = "Sign Out";
+    }
+    return buttonText;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -110,7 +127,8 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                         await signColleague(context, signing);
 
                         setState(() {
-                          _buttonTextFuture = ExcelSheetsTalker().getButtonText(widget.colleague);
+                          _buttonTextFuture = _getButtonTextFuture(widget.colleague);
+
                         });
 
                         // Returns to home screen

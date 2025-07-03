@@ -16,10 +16,9 @@ String getTimesheetName() {
 
   var nextSunday = today.add(Duration(days: daysUntilSunday));
 
-  DateFormat formatter = DateFormat('dd/MM/yyyy');
+  DateFormat formatter = DateFormat('dd-MM-yyyy');
   final String formatted = formatter.format(nextSunday);
 
-  print("Week_ending_on_$formatted.xlsx");
 
   return "Week_ending_on_$formatted.xlsx";
 }

@@ -246,6 +246,7 @@ class ExcelSheetsTalker {
       body: body
     );
 
+
     return response.statusCode == 200;
   }
 
@@ -262,6 +263,9 @@ class ExcelSheetsTalker {
   }
 
 
+
+
+  // Returns a range for a row to be inserted into
   String getRangeString(int startRow, int nColumns) {
     // Convert column number (1-based) to Excel column letters, e.g., 1 -> A, 3 -> C, 27 -> AA
     String columnNumberToLetter(int columnNumber) {
@@ -282,8 +286,18 @@ class ExcelSheetsTalker {
   }
 
 
+  // Returns the number of columns in the sheet
+  Future<int> getHeaderSize(String fileId, String worksheetId, String accessToken) async {
+    List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
+
+    List<dynamic> headerRow = values![0];
+    int nColumns = headerRow.length;
+    return nColumns;
+  }
+
+
   // Writes signing data to excel timesheet
-  Future<(bool, String)> writeSigning(Colleague colleague) async {
+  Future<(bool?, String)> writeSigning(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
@@ -299,13 +313,41 @@ class ExcelSheetsTalker {
     String newSigningTime = DateFormat('h:mm a').format(now);
     var newRow = [colleague.getFullName(), ...colleague.signings, newSigningTime];
 
+
+    List<(List<String>, String)> updatedRows = [];
+
+    // Gets the number of columns in the spreadsheet
+    int headerSize = await getHeaderSize(fileId!, worksheetId, accessToken);
+
+    // Creates a new header row if need by
+    if (newRow.length > headerSize) {
+      var newHeaderRow = ["Name", "Sign In", "Sign Out"];
+      headerSize = headerSize + 2;
+      for (int i = 3; i < headerSize; i+=2) {
+        newHeaderRow.add('Sign In');
+        newHeaderRow.add('Sign Out');
+      }
+      var range = getRangeString(1, headerSize);
+      print(newHeaderRow);
+      updatedRows.add((newHeaderRow, range));
+    }
+
     // Pads the row with extra empty cells
-    var paddedRow = addPaddingToRow(3, newRow);
+    var paddedRow = addPaddingToRow(headerSize, newRow);
+    var range = getRangeString(colleague.rowNumber!, headerSize);
+    updatedRows.add((paddedRow, range));
 
-    // Using the row number the colleague exists on in the spreadsheet the range is calculated
-    var range = getRangeString(colleague.rowNumber!, 3);
 
-    bool success = await writeRowToSpreadsheet(fileId!, worksheetId, accessToken, paddedRow, range);
+
+
+
+    bool? success;
+
+    for (var rowDetails in updatedRows) {
+      var row = rowDetails.$1;
+      var range = rowDetails.$2;
+      success = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row, range);
+    }
 
     return (success, newSigningTime);
   }

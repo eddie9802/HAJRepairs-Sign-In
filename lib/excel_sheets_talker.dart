@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'colleague/colleague.dart';
 import 'spreadsheet_utilities.dart';
 import 'secret_manager.dart';
+import 'updated_row.dart';
 
 
 
@@ -245,7 +246,7 @@ class ExcelSheetsTalker {
       },
       body: body
     );
-
+    print(response.body);
 
     return response.statusCode == 200;
   }
@@ -295,6 +296,24 @@ class ExcelSheetsTalker {
     return nColumns;
   }
 
+  UpdatedRow? getNewHeaderRow(List<String> newRow, int headerSize) {
+
+    // Creates a new header row if need by
+    if (newRow.length > headerSize) {
+      var newHeaderRow = ["Name", "Sign In", "Sign Out"];
+      headerSize = headerSize + 2;
+      for (int i = 3; i < headerSize; i+=2) {
+        newHeaderRow.add('Sign In');
+        newHeaderRow.add('Sign Out');
+      }
+      var headerRange = getRangeString(1, headerSize);
+      UpdatedRow updatedHeaderRow = UpdatedRow(row: newHeaderRow, range: headerRange);
+      return updatedHeaderRow;
+    } else {
+      return null;
+    }
+  }
+
 
   // Writes signing data to excel timesheet
   Future<(bool?, String)> writeSigning(Colleague colleague) async {
@@ -314,41 +333,39 @@ class ExcelSheetsTalker {
     var newRow = [colleague.getFullName(), ...colleague.signings, newSigningTime];
 
 
-    List<(List<String>, String)> updatedRows = [];
+    // All the rows that need updating
+    List<UpdatedRow> updatedRows = [];
 
     // Gets the number of columns in the spreadsheet
     int headerSize = await getHeaderSize(fileId!, worksheetId, accessToken);
 
-    // Creates a new header row if need by
-    if (newRow.length > headerSize) {
-      var newHeaderRow = ["Name", "Sign In", "Sign Out"];
-      headerSize = headerSize + 2;
-      for (int i = 3; i < headerSize; i+=2) {
-        newHeaderRow.add('Sign In');
-        newHeaderRow.add('Sign Out');
-      }
-      var range = getRangeString(1, headerSize);
-      print(newHeaderRow);
-      updatedRows.add((newHeaderRow, range));
+
+    // Gets the new header row.  If there isn't one newHeaderRow is null
+    UpdatedRow? newHeaderRow = getNewHeaderRow(newRow, headerSize);
+    if (newHeaderRow != null) {
+      updatedRows.add(newHeaderRow);
+      headerSize = newHeaderRow.row.length;
     }
 
     // Pads the row with extra empty cells
     var paddedRow = addPaddingToRow(headerSize, newRow);
     var range = getRangeString(colleague.rowNumber!, headerSize);
-    updatedRows.add((paddedRow, range));
+    UpdatedRow updatedRow = UpdatedRow(row: paddedRow, range: range);
+    updatedRows.add(updatedRow);
 
 
-
-
-
+    // Writes the updated rows to the spreadsheet
     bool? success;
+    for (var row in updatedRows) {
+      success = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row.row, row.range);
 
-    for (var rowDetails in updatedRows) {
-      var row = rowDetails.$1;
-      var range = rowDetails.$2;
-      success = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row, range);
+      if (!success) {
+        print(row.row);
+        print(row.range);
+        return (false, newSigningTime); // early exit on failure
+      }
     }
 
-    return (success, newSigningTime);
+    return (true, newSigningTime);
   }
 }

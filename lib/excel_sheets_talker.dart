@@ -360,8 +360,6 @@ class ExcelSheetsTalker {
       success = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row.row, row.range);
 
       if (!success) {
-        print(row.row);
-        print(row.range);
         return (false, newSigningTime); // early exit on failure
       }
     }

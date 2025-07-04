@@ -67,6 +67,10 @@ function createWorksheets(workbook: ExcelScript.Workbook) {
         workbook.addWorksheet(day);
     }
 
+
+    // Adds the total hours worksheet
+    workbook.addWorksheet("Total Hours");
+
     // Deletes the default sheet
     const sheetToDelete = workbook.getWorksheet("Sheet1");
     if (sheetToDelete) {
@@ -76,11 +80,19 @@ function createWorksheets(workbook: ExcelScript.Workbook) {
 
 
 function fillInSheets(workbook: ExcelScript.Workbook, allColleagues: Colleague[]) {
-    let header = ["Name", "Sign In", "Sign Out"];
+    let header = [
+                "Name",
+                "Sign In",
+                "Sign Out",
+                "Sign In",
+                "Sign Out",
+                "Sign In",
+                "Sign Out",
+                ];
     let data = [header];
 
     for (let colleague of allColleagues) {
-        data.push([colleague.fullName, '', '']);
+        data.push([colleague.fullName, '', '', '', '', '', '']);
     }
 
     for (let day of days) {
@@ -91,6 +103,46 @@ function fillInSheets(workbook: ExcelScript.Workbook, allColleagues: Colleague[]
         range.setValues(data);
 
     }
+}
+
+
+function createTotalHoursSheet(workbook: ExcelScript.Workbook, allColleagues : Colleague[]) {
+    let header = [
+                "Name",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday",
+                "Additional Hours",
+                "Total Hours"
+                ];
+    let data = [header];
+
+    // Adds the colleague rows to the table
+    for (let colleague of allColleagues) {
+        data.push([
+                    colleague.fullName,
+                    '0',
+                    '0',
+                    '0',
+                    '0',
+                    '0',
+                    '0',
+                    '0',
+                    '0',
+                    '0'
+                    ]);
+    }
+
+
+    let sheet = workbook.getWorksheet("Total Hours");
+
+    // Resize range to match full data dimensions (rows x columns)
+    let range = sheet.getRange("A1").getResizedRange(data.length - 1, header.length - 1);
+    range.setValues(data);
 }
 
 
@@ -108,6 +160,8 @@ function main(workbook: ExcelScript.Workbook, rows: string) {
 
 
     fillInSheets(workbook, allColleagues);
+    
+    createTotalHoursSheet(workbook, allColleagues);
 
 
 }

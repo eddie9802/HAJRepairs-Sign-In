@@ -246,7 +246,6 @@ class ExcelSheetsTalker {
       },
       body: body
     );
-    print(response.body);
 
     return response.statusCode == 200;
   }

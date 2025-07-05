@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'key_manager.dart';
 
 class SecretManager {
-  late encrypt.Encrypter _encrypter;
-  late encrypt.IV _iv;
+  late final encrypt.Encrypter _encrypter;
+  late final encrypt.IV _iv;
   late String _encryptedApiKey;
   final _secureStorage = const FlutterSecureStorage();
   final _azureSecretId = "AZURE_SECRET";

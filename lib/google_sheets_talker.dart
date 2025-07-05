@@ -675,7 +675,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
       }
     });
     _colleague!.lastSigningTime = formattedTime.toString();
-    developer.log('Signing time has been set: ${_colleague!.lastSigningTime!}');
+    developer.log('Signing time has been set: ${_colleague.lastSigningTime!}');
     newRow.values!.add(cell);
     return newRow;
   }
@@ -779,7 +779,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
     int userIndex = -1; // If userIndex is not found, it will remain -1
     for (List<dynamic> row in signingsSheet) {
       if (row[0] == _colleague!.getFullName()) {
-        developer.log('Found user ${_colleague!.getFullName()} in row: $row');
+        developer.log('Found user ${_colleague.getFullName()} in row: $row');
         userIndex = signingsSheet.indexOf(row);
         break;
       }

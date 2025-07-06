@@ -1,38 +1,52 @@
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
+class Colleague {
+    forename: string;
+    surname: string;
+    shiftStart: Date;
+    shiftEnd: Date;
+    lunchDuration: number;
+    dailyHours: Map<string, number>;
 
-function getColleagueTotalHoursForDay(workbook: ExcelScript.Workbook, day: string): [string, number][] {
-    const sheet = workbook.getWorksheet(day);
-    const values = sheet.getUsedRange().getValues();
 
-    const header = values[0];       // First row (column titles)
-    const dataRows = values.slice(1); // All colleague rows
-
-    const results: [string, number][] = [];
-
-    for (const row of dataRows) {
-        const name = row[0] as string;
-        let totalHours = 0;
-
-        // Loop through timestamp pairs: (signIn, signOut)
-        for (let i = 1; i < row.length - 1; i += 2) {
-            const signIn = parseExcelTime(row[i]);
-            const signOut = parseExcelTime(row[i + 1]);
-
-            if (signIn && signOut) {
-                const durationMs = signOut.getTime() - signIn.getTime();
-                totalHours += roundDownToNearest15Minutes(durationMs / (1000 * 60 * 60)); // convert ms to hours
-            } else if (signIn && !signOut) {
-                totalHours = -1
-                break;
-            }
-        }
-        results.push([name, totalHours]);
+    constructor(forename: string, surname: string, shiftStart: Date, shiftEnd: Date, lunchDuration: number) {
+        this.forename = forename;
+        this.surname = surname;
+        this.shiftStart = shiftStart;
+        this.shiftEnd = shiftEnd;
+        this.lunchDuration = lunchDuration;
+        this.dailyHours = new Map<string, number>();
     }
 
-    return results;
+    getTotalHours(): number {
+        if (!this.dailyHours) return 0;
+
+        let total = 0;
+        const entries = Array.from(this.dailyHours.entries());
+
+        for (let i = 0; i < entries.length; i++) {
+            const hours = entries[i][1];
+            if (hours === -1) {
+                return -1; // Invalid total due to incomplete shift
+            }
+            total += hours;
+        }
+
+        return total;
+    }
+
+    getShiftDuration(): number {
+        const durationMs = this.shiftEnd.getTime() - this.shiftStart.getTime();
+        return durationMs / (1000 * 60 * 60);
+    }
+
+    getFullName(): string {
+        return `${this.forename} ${this.surname}`;
+    }
 }
+
+
 
 function roundDownToNearest15Minutes(hours: number): number {
     const increment = 0.25; // 15 minutes in hours
@@ -58,106 +72,111 @@ function parseExcelTime(value: unknown): Date | null {
 }
 
 
-function initialiseHoursTotal(workbook: ExcelScript.Workbook) {
-    const allHourTotalsMap = new Map<string, number>();
 
-    for (let day of days) {
-        allHourTotalsMap.set(day, 0);
-    }
-    allHourTotalsMap.set("Total", 0);
-    return allHourTotalsMap;
-}
-
-
-function initialiseAllColleagueTotalHours(workbook: ExcelScript.Workbook) {
-    let sheet = workbook.getWorksheet("Total Hours");
+// Reads the Colleague Details worksheet returns a map of all the colleague
+// And their details
+function getAllColleagues(workbook: ExcelScript.Workbook) {
+    let sheet = workbook.getWorksheet("Colleague Details");
     const values = sheet.getUsedRange().getValues();
-    const allColleagueTotalHours = new Map<string, Map<string, number>>();
+    const allColleagues = new Map<string, Colleague>();
 
     for (let row of values.slice(1)) {
-        let name = row[0] as string;
-        const allHourTotalsMap = initialiseHoursTotal(workbook);
-        allColleagueTotalHours.set(name, allHourTotalsMap);
+        let forename = row[0] as string;
+        let surname = row[1] as string;
+        let shiftStart = parseExcelTime(row[2]);
+        let shiftEnd = parseExcelTime(row[3]);
+        let lunchDuration = row[4] as number;
+        const colleague = new Colleague(forename, surname, shiftStart, shiftEnd, lunchDuration);
+        let fullname = `${forename} ${surname}`;
+        allColleagues.set(fullname, colleague);
     }
-    return allColleagueTotalHours;
+    return allColleagues;
 }
 
 
-function setTotalHours(allColleagueTotalHours: Map<string, Map<string, number>>) {
-    const entries = Array.from(allColleagueTotalHours.entries());
-    for (let i = 0; i < entries.length; i++) {
-        const [name, hoursTotalMap] = entries[i]; // Map<string, number>
-        const hourEntries = Array.from(hoursTotalMap.entries());
-
-        let weeklyHours = 0;
-        for (let j = 0; j < hourEntries.length; j++) {
-            const [day, hours] = hourEntries[j];
-            if (hours == -1 && weeklyHours != -1) {
-                weeklyHours = -1;
-            } else if (weeklyHours != -1) {
-                weeklyHours += hours;
-            }
-        }
-        allColleagueTotalHours.get(name).set("Total", weeklyHours);
-    }
-}
-
-function setDailyHours(workbook: ExcelScript.Workbook, allColleagueTotalHours: Map<string, Map<string, number>>) {
+// This will get all the colleague hours for each day and then for each colleague 
+// Set their daily hours
+function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string, Colleague>) {
     for (let day of days) {
-        const dailyResults = getColleagueTotalHoursForDay(workbook, day);
-        for (let row of dailyResults) {
-            let name = row[0];
-            let hours = row[1];
-            let hoursTotalMap = allColleagueTotalHours.get(name);
-            let hoursForDay = hoursTotalMap.get(day);
-            if (hoursForDay != -1 && hours == -1) {
-                hoursTotalMap.set(day, -1);
-            } else if (hoursForDay != -1 && hours != -1) {
-                hoursTotalMap.set(day, hours);
+        const sheet = workbook.getWorksheet(day);
+        const values = sheet.getUsedRange().getValues();
+
+        const header = values[0];         // First row (column titles)
+        const dataRows = values.slice(1); // All colleague rows
+
+        for (const row of dataRows) {
+            const name = row[0] as string;
+            let totalHours = 0;
+
+            // Loop through timestamp pairs: (signIn, signOut)
+            for (let i = 1; i < row.length - 1; i += 2) {
+                const signIn = parseExcelTime(row[i]);
+                const signOut = parseExcelTime(row[i + 1]);
+
+                if (signIn && signOut) {
+                    const durationMs = signOut.getTime() - signIn.getTime();
+                    totalHours += roundDownToNearest15Minutes(durationMs / (1000 * 60 * 60)); // hours
+                } else if (signIn && !signOut) {
+                    totalHours = -1;
+                    break;
+                }
             }
+            
+            // Subtracts the lunch break if need be
+            let colleague = allColleagues.get(name)
+
+            if (totalHours > (colleague.getShiftDuration() / 2)) {
+                totalHours -= colleague.lunchDuration;
+            }
+
+            colleague.dailyHours.set(day, totalHours);
         }
     }
 }
 
 function writeTotalHours(
   workbook: ExcelScript.Workbook,
-  allColleagueTotalHours: Map<string, Map<string, number>>
+    allColleagues: Map<string, Colleague>
 ) {
-  const sheet = workbook.getWorksheet("Total Hours");
-  const values = sheet.getUsedRange().getValues();
+    const sheet = workbook.getWorksheet("Total Hours");
+    let newRows: (string | number | boolean)[][] = [];
 
-  // Helper to safely get cell value
-  const formatHours = (value: number | undefined): string | number => {
-    return value === -1 || value === undefined ? "Invalid" : value;
-  };
+    // Helper to safely get cell value
+    const formatHours = (value: number | undefined): string | number => {
+        return value === -1 || value === undefined ? "Invalid" : value;
+    };
 
-  for (let i = 1; i < values.length; i++) {
-    const row = values[i];
-    const name = row[0] as string;
-    const hoursMap = allColleagueTotalHours.get(name);
-    if (!hoursMap) continue;
+    let entities = Array.from(allColleagues.values());
 
-    // Set daily hours
-    for (let j = 0; j < days.length; j++) {
-      const day = days[j];
-      const dayHours = hoursMap.get(day);
-      row[j + 1] = formatHours(dayHours);
+    for (let colleague of entities) {
+        let newRow: (string | number | boolean)[] = [];
+        let name = colleague.getFullName();
+        newRow.push(name);
+
+        for (let day of days) {
+            let dayHours = formatHours(colleague.dailyHours.get(day));
+            newRow.push(dayHours);
+        }
+        newRow.push(0); // For additional hours
+        let totalHours = formatHours(colleague.getTotalHours());
+        newRow.push(totalHours); // For total hours
+        newRows.push(newRow);
     }
 
-    // Set total hours in column J (index 9)
-    const totalHours = hoursMap.get("Total");
-    row[9] = formatHours(totalHours);
-  }
+    const startRow = 2; // Row 2 (1-based index)
+    const startCol = 1; // Column A
+    const rowCount = newRows.length;
+    const colCount = newRows[0].length;
 
-  sheet.getUsedRange().setValues(values);
+    const targetRange = sheet.getRangeByIndexes(startRow - 1, startCol - 1, rowCount, colCount);
+    targetRange.setValues(newRows);
 }
 
 
 
 
 function main(workbook: ExcelScript.Workbook) {
-    const allColleagueTotalHours = initialiseAllColleagueTotalHours(workbook);
-    setDailyHours(workbook, allColleagueTotalHours);
-    setTotalHours(allColleagueTotalHours);
-    writeTotalHours(workbook, allColleagueTotalHours);
+    const allColleagues = getAllColleagues(workbook);
+    setDailyHours(workbook, allColleagues);
+    writeTotalHours(workbook, allColleagues);
 }

@@ -36,6 +36,13 @@ class Colleague {
         return total;
     }
 
+    // Returns the shift with the grace period added
+    getGracePeriodStart(): Date {
+        const gracePeriodTime = new Date(this.shiftStart.getTime() + 3 * 60 * 1000); // add 3 minutes
+        return gracePeriodTime;
+    }
+
+
     getShiftDuration(): number {
         const durationMs = this.shiftEnd.getTime() - this.shiftStart.getTime();
         return durationMs / (1000 * 60 * 60);
@@ -94,6 +101,33 @@ function getAllColleagues(workbook: ExcelScript.Workbook) {
 }
 
 
+
+function clipTimes(signTime: Date, colleague: Colleague) {
+    const shiftStart = colleague.shiftStart;
+    const graceStart = new Date(shiftStart.getTime() + 3 * 60 * 1000); // add 3 minutes
+    let diffInMins = (graceStart.getTime() - signTime.getTime()) / (1000 * 60);
+    
+    if (diffInMins >= 0) {
+        return shiftStart;
+    }
+
+    const shiftEnd = colleague.shiftEnd;
+    diffInMins = (shiftEnd.getTime() - signTime.getTime()) / (1000 * 60);
+
+    if (diffInMins < 0) {
+        return shiftEnd;
+    }
+
+    return signTime;
+}
+
+
+function adjustSignOutTimes(signOut: Date, shiftEnd: Date) {
+    const diffInMins = (shiftEnd.getTime() - signOut.getTime()) / (1000 * 60);
+    return diffInMins < 0 ? shiftEnd : signOut
+}
+
+
 // This will get all the colleague hours for each day and then for each colleague 
 // Set their daily hours
 function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string, Colleague>) {
@@ -106,25 +140,31 @@ function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string
 
         for (const row of dataRows) {
             const name = row[0] as string;
+            let colleague = allColleagues.get(name)
             let totalHours = 0;
 
             // Loop through timestamp pairs: (signIn, signOut)
             for (let i = 1; i < row.length - 1; i += 2) {
-                const signIn = parseExcelTime(row[i]);
-                const signOut = parseExcelTime(row[i + 1]);
+                let signIn = parseExcelTime(row[i]);
+                let signOut = parseExcelTime(row[i + 1]);
+                const shiftStart = colleague.shiftStart;
+
 
                 if (signIn && signOut) {
+
+                    // Adjusts the sign in and out times if they are before the shift start plus grace period
+                    signIn = clipTimes(signIn, colleague);
+                    signOut = clipTimes(signOut, colleague);
+
                     const durationMs = signOut.getTime() - signIn.getTime();
                     totalHours += roundDownToNearest15Minutes(durationMs / (1000 * 60 * 60)); // hours
-                } else if (signIn && !signOut) {
+                }  else if (signIn && !signOut) {
                     totalHours = -1;
                     break;
                 }
             }
-            
-            // Subtracts the lunch break if need be
-            let colleague = allColleagues.get(name)
 
+            // Subtracts the lunch break if need be
             if (totalHours > (colleague.getShiftDuration() / 2)) {
                 totalHours -= colleague.lunchDuration;
             }

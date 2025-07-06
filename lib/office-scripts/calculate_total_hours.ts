@@ -1,13 +1,35 @@
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
+class CellComment {
+    range: string;
+    comment: string;
+
+    constructor(range: string, comment: string) {
+        this.range = range;
+        this.comment = comment;
+    }
+}
+
+
+class DayHours {
+    hours: number;
+    lunchBreakApplied: boolean;
+
+    constructor(hours: number, lunchBreakApplied: boolean){
+        this.hours = hours;
+        this.lunchBreakApplied = lunchBreakApplied;
+    }
+
+}
+
 class Colleague {
     forename: string;
     surname: string;
     shiftStart: Date;
     shiftEnd: Date;
     lunchDuration: number;
-    dailyHours: Map<string, number>;
+    dailyHours: Map<string, DayHours>;
 
 
     constructor(forename: string, surname: string, shiftStart: Date, shiftEnd: Date, lunchDuration: number) {
@@ -16,7 +38,7 @@ class Colleague {
         this.shiftStart = shiftStart;
         this.shiftEnd = shiftEnd;
         this.lunchDuration = lunchDuration;
-        this.dailyHours = new Map<string, number>();
+        this.dailyHours = new Map<string, DayHours>();
     }
 
     getTotalHours(): number {
@@ -26,11 +48,11 @@ class Colleague {
         const entries = Array.from(this.dailyHours.entries());
 
         for (let i = 0; i < entries.length; i++) {
-            const hours = entries[i][1];
-            if (hours === -1) {
+            const dayHours = entries[i][1];
+            if (dayHours.hours === -1) {
                 return -1; // Invalid total due to incomplete shift
             }
-            total += hours;
+            total += dayHours.hours;
         }
 
         return total;
@@ -164,14 +186,32 @@ function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string
                 }
             }
 
+            let lunchBreakApplied = false;
             // Subtracts the lunch break if need be
             if (totalHours > (colleague.getShiftDuration() / 2)) {
                 totalHours -= colleague.lunchDuration;
+                lunchBreakApplied = true;
             }
 
-            colleague.dailyHours.set(day, totalHours);
+            let dayHours = new DayHours(totalHours, lunchBreakApplied);
+            colleague.dailyHours.set(day, dayHours);
         }
     }
+}
+
+
+
+
+
+// Takes a number and gives a letter corresponding to a column in an excel spreadsheet
+function numberToColumnLetter(colNum: number): string {
+    let column = '';
+    while (colNum > 0) {
+        const remainder = (colNum - 1) % 26;
+        column = String.fromCharCode(65 + remainder) + column;
+        colNum = Math.floor((colNum - 1) / 26);
+    }
+    return column;
 }
 
 function writeTotalHours(
@@ -180,6 +220,8 @@ function writeTotalHours(
 ) {
     const sheet = workbook.getWorksheet("Total Hours");
     let newRows: (string | number | boolean)[][] = [];
+    let cellsToComment: CellComment[] = [];
+
 
     // Helper to safely get cell value
     const formatHours = (value: number | undefined): string | number => {
@@ -188,14 +230,36 @@ function writeTotalHours(
 
     let entities = Array.from(allColleagues.values());
 
-    for (let colleague of entities) {
+    for (let i = 0; i < entities.length; i++) {
+        let colleague = entities[i];
         let newRow: (string | number | boolean)[] = [];
         let name = colleague.getFullName();
         newRow.push(name);
 
-        for (let day of days) {
-            let dayHours = formatHours(colleague.dailyHours.get(day));
+        for (let j = 0; j < days.length; j++) {
+            let day = days[j];
+            let dayHours = formatHours(colleague.dailyHours.get(day).hours);
             newRow.push(dayHours);
+
+            // Calculates a comment to write to the cells of the 
+            let lunchDuration = colleague.lunchDuration;
+            let comment = "";
+            if (colleague.dailyHours.get(day).lunchBreakApplied) {
+                const hoursLabel = lunchDuration === 1 ? 'hour has' : 'hours have';
+                comment = `${lunchDuration} ${hoursLabel} been deducted for lunch break.`;
+            } else {
+                if (colleague.getTotalHours() > 0) {
+                    comment = `No lunch break has been deducted.`;
+                }
+            }
+            // Names start on row number 2
+            let rowNum = i + 2;
+
+            // Monday is on the second column
+            let colLetter = numberToColumnLetter(j + 1);
+            let range = `${colLetter}${rowNum}`;
+            let cellComment = new CellComment(range, comment);
+            cellsToComment.push(cellComment);
         }
         newRow.push(0); // For additional hours
         let totalHours = formatHours(colleague.getTotalHours());
@@ -210,6 +274,15 @@ function writeTotalHours(
 
     const targetRange = sheet.getRangeByIndexes(startRow - 1, startCol - 1, rowCount, colCount);
     targetRange.setValues(newRows);
+
+
+    // Write comments
+    // for (let cellComment of cellsToComment) {
+    //     const cell = sheet.getRange(cellComment.range);
+
+    //     cell.setNote(cellComment.comment, ExcelScript.ContentType.plain);
+
+    // }
 }
 
 

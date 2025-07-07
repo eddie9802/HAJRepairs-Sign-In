@@ -9,8 +9,7 @@ import '../secret_manager.dart';
 
 final String _driveId = "b!9fsUyKGke0y1U3QDUBNiD0pi50qUMWlEob3HI9NOb-Zyp0whTvCySa-hJq1U89Sd";
 final String clientId = '5a2d0943-6c4b-469f-ad01-3b7f33f06e81';
-
-
+final String tenantId = 'dd11dc3e-0fa8-4004-9803-70a802de0faf';
 
 
 class TimesheetDetails {

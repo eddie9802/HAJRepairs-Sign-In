@@ -30,6 +30,8 @@ class ExcelSheetsTalker {
     final secretManager = await SecretManager.create();
     await secretManager.loadAndEncrypt();
 
+    print('This is the client secret: ${secretManager.getDecryptedSecret()}');
+
     final response = await http.post(
       Uri.parse(tokenEndpoint),
       headers: {
@@ -49,17 +51,6 @@ class ExcelSheetsTalker {
     } else {
       print('Failed to get token: ${response.statusCode} - ${response.body}');
       return null;
-    }
-  }
-
-
-
-  void printInSegments(String text, {int segmentLength = 50}) {
-    int start = 0;
-    while (start < text.length) {
-      final end = (start + segmentLength < text.length) ? start + segmentLength : text.length;
-      print(text.substring(start, end));
-      start = end;
     }
   }
 
@@ -178,21 +169,22 @@ class ExcelSheetsTalker {
 
 
 
+
   // Set colleague signing details
   Future<void> setSigningDetails(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
-    String fileName = getTimesheetName();
-    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    TimesheetDetails details = getTimesheetDetails();
+    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
+    String? fileId = await getFileId(details.name, pathSegments, accessToken!);
 
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
     List<dynamic>? values = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
     if (values == null || values.isEmpty) {
-      print("Error: $worksheetId sheet for $fileName spreadsheet empty or not found");
+      print("Error: $worksheetId sheet for ${details.name} spreadsheet empty or not found");
       return;
     }
 
@@ -315,9 +307,10 @@ class ExcelSheetsTalker {
 
     // Gets the id of the timesheet that needs to be read
     String? accessToken = await authenticateWithClientSecret();
-    String fileName = getTimesheetName();
-    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    TimesheetDetails details = getTimesheetDetails();
+    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
+    print(pathSegments);
+    String? fileId = await getFileId(details.name, pathSegments, accessToken!);
 
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();

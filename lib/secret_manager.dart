@@ -27,6 +27,7 @@ class SecretManager {
   Future<String> _getAzureSecret() async {
     String? secret = await _secureStorage.read(key: _azureSecretId);
 
+
     if (secret != null) {
       return secret;
     }

@@ -1,7 +1,6 @@
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
 
 import 'key_manager.dart';
 

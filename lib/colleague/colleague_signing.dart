@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colleague_excel_sheets_talker.dart';
+import 'colleague_excel_talker.dart';
 import 'colleague.dart';
 
 
@@ -48,7 +48,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
 
   // Writes the signing to excel online spreadsheet and then displays popup
   Future<void> signColleague(BuildContext context, String? signing) async {
-    (bool?, String) res = await ExcelSheetsTalker().writeSigning(_colleague);
+    (bool?, String) res = await ColleagueExcelTalker().writeSigning(_colleague);
     bool success = res.$1!;
     String time = res.$2;
     String dialogMessage;
@@ -84,7 +84,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   Future<String> _getButtonTextFuture(Colleague colleague) async {
 
     // Updates the signing details of the colleague
-    await ExcelSheetsTalker().setSigningDetails(colleague);
+    await ColleagueExcelTalker().setSigningDetails(colleague);
 
     String buttonText;
     // Finds out if the user is signing in or out

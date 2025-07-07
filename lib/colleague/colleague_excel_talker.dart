@@ -15,7 +15,7 @@ import '../updated_row.dart';
 
 
   
-class ExcelSheetsTalker {
+class ColleagueExcelTalker {
 
   final FlutterAppAuth appAuth = FlutterAppAuth();
 

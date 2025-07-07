@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colleague_excel_sheets_talker.dart';
+import 'colleague_excel_talker.dart';
 import 'colleague.dart';
 import 'colleague_signing.dart';
 
@@ -12,7 +12,7 @@ class ColleagueSearch extends StatefulWidget {
 
 class _ColleagueSearchState extends State<ColleagueSearch> {
 
-  final Future<List<dynamic>?> _colleagues = ExcelSheetsTalker().retrieveColleagues();
+  final Future<List<dynamic>?> _colleagues = ColleagueExcelTalker().retrieveColleagues();
 
   List<Colleague> _matchedColleagues = [];
 

@@ -112,6 +112,16 @@ class TimesheetDetails {
   }
 
 
+
+String excelFractionToTimeAmPm(double fraction) {
+  final totalSeconds = (fraction * 24 * 60 * 60).round();
+  final now = DateTime.now();
+  final time = DateTime(now.year, now.month, now.day).add(Duration(seconds: totalSeconds));
+  
+  return DateFormat('h:mm a').format(time); // e.g. "12:42 PM"
+}
+
+
 Future<bool> appendRowToTable({
   required String fileId,
   required String tableId, // e.g., "Table1"

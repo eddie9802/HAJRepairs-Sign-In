@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'customerHAJ.dart';
 import 'customer_sign_out.dart';
+import '../spreadsheet_utilities.dart';
 
 
 class CustomerSignOutDetails extends StatefulWidget {
@@ -26,7 +27,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
     customerDetailsList.add("Contact Number: ${customer.signInDriverNumber}");
     customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
     customerDetailsList.add("Sign In Date: ${customer.signInDate}");
-    customerDetailsList.add("Sign In Time: ${customer.signIn.toString()}");
+    customerDetailsList.add("Sign In Time: ${excelFractionToTimeAmPm(double.parse(customer.signIn))}");
     return customerDetailsList;
   }
 

@@ -122,7 +122,7 @@ class CustomerExcelTalker {
   }
 
 
-  Future<bool> writeToSignedOutCustomers(CustomerHAJ customer) async {
+  Future<bool> writeToSignedOutCustomers(CustomerHAJ customer, String fileId, String tableId, String accessToken) async {
     // Creates the row to be inserted into customer details
     List<String>? newRow = [
                             customer.registration,
@@ -139,66 +139,38 @@ class CustomerExcelTalker {
                             ];
 
 
-    String? accessToken = await authenticateWithClientSecret();
-    String fileName = "Customer-Reception.xlsx";
-    final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
-    String tableId = "Signed_Out";
-    bool success = await appendRowToTable(fileId: fileId!, tableId: tableId, accessToken: accessToken, row: newRow);
+    bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
     // If upload was a success then return true else return false
     return success;
   }
 
-  // Gets the row number the given customer is on
-  Future<int?> getCustomerRowNum(CustomerHAJ customer) async {
-    String? accessToken = await authenticateWithClientSecret();
-    String fileName = "Customer-Reception.xlsx";
-    final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
-    String sheet = "Signed-Out";
-    List<dynamic>? rows = await readSpreadsheet(fileId!, sheet, accessToken);
 
-    if (rows == null || rows.isEmpty) {
-      print("No customers found");
-      return null;
-    } else {
-
-      int? customerRowIndex;
-      for (var i = 1; i < rows.length; i++) {
-        var customerDetailsList = rows[i];
-        String registration = customerDetailsList[0].toString();
-        if (customer.registration == registration) {
-          customerRowIndex = i;
-          break;
-        }
-      }
-      return customerRowIndex;
-    }
-  }
-
-
-
-  Future<bool> deleteRowfromSignedIn(int rowNumber) async {
+  Future<bool> deleteRowfromSignedIn(String rowId, fileId, ) async {
     String? accessToken = await authenticateWithClientSecret();
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String tableId = "Signed_In";
-    return deleteTableRow(fileId: fileId!, tableName: tableId, rowIndex: rowNumber, accessToken: accessToken);
+    return deleteTableRow(fileId: fileId!, tableName: tableId, rowId: rowId, accessToken: accessToken);
 }
 
 
   // Writes the customer to the sign out sheet and remove them from the sign in
   Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
-    bool successfullyWritten = await writeToSignedOutCustomers(customer);
+    String? accessToken = await authenticateWithClientSecret();
+    String fileName = "Customer-Reception.xlsx";
+    final pathSegments = ['HAJ-Reception', 'Customer'];
+    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    String signedInTable = "Signed_In";
+    String signedOutTable = "Signed_Out";
+    bool successfullyWritten = await writeToSignedOutCustomers(customer, fileId!, signedOutTable, accessToken);
     (bool, String) response = (false, "");
 
     if (successfullyWritten) {
-      int? customerRowNum = await getCustomerRowNum(customer);
-
-      if (customerRowNum != null) {
-        bool rowDeleted = await deleteRowfromSignedIn(customerRowNum);
+      String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, registration: customer.registration, accessToken: accessToken);
+      if (rowId != null) {
+        bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 
         if (rowDeleted) {
           response = (true, "Your vehicle has successfully been signed out");

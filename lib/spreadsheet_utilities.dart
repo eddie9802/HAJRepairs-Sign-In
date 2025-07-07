@@ -74,7 +74,6 @@ class TimesheetDetails {
 
     for(var item in items) {
       if (item['name'] == fileName) {
-        print('This is the file ID: ${item['id']}');
         return item['id'];
       }
     }
@@ -137,31 +136,76 @@ Future<bool> appendRowToTable({
     body: body,
   );
 
-  print(response.statusCode);
 
   return response.statusCode == 201;
 }
 
 
-  Future<bool> deleteTableRow({
-    required String fileId,
-    required String tableName,
-    required int rowIndex,
-    required String accessToken,
-  }) async {
-    final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/tables/$tableName/rows/$rowIndex'
-    );
 
-    final response = await http.delete(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+ Future<String?> getRowId({
+  required String fileId,
+  required String tableName,
+  required String registration,
+  required String accessToken,
+}) async {
+  final rowsUrl = Uri.parse(
+    'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/tables/$tableName/rows'
+  );
 
-    return response.statusCode == 204;
+  final rowsResponse = await http.get(
+    rowsUrl,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  if (rowsResponse.statusCode != 200) {
+    print('Failed to fetch rows: ${rowsResponse.statusCode}');
+    return null;
   }
+
+  final rowsJson = jsonDecode(rowsResponse.body);
+  final List<dynamic> rows = rowsJson['value'];
+
+  for (var row in rows) {
+    // row['values'] is a list of lists, each inner list is a row of cell values
+    if (row['values'][0][0] == registration) {
+      print(row);
+      return row['@odata.id'];
+    }
+  }
+
+  print('No matching row found for registration: $registration');
+  return null;
+}
+
+
+
+  Future<bool> deleteTableRow({
+  required String fileId,
+  required String tableName,
+  required String rowId,
+  required String accessToken,
+}) async {
+
+  final String odataId = rowId; // e.g. "/drives('driveId')/items('fileId')/workbook/tables('{guid}')/rows/itemAt(index=0)"
+
+  // The API expects the DELETE to be called at the full path after /workbook, so build URL accordingly:
+  final deleteUrl = Uri.parse(
+    'https://graph.microsoft.com/v1.0$odataId'
+  );
+
+  final deleteResponse = await http.delete(
+    deleteUrl,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  return deleteResponse.statusCode == 204;
+}
+
+
 
 
 

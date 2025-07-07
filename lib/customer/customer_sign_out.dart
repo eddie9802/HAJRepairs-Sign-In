@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
 import 'package:intl/intl.dart';
 import 'customerHAJ.dart';
 
@@ -151,7 +152,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     widget.customer.signOutDate = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
     
 
-    (bool, String) response = await GoogleSheetsTalker().signCustomerOut(customer);
+    (bool, String) response = await CustomerExcelTalker().signCustomerOut(customer);
 
     await Future.delayed(Duration(milliseconds: 200));
     if (response.$1) {

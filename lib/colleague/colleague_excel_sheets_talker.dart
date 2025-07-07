@@ -6,10 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 
 import 'package:http/http.dart' as http;
-import 'colleague/colleague.dart';
-import 'spreadsheet_utilities.dart';
-import 'secret_manager.dart';
-import 'updated_row.dart';
+import 'colleague.dart';
+import '../spreadsheet_utilities.dart';
+import '../secret_manager.dart';
+import '../updated_row.dart';
 
 
 

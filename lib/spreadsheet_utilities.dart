@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
+import '../secret_manager.dart';
 
 
 
 final String _driveId = "b!9fsUyKGke0y1U3QDUBNiD0pi50qUMWlEob3HI9NOb-Zyp0whTvCySa-hJq1U89Sd";
+final String clientId = '5a2d0943-6c4b-469f-ad01-3b7f33f06e81';
 
 
 
@@ -65,6 +69,34 @@ class TimesheetDetails {
 
 
 
+    // Writes to the spreadsheet denoted by fileId and the sheet denoted by worksheetId
+  Future<bool> writeRowToSpreadsheet(String fileId, String worksheetId, String accessToken,List<String> row, String range) async {
+
+    // Sends a http request to read the spreadsheet
+    final url = Uri.parse(
+      'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/worksheets/$worksheetId/range(address=\'$range\')'
+    );
+
+
+    final body = jsonEncode({
+      'values': [row],  // single row, so 2D array with one inner array
+    });
+
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: body
+    );
+
+    return response.statusCode == 200;
+  }
+
+
+
 // Gets the timesheet name for the week
 TimesheetDetails getTimesheetDetails() {
   var today = DateTime.now();
@@ -106,3 +138,34 @@ String getTodaysSheet() {
 
   return days[weekday - 1];
 }
+
+
+
+  Future<String?> authenticateWithClientSecret() async {
+    final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
+    final secretManager = await SecretManager.create();
+    await secretManager.loadAndEncrypt();
+
+    print('This is the client secret: ${secretManager.getDecryptedSecret()}');
+
+    final response = await http.post(
+      Uri.parse(tokenEndpoint),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'client_id': clientId,
+        'scope': 'https://graph.microsoft.com/.default',
+        'client_secret': secretManager.getDecryptedSecret(),
+        'grant_type': 'client_credentials',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      return jsonResponse['access_token'] as String?;
+    } else {
+      print('Failed to get token: ${response.statusCode} - ${response.body}');
+      return null;
+    }
+  }

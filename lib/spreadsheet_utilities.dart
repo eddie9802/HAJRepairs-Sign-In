@@ -38,6 +38,52 @@ class TimesheetDetails {
 
 
 
+
+  // Gets the fileID from the name of the given file and directory path
+  Future<String?> getFileId(String fileName, List<String> pathSegments, String accessToken) async {
+    final encodedSegments = pathSegments.map(Uri.encodeComponent).join('/');
+
+    final url = Uri.parse(
+      'https://graph.microsoft.com/v1.0/drives/$_driveId/root:/$encodedSegments:/children'
+    );
+
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      print('Error fetching Excel data: ${response.statusCode}');
+      return null;
+    }
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (json['value'] == null || json['value'] is! List) {
+      print('Unexpected response format: ${response.body}');
+      return null;
+    }
+
+    final List<dynamic> items = json['value'];
+
+
+
+    for(var item in items) {
+      if (item['name'] == fileName) {
+        print('This is the file ID: ${item['id']}');
+        return item['id'];
+      }
+    }
+    
+    return null;
+  }
+
+
+
   // Reads the spreadsheet denoted by fileId, at the sheet dentoed by worksheetId
   Future<List<dynamic>?> readSpreadsheet(String fileId, String worksheetId, String accessToken) async {
     // Sends a http request to read the spreadsheet
@@ -65,6 +111,36 @@ class TimesheetDetails {
 
     return values;
   }
+
+
+Future<bool> appendRowToSpreadsheet({
+  required String fileId,
+  required String tableId, // e.g., "Table1"
+  required String accessToken,
+  required List<String> row,
+}) async {
+  
+  final url = Uri.parse(
+    'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/tables/$tableId/rows/add'
+  );
+
+  final body = jsonEncode({
+    'values': [row], // must be a 2D array
+  });
+
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: body,
+  );
+
+  print(response.statusCode);
+
+  return response.statusCode == 201;
+}
 
 
 
@@ -144,8 +220,6 @@ String getTodaysSheet() {
     final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
     final secretManager = await SecretManager.create();
     await secretManager.loadAndEncrypt();
-
-    print('This is the client secret: ${secretManager.getDecryptedSecret()}');
 
     final response = await http.post(
       Uri.parse(tokenEndpoint),

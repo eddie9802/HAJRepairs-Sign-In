@@ -20,44 +20,9 @@ class ColleagueExcelTalker {
 
   final String clientId = '5a2d0943-6c4b-469f-ad01-3b7f33f06e81';
   final String tenantId = 'dd11dc3e-0fa8-4004-9803-70a802de0faf';
-  final String _driveId = "b!9fsUyKGke0y1U3QDUBNiD0pi50qUMWlEob3HI9NOb-Zyp0whTvCySa-hJq1U89Sd";
   final String redirectUrl = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
 
 
-
-  // Gets the fileID from the name of the given file and directory path
-  Future<String?> getFileId(String fileName, List<String> pathSegments, String accessToken) async {
-    final encodedSegments = pathSegments.map(Uri.encodeComponent).join('/');
-
-    final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/drives/$_driveId/root:/$encodedSegments:/children'
-    );
-
-
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode != 200) {
-      print('Error fetching Excel data: ${response.statusCode}');
-      return null;
-    }
-
-    final Map<String, dynamic> json = jsonDecode(response.body);
-    final List<dynamic> items = json['value'];
-
-    for(var item in items) {
-      if (item['name'] == fileName) {
-        return item['id'];
-      }
-    }
-    
-    return null;
-  }
 
 
   // Retrieves all the colleauges from the colleagues file

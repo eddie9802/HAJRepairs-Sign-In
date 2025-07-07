@@ -90,35 +90,6 @@ class ExcelSheetsTalker {
   }
 
 
-  // Reads the spreadsheet denoted by fileId, at the sheet dentoed by worksheetId
-  Future<List<dynamic>?> readSpreadsheet(String fileId, String worksheetId, String accessToken) async {
-    // Sends a http request to read the spreadsheet
-    final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/worksheets/$worksheetId/usedRange(valuesOnly=true)'
-    );
-
-
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-      },
-    );
-
-    if (response.statusCode != 200) {
-      print('Error fetching Excel data: ${response.statusCode}');
-      return null;
-    }
-
-    final Map<String, dynamic> spreadsheetJson = jsonDecode(response.body);
-    final List<dynamic>? values = spreadsheetJson['values'];
-
-    return values;
-  }
-
-
   // Retrieves all the colleauges from the colleagues file
   Future<List<Colleague>?> retrieveColleagues() async {
     String? accessToken = await authenticateWithClientSecret();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
 import 'customerHAJ.dart';
 import 'customer_sign_out_details.dart';
 
@@ -14,7 +15,7 @@ class CustomerFormSignOut extends StatefulWidget {
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
   bool _signButtonPressed = false;
-  final Future<List<CustomerHAJ>> _allCustomersFuture = GoogleSheetsTalker().retrieveCustomers();
+  final Future<List<CustomerHAJ>> _allCustomersFuture = CustomerExcelTalker().retrieveCustomers();
 
 
     List<CustomerHAJ> _matchedCustomers = [];

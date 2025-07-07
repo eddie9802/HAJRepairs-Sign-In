@@ -95,7 +95,7 @@ sheets.RowData getCustomerRow( List<Object?> customerDetailsList) {
   }
 
 
-    // Writes the customer to the sign out sheet and remove them from the sign in
+  // Writes the customer to the sign out sheet and remove them from the sign in
   Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
     bool successfullyWritten = await writeToSignedOutCustomers(customer);
     (bool, String) response = (false, "");

@@ -113,7 +113,7 @@ class TimesheetDetails {
   }
 
 
-Future<bool> appendRowToSpreadsheet({
+Future<bool> appendRowToTable({
   required String fileId,
   required String tableId, // e.g., "Table1"
   required String accessToken,
@@ -141,6 +141,28 @@ Future<bool> appendRowToSpreadsheet({
 
   return response.statusCode == 201;
 }
+
+
+  Future<bool> deleteTableRow({
+    required String fileId,
+    required String tableName,
+    required int rowIndex,
+    required String accessToken,
+  }) async {
+    final url = Uri.parse(
+      'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/tables/$tableName/rows/$rowIndex'
+    );
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    return response.statusCode == 204;
+  }
+
 
 
 

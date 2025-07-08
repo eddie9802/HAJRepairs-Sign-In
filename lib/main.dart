@@ -10,7 +10,7 @@ import 'supplier/supplier_form.dart';
 import 'secret_setter.dart';
 
 void main() async {
-  await dotenv.load(fileName: "assets/.env");
+  //await dotenv.load(fileName: "assets/.env");
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeRight,

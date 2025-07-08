@@ -7,7 +7,7 @@ import 'iv_manager.dart';
 
 class SecretManager {
   late final encrypt.Encrypter _encrypter;
-  late final encrypt.IV _iv;
+  encrypt.IV _iv;
   late String _encryptedApiKey;
   final _secureStorage = const FlutterSecureStorage();
   final _azureSecretId = "AZURE_SECRET";
@@ -50,6 +50,11 @@ class SecretManager {
 
 
   Future<void> writeNewEncryptedSecret(String newSecret) async {
+
+    // Creates a new IV for the new secret
+    // This ensures that the new secret is encrypted with a fresh IV
+    await IVManager().clearIV();
+    _iv = await IVManager().getOrCreateIV();
     _encryptedApiKey = _encrypter.encrypt(newSecret, iv: _iv).base64;
     await _secureStorage.write(key: _azureSecretId, value: _encryptedApiKey);
   }

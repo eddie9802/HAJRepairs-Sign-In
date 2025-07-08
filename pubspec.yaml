@@ -30,4 +30,3 @@ flutter:
   assets:
     - assets/images/haj-logo.png
     - assets/haj-reception.json
-    - assets/.env

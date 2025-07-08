@@ -31,7 +31,7 @@ class CustomerExcelTalker {
     }
 
 
-    // Returns a list of all the customers that are currently signed in
+  // Returns a list of all the customers that are currently signed in
   Future<List<CustomerHAJ>> retrieveCustomers() async {
     String? accessToken = await authenticateWithClientSecret();
     String fileName = "Customer-Reception.xlsx";

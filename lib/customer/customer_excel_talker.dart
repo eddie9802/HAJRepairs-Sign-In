@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:haj_repairs_sign_in/spreadsheet_utilities.dart';
 import 'customerHAJ.dart';
 

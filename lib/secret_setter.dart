@@ -23,7 +23,6 @@ class _SecretSetterState extends State<SecretSetter> {
 
       // Optionally close the scanner or do something with the result
       Future.delayed(Duration(seconds: 1), () {
-        print(qrText);
         Navigator.pop(context, qrText); // Return value if needed
       });
     }

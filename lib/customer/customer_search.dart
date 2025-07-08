@@ -3,8 +3,6 @@ import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
 import 'customerHAJ.dart';
 import 'customer_sign_out_details.dart';
 
-import '../google_sheets_talker.dart';
-
 class CustomerFormSignOut extends StatefulWidget {
   const CustomerFormSignOut({super.key}); // Optional constructor with key
 

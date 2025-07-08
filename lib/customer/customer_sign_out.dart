@@ -3,9 +3,6 @@ import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
 import 'package:intl/intl.dart';
 import 'customerHAJ.dart';
 
-
-import '../google_sheets_talker.dart';
-
 class CustomerSignOut extends StatefulWidget {
 
   final CustomerHAJ customer;

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
-import '../google_sheets_talker.dart';
 import 'customer_excel_talker.dart';
 
 class CustomerSignIn extends StatefulWidget {

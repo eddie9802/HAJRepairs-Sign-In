@@ -437,7 +437,7 @@ Future<bool> deleteRowfromSignedIn(int rowNumber, String userSpreadsheet, String
   }
 
 
-  // Signs the customer in
+  // Signs the supplier in
   Future<(bool, String)> signSupplierIn(Map<String, String> formData) async {
     (bool, String) response = (false, "");
     String name = formData["Name"]!;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 
-import '../google_sheets_talker.dart';
+import './supplier_excel_talker.dart'; // Importing the ExcelSheetsTalker class
 
 class SupplierSignIn extends StatefulWidget {
   const SupplierSignIn({super.key}); // Optional constructor with key
@@ -134,7 +134,7 @@ bool isValidPhoneNumber(String input) {
     formData["Sign in"] = DateFormat('h:mm a').format(now);
     
 
-    (bool, String) response = await GoogleSheetsTalker().signSupplierIn(formData);
+    (bool, String) response = await SupplierExcelTalker().signSupplierIn(formData);
 
     // response.$1 is the success of the sign in
     if (response.$1) {

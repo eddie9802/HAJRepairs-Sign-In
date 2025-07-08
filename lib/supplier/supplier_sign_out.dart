@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'supplierHAJ.dart';
 import 'package:intl/intl.dart';
+
 import './supplier_excel_talker.dart';
+import 'supplierHAJ.dart';
+import '../spreadsheet_utilities.dart';
 
 
 class SupplierSignOut extends StatefulWidget {
@@ -77,7 +79,7 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     supplierDetails.add("Company: ${supplier.company}");
     supplierDetails.add("Reasons For Visit: ${supplier.reasonForVisit}");
     supplierDetails.add("Date: ${supplier.date}");
-    supplierDetails.add("Sign In: ${supplier.signIn}");
+    supplierDetails.add("Sign In: ${excelFractionToTimeAmPm(double.parse(supplier.signIn))}");
     return supplierDetails;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
 import 'supplier/supplier_form.dart';
+import 'secret_setter.dart';
 
 void main() async {
   await dotenv.load(fileName: "assets/.env");
@@ -37,15 +40,50 @@ class MainApp extends StatelessWidget {
 }
 
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
+  @override
+  MainPageState createState() => MainPageState();
+}
+
+class MainPageState extends State<MainPage> {
+
+  int _tapCount = 0;
+  Timer? _resetTimer;
 
   static const List<String> _employeeTypes = [
     'Customer',
     'Supplier',
     'HAJ Colleague'
   ];
+
+
+  void _handleImageTap() {
+    // Handle the image tap if needed
+    // For example, you could show a dialog or perform some action
+
+    _tapCount++;
+    if (_resetTimer?.isActive ?? false) {
+      _resetTimer!.cancel(); // Cancel the previous timer if it's still active
+    }
+
+    // Start a new timer that resets tap count after 10 seconds
+    _resetTimer = Timer(Duration(seconds: 2), () {
+      setState(() {
+        _tapCount = 0;
+      });
+    });
+
+    if (_tapCount >= 7) {
+      _tapCount = 0; // Reset tap count
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SecretSetter()),
+      );
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +93,12 @@ class MainPage extends StatelessWidget {
         child: Center(
           child: Column(
             children: [
-              Image.asset('assets/images/haj-logo.png'),
+              GestureDetector(
+                onTap: _handleImageTap,
+                child: Image.asset(
+                  'assets/images/haj-logo.png',
+                ),
+              ),
               const SizedBox(height: 10.0),
               const Text(
                 'Welcome to HAJ Repairs.  Are you a Customer, Supplier or HAJ Colleague?',

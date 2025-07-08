@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import 'secret_manager.dart';
+
 class SecretSetter extends StatefulWidget {
   @override
   State<SecretSetter> createState() => _SecretSetterState();
@@ -10,7 +12,7 @@ class _SecretSetterState extends State<SecretSetter> {
   String? qrText;
   bool _isScanned = false;
 
-  void _onDetect(BarcodeCapture capture) {
+  void _onDetect(BarcodeCapture capture) async{
     if (_isScanned) return; // Prevent multiple scans
     final barcode = capture.barcodes.first;
     final String? code = barcode.rawValue;
@@ -20,6 +22,9 @@ class _SecretSetterState extends State<SecretSetter> {
         qrText = code;
         _isScanned = true;
       });
+
+      SecretManager manager = await SecretManager.create();
+      await manager.writeNewEncryptedSecret(qrText!); // Call your method to handle the secret
 
       // Optionally close the scanner or do something with the result
       Future.delayed(Duration(seconds: 1), () {

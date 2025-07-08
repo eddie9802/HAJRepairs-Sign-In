@@ -295,7 +295,6 @@ String getTodaysSheet() {
   Future<String?> authenticateWithClientSecret() async {
     final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
     final secretManager = await SecretManager.create();
-    await secretManager.loadAndEncrypt();
 
     final response = await http.post(
       Uri.parse(tokenEndpoint),
@@ -305,7 +304,7 @@ String getTodaysSheet() {
       body: {
         'client_id': clientId,
         'scope': 'https://graph.microsoft.com/.default',
-        'client_secret': secretManager.getDecryptedSecret(),
+        'client_secret': await secretManager.getDecryptedSecret(),
         'grant_type': 'client_credentials',
       },
     );

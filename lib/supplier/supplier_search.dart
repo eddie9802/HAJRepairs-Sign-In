@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
 import 'supplier_sign_out.dart';
 
-import '../google_sheets_talker.dart';
+import './supplier_excel_talker.dart';
 
 class SupplierSearch extends StatefulWidget {
   const SupplierSearch({super.key}); // Optional constructor with key
@@ -14,8 +14,7 @@ class SupplierSearch extends StatefulWidget {
 class _SupplierSearchState extends State<SupplierSearch> {
 
   bool _signButtonPressed = false;
-  final Future<List<SupplierHAJ>> _allSuppliersFuture = GoogleSheetsTalker().retrieveSuppliers();
-
+  final Future<List<SupplierHAJ>> _allSuppliersFuture = SupplierExcelTalker().retrieveSuppliers();
 
     List<SupplierHAJ> _matchedSuppliers = [];
 

@@ -112,6 +112,58 @@ class SupplierExcelTalker {
     }
     return allSuppliers;
   }
+
+
+
+    Future<bool> writeToSignedOutSuppliers(SupplierHAJ supplier, String fileId, String tableId, String accessToken) async {
+      // Creates the row to be inserted into customer details
+      List<String>? newRow = [
+                                          supplier.name,
+                                          supplier.company,
+                                          supplier.reasonForVisit,
+                                          supplier.date,
+                                          supplier.signIn,
+                                          supplier.signOut,
+                                          ];
+
+      bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
+      return success;
+  }
+
+
+
+
+    // Writes the customer to the sign out sheet and remove them from the sign in
+  Future<(bool, String)> signSupplierOut(SupplierHAJ supplier) async {
+    String? accessToken = await authenticateWithClientSecret();
+    String fileName = "Supplier-Reception.xlsx";
+    final pathSegments = ['HAJ-Reception', 'Supplier'];
+    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    String signedInTable = "Signed_In";
+    String signedOutTable = "Signed_Out";
+    bool successfullyWritten = await writeToSignedOutSuppliers(supplier, fileId!, signedOutTable, accessToken);
+    (bool, String) response = (false, "");
+
+    if (successfullyWritten) {
+      String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: supplier.name, accessToken: accessToken);
+
+      if (rowId != null) {
+        bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
+
+        if (rowDeleted) {
+          response = (true, "Sign out successful");
+        } else {
+          response = (false, "Failed to delete the supplier row from sign-in sheet");
+        }
+      } else {
+        response = (false, "Failed to find supplier in sign-in sheet");
+      }
+    } else {
+      response = (false, "Failed to write supplier details to sign-out sheet");
+    }
+
+  return response;
+  }
 }
 
 

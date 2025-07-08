@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'supplierHAJ.dart';
 import 'package:intl/intl.dart';
-import '../google_sheets_talker.dart';
+import './supplier_excel_talker.dart';
 
 
 class SupplierSignOut extends StatefulWidget {
@@ -52,7 +52,7 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     DateTime now = DateTime.now();
     supplier.signOut = DateFormat('h:mm a').format(now);
 
-    (bool, String) response = await GoogleSheetsTalker().signSupplierOut(supplier);
+    (bool, String) response = await SupplierExcelTalker().signSupplierOut(supplier);
 
     await Future.delayed(Duration(milliseconds: 200));
     if (response.$1) {

@@ -155,7 +155,7 @@ Future<bool> appendRowToTable({
  Future<String?> getRowId({
   required String fileId,
   required String tableName,
-  required String registration,
+  required String identifier,
   required String accessToken,
 }) async {
   final rowsUrl = Uri.parse(
@@ -179,13 +179,13 @@ Future<bool> appendRowToTable({
 
   for (var row in rows) {
     // row['values'] is a list of lists, each inner list is a row of cell values
-    if (row['values'][0][0] == registration) {
+    if (row['values'][0][0] == identifier) {
       print(row);
       return row['@odata.id'];
     }
   }
 
-  print('No matching row found for registration: $registration');
+  print('No matching row found for: $identifier');
   return null;
 }
 

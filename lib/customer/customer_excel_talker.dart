@@ -164,7 +164,7 @@ class CustomerExcelTalker {
     (bool, String) response = (false, "");
 
     if (successfullyWritten) {
-      String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, registration: customer.registration, accessToken: accessToken);
+      String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: customer.registration, accessToken: accessToken);
       if (rowId != null) {
         bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 

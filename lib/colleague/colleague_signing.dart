@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../common_widgets.dart';
 import 'colleague_excel_talker.dart';
 import 'colleague.dart';
 
@@ -27,24 +29,6 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
     _buttonTextFuture = _getButtonTextFuture(_colleague);
   }
 
-  Future<dynamic> showColleagueDialog(BuildContext context, String dialogMessage) {
-    return showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(''),
-        content: Text(dialogMessage),
-        actions: [
-          TextButton(
-            onPressed: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-              Navigator.of(context).pop();
-            },
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Writes the signing to excel online spreadsheet and then displays popup
   Future<void> signColleague(BuildContext context, String? signing) async {
@@ -57,7 +41,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
     } else {
       dialogMessage = 'Error:  Failed to write to timesheet';
     }
-    await showColleagueDialog(context, dialogMessage);
+    await showDialogPopUp(context, dialogMessage);
   }
 
 

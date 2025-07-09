@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'customer_excel_talker.dart';
+import '../common_widgets.dart';
 
 class CustomerSignIn extends StatefulWidget {
   const CustomerSignIn({super.key}); // Optional constructor with key
@@ -51,25 +52,6 @@ bool isValidPhoneNumber(String input) {
   final phoneRegExp = RegExp(r'^\d{11}$');
   return phoneRegExp.hasMatch(input);
 }
-
-
-  Future<dynamic> showCustomerDialog(String? popUpText) {
-    return showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(''),
-        content: Text(popUpText!),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              },
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
 
   // Checks if the question is not empty
@@ -150,11 +132,11 @@ bool isValidPhoneNumber(String input) {
 
     // response.$1 is the success of the sign in
     if (response.$1) {
-      await showCustomerDialog(response.$2);
+      await showDialogPopUp(context, response.$2);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showCustomerDialog("Error: ${response.$2}");
+      await showDialogPopUp(context, "Error: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });

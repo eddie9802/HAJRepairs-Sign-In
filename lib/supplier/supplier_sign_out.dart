@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../common_widgets.dart';
 import './supplier_excel_talker.dart';
 import 'supplierHAJ.dart';
 import '../spreadsheet_utilities.dart';
@@ -22,26 +23,6 @@ class SupplierSignOutState extends State<SupplierSignOut> {
 
 
 
-
-  Future<dynamic> showSupplierDialog(String? popUpText) {
-    return showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(''),
-        content: Text(popUpText!),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              },
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-
   // Takes the users details and signs out their vehicles
   void _signOut() async {
     SupplierHAJ supplier = widget.supplier;
@@ -58,12 +39,12 @@ class SupplierSignOutState extends State<SupplierSignOut> {
 
     await Future.delayed(Duration(milliseconds: 200));
     if (response.$1) {
-      await showSupplierDialog(response.$2);
+      await showDialogPopUp(context, response.$2);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showSupplierDialog("Error: ${response.$2}");
+      await showDialogPopUp(context, "Error: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
 import 'package:intl/intl.dart';
+
+import '../common_widgets.dart';
 import 'customerHAJ.dart';
 
 class CustomerSignOut extends StatefulWidget {
@@ -47,25 +49,6 @@ class CustomerSignOutState extends State<CustomerSignOut> {
   }
 
 
-  Future<dynamic> showCustomerDialog(String? popUpText) {
-    return showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(''),
-        content: Text(popUpText!),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              },
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-
   bool isValidPhoneNumber(String input) {
     final phoneRegExp = RegExp(r'^\d{11}$');
     return phoneRegExp.hasMatch(input);
@@ -79,7 +62,6 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     }
 
     String? input = _controllers[_currentStep - 1].text;
-    print(input);
     if (input.isEmpty) {
 
       setState(() {
@@ -153,13 +135,13 @@ class CustomerSignOutState extends State<CustomerSignOut> {
 
     await Future.delayed(Duration(milliseconds: 200));
     if (response.$1) {
-      await showCustomerDialog(response.$2);
+      await showDialogPopUp(context, response.$2);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showCustomerDialog("Error: ${response.$2}");
+      await showDialogPopUp(context, "Error: ${response.$2}");
       setState(() {
          _signButtonPressed = false;
       });

@@ -27,6 +27,9 @@ class MainApp extends StatelessWidget {
       title: 'HAJ Reception',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Color.fromARGB(255, 0, 0, 0),             // 🔴 Blinking text cursor color
+        ),
         scaffoldBackgroundColor: Color.fromARGB(255, 255, 255, 255), // global background
         appBarTheme: AppBarTheme(
           backgroundColor: Color.fromARGB(255, 255, 255, 255), // app bar background
@@ -37,7 +40,25 @@ class MainApp extends StatelessWidget {
             foregroundColor: Color(0xFFC10007), // text color
             backgroundColor: Color.fromARGB(255, 255, 255, 255),   // optional: button background
           ),
-    ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: TextStyle(color: Color.fromARGB(255, 0, 0, 0)), // label text color
+          floatingLabelStyle: TextStyle(color: Color(0xFFC10007)), // floating label text color
+          border: OutlineInputBorder(), // default border
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFFC10007), width: 2.0),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.redAccent),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.deepOrange, width: 2.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
       ),
       builder: (context, child) {
         return GestureDetector(

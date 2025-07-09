@@ -127,7 +127,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
                       padding: EdgeInsets.all(16.0),
                       child: Text('What would you like to do, ${_colleague.forename}?', style: TextStyle(fontSize: 24)),
                     ),
-                    TextButton(
+                    ElevatedButton(
                       onPressed:() async {
                         String? signing = snapshot.data;
 

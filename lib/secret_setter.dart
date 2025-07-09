@@ -12,6 +12,27 @@ class _SecretSetterState extends State<SecretSetter> {
   String? qrText;
   bool _isScanned = false;
 
+
+
+    Future<dynamic> showDialogPopUp(BuildContext context, String dialogMessage) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(''),
+        content: Text(dialogMessage),
+        actions: [
+          TextButton(
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onDetect(BarcodeCapture capture) async{
     if (_isScanned) return; // Prevent multiple scans
     final barcode = capture.barcodes.first;
@@ -25,6 +46,8 @@ class _SecretSetterState extends State<SecretSetter> {
 
       SecretManager manager = await SecretManager.create();
       await manager.writeNewEncryptedSecret(qrText!); // Call your method to handle the secret
+
+      showDialogPopUp(context, "Secret has been set successfully!");
 
       // Optionally close the scanner or do something with the result
       Future.delayed(Duration(seconds: 1), () {

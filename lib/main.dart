@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
@@ -88,6 +87,7 @@ class MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
         child: Center(
@@ -96,7 +96,7 @@ class MainPageState extends State<MainPage> {
               GestureDetector(
                 onTap: _handleImageTap,
                 child: Image.asset(
-                  'assets/images/haj-logo.png',
+                  'assets/images/haj-logo-tablet.png',
                 ),
               ),
               const SizedBox(height: 10.0),
@@ -110,7 +110,7 @@ class MainPageState extends State<MainPage> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
                   child: TextButton(
-                    child: Text(type, style: const TextStyle(fontSize: 28)),
+                    child: Text(type, style: const TextStyle(fontSize: 28, color: Color(0xFFC10007))),
                     onPressed: () {
                       Widget targetPage;
 

@@ -249,7 +249,7 @@ bool isValidPhoneNumber(String input) {
           ),
 
           Center(
-            child: CircularProgressIndicator(),
+            child: loadingIndicator(),
           ),
         ]
       ],

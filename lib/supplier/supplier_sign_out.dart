@@ -138,8 +138,8 @@ class SupplierSignOutState extends State<SupplierSignOut> {
               color: Colors.black.withAlpha(77),
               dismissible: false,
             ),
-            const Center(
-              child: CircularProgressIndicator(),
+            Center(
+              child: loadingIndicator(),
             ),
           ],
         ],

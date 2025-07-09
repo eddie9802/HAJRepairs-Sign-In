@@ -176,7 +176,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
             ),
 
             Center(
-              child: CircularProgressIndicator(),
+              child: loadingIndicator(),
             ),
           ]
           ],

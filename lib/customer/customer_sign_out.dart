@@ -281,7 +281,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
           ),
 
           Center(
-            child: CircularProgressIndicator(),
+            child: loadingIndicator(),
           ),
         ]
       ],

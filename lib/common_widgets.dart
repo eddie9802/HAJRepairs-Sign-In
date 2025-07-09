@@ -17,3 +17,13 @@ Future<dynamic> showDialogPopUp(BuildContext context, String? popUpText) {
       ),
     );
   }
+
+
+Widget loadingIndicator() {
+  return Center(
+    child: CircularProgressIndicator(
+      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFC10007)),
+      strokeWidth: 5.0,
+    ),
+  );
+}

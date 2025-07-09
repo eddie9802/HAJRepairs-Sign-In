@@ -26,6 +26,13 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'HAJ Reception',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: Color.fromARGB(255, 255, 255, 255), // global background
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color.fromARGB(255, 255, 255, 255), // app bar background
+          foregroundColor: Color.fromARGB(255, 0, 0, 0), // app bar text color
+        ),
+      ),
       builder: (context, child) {
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -87,7 +94,6 @@ class MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
         child: Center(

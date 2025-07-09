@@ -34,7 +34,7 @@ class SupplierExcelTalker {
 
 
     // Checks if the given customer is already signed in
-  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany) async {
+  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, String signInDate) async {
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? accessToken = await authenticateWithClientSecret();
@@ -42,10 +42,11 @@ class SupplierExcelTalker {
     String worksheetId = "Signed-In";
     final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
-    for (var row in rows!) {
+    for (var row in rows!.skip(1)) {
       String name = row[0].toString();
       String company = row[1].toString();
-      if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {
+      String rowSignInDate = row[3].toString();
+      if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && rowSignInDate == signInDate) {
         return true;
       } 
     }
@@ -61,7 +62,7 @@ class SupplierExcelTalker {
     String name = formData["Name"]!;
     String company = formData["Company"]!;
 
-    bool signedIn = await hasSupplierSignedIn(name, company);
+    bool signedIn = await hasSupplierSignedIn(name, company, formData["Date"]!);
 
     if (!signedIn) {
       if (await uploadSupplierData(formData)) {

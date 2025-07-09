@@ -58,7 +58,7 @@ class _SecretSetterState extends State<SecretSetter> {
           Expanded(
             flex: 1,
             child: Center(
-              child: Text(qrText ?? 'Scan a code'),
+              child: Text('Scan a code'),
             ),
           ),
         ],

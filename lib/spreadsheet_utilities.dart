@@ -152,6 +152,46 @@ Future<bool> appendRowToTable({
 
 
 
+
+Future<String?> getRowIdByNumber({
+  required String fileId,
+  required String tableName,
+  required int rowNumber,
+  required String accessToken,
+}) async {
+  final rowsUrl = Uri.parse(
+    'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/tables/$tableName/rows'
+  );
+
+  final rowsResponse = await http.get(
+    rowsUrl,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  if (rowsResponse.statusCode != 200) {
+    print('Failed to fetch rows: ${rowsResponse.statusCode}');
+    return null;
+  }
+
+  final rowsJson = jsonDecode(rowsResponse.body);
+  final List<dynamic> rows = rowsJson['value'];
+
+
+  if (rows[rowNumber]['values'] == null || rows[rowNumber]['values'].isEmpty) {
+    print('Row $rowNumber is empty or does not exist.');
+    return null;
+
+  } else {
+    // row['values'] is a list of lists, each inner list is a row of cell values
+    print(rows[rowNumber]);
+    return rows[rowNumber]['@odata.id'];
+  }
+}
+
+
+
  Future<String?> getRowId({
   required String fileId,
   required String tableName,

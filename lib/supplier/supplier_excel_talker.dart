@@ -33,6 +33,26 @@ class SupplierExcelTalker {
 
 
 
+  void deleteSupplierData(int rowNumber) async {
+    String? accessToken = await authenticateWithClientSecret();
+    String fileName = "Supplier-Reception.xlsx";
+    final pathSegments = ['HAJ-Reception', 'Supplier'];
+    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    String tableId = "Signed_In";
+    print("Row number: $rowNumber");
+    String? rowId = await getRowIdByNumber(fileId: fileId!, tableName: tableId, rowNumber: rowNumber, accessToken: accessToken);
+    print("Row ID: $rowId");
+    bool isSuccess = await deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId!, accessToken: accessToken);
+
+    if (isSuccess) {
+      print("Successfully deleted supplier data for row $rowNumber");
+    } else {
+      print("Failed to delete supplier data for row $rowNumber");
+
+    }
+  }
+
+
     // Checks if the given customer is already signed in
   Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, String signInDate) async {
     String fileName = "Supplier-Reception.xlsx";
@@ -42,13 +62,20 @@ class SupplierExcelTalker {
     String worksheetId = "Signed-In";
     final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
-    for (var row in rows!.skip(1)) {
+    for (var i = 1; i < rows!.length; i++) {
+      var row = rows[i];
       String name = row[0].toString();
       String company = row[1].toString();
       String rowSignInDate = row[3].toString();
+      print("Checking row $i: $name, $company, $rowSignInDate");
+      print("Against: $supplierName, $supplierCompany, $signInDate");
       if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && rowSignInDate == signInDate) {
         return true;
-      } 
+      } else if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {
+        var rowNumber = i - 1; // Adjust for header row
+        deleteSupplierData(rowNumber);
+        break;
+      }
     }
 
     // Customer has not signed in

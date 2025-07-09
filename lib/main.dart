@@ -32,6 +32,12 @@ class MainApp extends StatelessWidget {
           backgroundColor: Color.fromARGB(255, 255, 255, 255), // app bar background
           foregroundColor: Color.fromARGB(255, 0, 0, 0), // app bar text color
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Color(0xFFC10007), // text color
+            backgroundColor: Color.fromARGB(255, 255, 255, 255),   // optional: button background
+          ),
+    ),
       ),
       builder: (context, child) {
         return GestureDetector(

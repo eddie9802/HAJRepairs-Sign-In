@@ -82,7 +82,9 @@ function createTotalHoursSheet(workbook: ExcelScript.Workbook, allColleagues : s
                 "Saturday",
                 "Sunday",
                 "Additional Hours",
-                "Total Hours"
+                "Total Hours",
+                "Bonus Hours",
+                "Comments"
                 ];
     let data = [header];
 
@@ -98,7 +100,9 @@ function createTotalHoursSheet(workbook: ExcelScript.Workbook, allColleagues : s
                     '0',
                     '0',
                     '0',
-                    '0'
+                    '0',
+                    '0',
+                    ''
                     ]);
     }
 

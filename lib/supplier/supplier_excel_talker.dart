@@ -66,9 +66,7 @@ class SupplierExcelTalker {
       var row = rows[i];
       String name = row[0].toString();
       String company = row[1].toString();
-      String rowSignInDate = row[3].toString();
-      print("Checking row $i: $name, $company, $rowSignInDate");
-      print("Against: $supplierName, $supplierCompany, $signInDate");
+      String rowSignInDate = excelDateToDateTimeStr(toDoubleSafe(row[3])!);
       if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && rowSignInDate == signInDate) {
         return true;
       } else if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {

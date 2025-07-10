@@ -103,7 +103,7 @@ class _SupplierSearchState extends State<SupplierSearch> {
                       return Padding(
                         padding: EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
-                            title: Text(_matchedSuppliers[index].name),
+                            title: Text('${_matchedSuppliers[index].name} from ${_matchedSuppliers[index].company}'),
                             onTap: () async {
                               FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
                               // Wait a little to ensure the keyboard is fully gone

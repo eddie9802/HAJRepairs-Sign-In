@@ -105,7 +105,7 @@ bool isValidPhoneNumber(String input) {
 
 
     DateTime now = DateTime.now();
-    String date = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+    String date = "${now.day.toString()}/${now.month.toString()}/${now.year}";
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {

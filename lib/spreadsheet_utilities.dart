@@ -37,6 +37,28 @@ class TimesheetDetails {
 }
 
 
+  double? toDoubleSafe(dynamic value) {
+  if (value == null) return null;
+
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) {
+    return double.tryParse(value);
+  }
+
+  return null; // Not convertible
+}
+
+
+
+String excelDateToDateTimeStr(double serialDate) {
+  return DateFormat('d/M/yyyy').format(DateTime(1899, 12, 30).add(Duration(days: serialDate.floor())));
+}
+
+
+
+
+
 
 
   // Gets the fileID from the name of the given file and directory path

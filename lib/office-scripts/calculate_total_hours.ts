@@ -1,24 +1,29 @@
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 
-class CellComment {
+class HighlightedCell {
+    colour: string;
     range: string;
-    comment: string;
 
-    constructor(range: string, comment: string) {
+    constructor(colour: string, range: string) {
+        this.colour = colour;
         this.range = range;
-        this.comment = comment;
     }
 }
-
 
 class DayHours {
     hours: number;
     lunchBreakApplied: boolean;
+    isHoliday: boolean;
+    isHalfDay: boolean;
+    isSick: boolean;
 
-    constructor(hours: number, lunchBreakApplied: boolean){
+    constructor(hours: number, lunchBreakApplied: boolean) {
         this.hours = hours;
         this.lunchBreakApplied = lunchBreakApplied;
+        this.isHoliday = false;
+        this.isHalfDay = false;
+        this.isSick = false;
     }
 
 }
@@ -30,6 +35,9 @@ class Colleague {
     shiftEnd: Date;
     lunchDuration: number;
     dailyHours: Map<string, DayHours>;
+    additionalHours: number;
+    bonusHours: number;
+    comment: string;
 
 
     constructor(forename: string, surname: string, shiftStart: Date, shiftEnd: Date, lunchDuration: number) {
@@ -39,6 +47,7 @@ class Colleague {
         this.shiftEnd = shiftEnd;
         this.lunchDuration = lunchDuration;
         this.dailyHours = new Map<string, DayHours>();
+        this.additionalHours = 0;
     }
 
     getTotalHours(): number {
@@ -49,12 +58,22 @@ class Colleague {
 
         for (let i = 0; i < entries.length; i++) {
             const dayHours = entries[i][1];
+            let nHours = 0;
             if (dayHours.hours === -1) {
                 return -1; // Invalid total due to incomplete shift
             }
-            total += dayHours.hours;
+            if (dayHours.isHoliday) {
+                nHours += (this.getShiftDuration() - this.lunchDuration);
+            } else if (dayHours.isHalfDay) {
+                nHours += ((this.getShiftDuration() - this.lunchDuration) / 2);
+            }
+            nHours += dayHours.hours;
+            
+            total += nHours;
         }
-
+        
+        // Adds the additional hours
+        total += this.additionalHours;
         return total;
     }
 
@@ -123,30 +142,35 @@ function getAllColleagues(workbook: ExcelScript.Workbook) {
 }
 
 
-
-function clipTimes(signTime: Date, colleague: Colleague) {
+// Any times before the shift start + grace period are set to the shift start time
+function clipTimesBeforeSignIn(signIn: Date, colleague: Colleague) {
     const shiftStart = colleague.shiftStart;
     const graceStart = new Date(shiftStart.getTime() + 3 * 60 * 1000); // add 3 minutes
-    let diffInMins = (graceStart.getTime() - signTime.getTime()) / (1000 * 60);
+    let diffInMins = (graceStart.getTime() - signIn.getTime()) / (1000 * 60);
     
     if (diffInMins >= 0) {
         return shiftStart;
     }
 
-    const shiftEnd = colleague.shiftEnd;
-    diffInMins = (shiftEnd.getTime() - signTime.getTime()) / (1000 * 60);
-
-    if (diffInMins < 0) {
-        return shiftEnd;
-    }
-
-    return signTime;
+  return signIn;
 }
 
 
 function adjustSignOutTimes(signOut: Date, shiftEnd: Date) {
     const diffInMins = (shiftEnd.getTime() - signOut.getTime()) / (1000 * 60);
     return diffInMins < 0 ? shiftEnd : signOut
+}
+
+
+function roundTimeUpToNearest15Minutes(date: Date): Date {
+    let ms = 1000 * 60 * 15;
+    return new Date(Math.ceil(date.getTime() / ms) * ms);
+}
+
+
+function roundTimeDownToNearest15Minutes(date: Date): Date {
+    let ms = 1000 * 60 * 15;
+    return new Date(Math.floor(date.getTime() / ms) * ms);
 }
 
 
@@ -175,8 +199,11 @@ function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string
                 if (signIn && signOut) {
 
                     // Adjusts the sign in and out times if they are before the shift start plus grace period
-                    signIn = clipTimes(signIn, colleague);
-                    signOut = clipTimes(signOut, colleague);
+                    signIn = clipTimesBeforeSignIn(signIn, colleague);
+                    signOut = clipTimesBeforeSignIn(signOut, colleague);
+
+                    signIn = roundTimeUpToNearest15Minutes(signIn);
+                    signOut = roundTimeDownToNearest15Minutes(signOut);
 
                     const durationMs = signOut.getTime() - signIn.getTime();
                     totalHours += roundDownToNearest15Minutes(durationMs / (1000 * 60 * 60)); // hours
@@ -200,7 +227,45 @@ function setDailyHours(workbook: ExcelScript.Workbook, allColleagues: Map<string
 }
 
 
+// Checks for holidays and sets the additional and bonus hours as well as comments
+function setAuxiliaryHoursAndComments(workbook: ExcelScript.Workbook, allColleagues: Map<string, Colleague>) {
+    const sheet = workbook.getWorksheet('Total Hours');
+    const values = sheet.getUsedRange().getValues();
 
+    for (let i = 1; i < values.length; i++) {
+        let row = values[i];
+        
+
+        let name: string = row[0] as string;
+        let colleague = allColleagues.get(name);
+
+        // Loops through the days of the week in total hours
+        for (let j = 0; j < days.length; j++) {
+
+            // Gets the value of the cell
+            let dayCell = row[j + 1];
+            let str = dayCell != null ? String(dayCell) : null;
+
+            let day = days[j];
+            if (str.startsWith('H/2')) {
+                colleague.dailyHours.get(day).isHalfDay = true;
+            } else if (str.startsWith('H')) {
+                colleague.dailyHours.get(day).isHoliday = true;
+            } else if (str.startsWith('S')) {
+                colleague.dailyHours.get(day).isSick = true;
+            }
+        }
+
+        let additionalHours: number = Number(row[8]);
+        let bonusHours: number = Number(row[10]);
+        let comment: string = row[11] as string;
+        colleague.additionalHours = additionalHours;
+        colleague.bonusHours = bonusHours;
+        colleague.comment = comment;
+    }
+
+
+}
 
 
 // Takes a number and gives a letter corresponding to a column in an excel spreadsheet
@@ -220,8 +285,7 @@ function writeTotalHours(
 ) {
     const sheet = workbook.getWorksheet("Total Hours");
     let newRows: (string | number | boolean)[][] = [];
-    let cellsToComment: CellComment[] = [];
-
+    let highlightedCells: HighlightedCell[] = [];
 
     // Helper to safely get cell value
     const formatHours = (value: number | undefined): string | number => {
@@ -238,32 +302,41 @@ function writeTotalHours(
 
         for (let j = 0; j < days.length; j++) {
             let day = days[j];
-            let dayHours = formatHours(colleague.dailyHours.get(day).hours);
-            newRow.push(dayHours);
 
-            // Calculates a comment to write to the cells of the 
-            let lunchDuration = colleague.lunchDuration;
-            let comment = "";
-            if (colleague.dailyHours.get(day).lunchBreakApplied) {
-                const hoursLabel = lunchDuration === 1 ? 'hour has' : 'hours have';
-                comment = `${lunchDuration} ${hoursLabel} been deducted for lunch break.`;
-            } else {
-                if (colleague.getTotalHours() > 0) {
-                    comment = `No lunch break has been deducted.`;
-                }
+            let dailyHours = colleague.dailyHours.get(day);
+            let dayHours = formatHours(dailyHours.hours);
+
+            let highlightColour = "";
+            let sickHolidayStatus = '';
+            if (dailyHours.isHoliday) {
+                sickHolidayStatus = 'H';
+                highlightColour = 'yellow';
+            } else if (dailyHours.isHalfDay) {
+                sickHolidayStatus = 'H/2';
+                highlightColour = 'yellow';
+            } else if (dailyHours.isSick){
+                sickHolidayStatus = 'S';
+                highlightColour = 'orange';
             }
-            // Names start on row number 2
-            let rowNum = i + 2;
 
-            // Monday is on the second column
-            let colLetter = numberToColumnLetter(j + 1);
-            let range = `${colLetter}${rowNum}`;
-            let cellComment = new CellComment(range, comment);
-            cellsToComment.push(cellComment);
+            if (sickHolidayStatus) {
+                newRow.push(dayHours == 0 ? sickHolidayStatus : `${sickHolidayStatus} (${dayHours})`);
+            } else {
+                newRow.push(dayHours);
+            }
+
+            // Adds the cell to highlight to highlightedcells
+            let range = `${numberToColumnLetter(j + 2)}${i + 2}`;
+            let cell = new HighlightedCell(highlightColour, range);
+            highlightedCells.push(cell);
+
         }
-        newRow.push(0); // For additional hours
+        newRow.push(colleague.additionalHours); // For additional hours
         let totalHours = formatHours(colleague.getTotalHours());
         newRow.push(totalHours); // For total hours
+        newRow.push(colleague.bonusHours); // For bonus hours
+        newRow.push(colleague.comment); // For comment
+
         newRows.push(newRow);
     }
 
@@ -276,13 +349,15 @@ function writeTotalHours(
     targetRange.setValues(newRows);
 
 
-    // Write comments
-    // for (let cellComment of cellsToComment) {
-    //     const cell = sheet.getRange(cellComment.range);
-
-    //     cell.setNote(cellComment.comment, ExcelScript.ContentType.plain);
-
-    // }
+    // Set the highlighted cells
+    for (let highlightedCell of highlightedCells) {
+        const cell = sheet.getRange(highlightedCell.range);
+        if (highlightedCell.colour == '') {
+            cell.getFormat().getFill().clear();
+        } else {
+            cell.getFormat().getFill().setColor(highlightedCell.colour);
+        }
+    }
 }
 
 
@@ -291,5 +366,6 @@ function writeTotalHours(
 function main(workbook: ExcelScript.Workbook) {
     const allColleagues = getAllColleagues(workbook);
     setDailyHours(workbook, allColleagues);
+    setAuxiliaryHoursAndComments(workbook, allColleagues);
     writeTotalHours(workbook, allColleagues);
 }

@@ -1,8 +1,9 @@
+
 class SupplierHAJ {
   final String name;
   final String company;
   final String reasonForVisit;
-  final String date;
+  final DateTime date;
   final String signIn;
   String signOut;
   

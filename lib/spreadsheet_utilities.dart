@@ -51,14 +51,22 @@ class TimesheetDetails {
 
 
 
-String excelDateToDateTimeStr(double serialDate) {
-  return DateFormat('d/M/yyyy').format(DateTime(1899, 12, 30).add(Duration(days: serialDate.floor())));
+bool isSameDate(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+
+DateTime excelDateToDateTime(num excelSerial) {
+  // Excel uses 1899-12-30 as the zero date (not 1900-01-01)
+  return DateTime(1899, 12, 30).add(Duration(days: excelSerial.floor()));
 }
 
 
 
-
-
+String formatDateDMY(DateTime date) {
+  print("${date.day}/${date.month}/${date.year}");
+  return "${date.day}/${date.month}/${date.year}";
+}
 
 
   // Gets the fileID from the name of the given file and directory path

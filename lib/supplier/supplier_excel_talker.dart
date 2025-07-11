@@ -9,13 +9,13 @@ class SupplierExcelTalker {
 
 
     // Takes all the customer data and uploads it to the customer data spreadsheet
-  Future<bool> uploadSupplierData(Map<String, String> formData) async {
+  Future<bool> uploadSupplierData(Map<String, dynamic> formData) async {
     // Creates the row to be inserted into customer details
     List<String>? newRow = [
                                         formData["Name"]!,
                                         formData["Company"]!,
                                         formData["Reason For Visit"]!,
-                                        formData["Date"]!,
+                                        formatDateDMY(formData["Date"]!),
                                         formData["Sign in"]!.toString(),
                                         ];
 
@@ -39,9 +39,7 @@ class SupplierExcelTalker {
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String tableId = "Signed_In";
-    print("Row number: $rowNumber");
     String? rowId = await getRowIdByNumber(fileId: fileId!, tableName: tableId, rowNumber: rowNumber, accessToken: accessToken);
-    print("Row ID: $rowId");
     bool isSuccess = await deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId!, accessToken: accessToken);
 
     if (isSuccess) {
@@ -54,7 +52,7 @@ class SupplierExcelTalker {
 
 
     // Checks if the given customer is already signed in
-  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, String signInDate) async {
+  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, DateTime signInDate) async {
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? accessToken = await authenticateWithClientSecret();
@@ -66,8 +64,8 @@ class SupplierExcelTalker {
       var row = rows[i];
       String name = row[0].toString();
       String company = row[1].toString();
-      String rowSignInDate = excelDateToDateTimeStr(toDoubleSafe(row[3])!);
-      if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && rowSignInDate == signInDate) {
+      DateTime rowSignInDate = excelDateToDateTime(row[3]);
+      if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && isSameDate(signInDate, rowSignInDate)) {
         return true;
       } else if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {
         var rowNumber = i - 1; // Adjust for header row
@@ -82,7 +80,7 @@ class SupplierExcelTalker {
 
 
   // Signs the supplier in
-  Future<(bool, String)> signSupplierIn(Map<String, String> formData) async {
+  Future<(bool, String)> signSupplierIn(Map<String, dynamic> formData) async {
     (bool, String) response = (false, "");
     String name = formData["Name"]!;
     String company = formData["Company"]!;
@@ -122,7 +120,7 @@ class SupplierExcelTalker {
         String name = row[0].toString();
         String company = row[1].toString();
         String reasonForVisit = row[2].toString();
-        String date = row[3].toString();
+        double date = toDoubleSafe(row[3])!;
         String signIn = row[4].toString();
 
         // Creates a SupplierHAJ instance for each supplier
@@ -130,7 +128,7 @@ class SupplierExcelTalker {
           name: name,
           company: company,
           reasonForVisit: reasonForVisit,
-          date: date,
+          date: excelDateToDateTime(date),
           signIn: signIn,
           signOut: ""
         ));
@@ -147,7 +145,7 @@ class SupplierExcelTalker {
                                           supplier.name,
                                           supplier.company,
                                           supplier.reasonForVisit,
-                                          supplier.date,
+                                          formatDateDMY(supplier.date),
                                           supplier.signIn,
                                           supplier.signOut,
                                           ];

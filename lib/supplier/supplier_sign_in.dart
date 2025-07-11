@@ -104,14 +104,14 @@ bool isValidPhoneNumber(String input) {
     });
 
 
-    DateTime now = DateTime.now();
-    String date = "${now.day.toString()}/${now.month.toString()}/${now.year}";
 
-    Map<String, String> formData = {};
+    Map<String, dynamic> formData = {};
     for (int i = 0; i < _controllers.length; i++) {
       formData[_supplierSignIn[i]] = _controllers[i].text.trim();
     }
-    formData["Date"] = date;
+
+    DateTime now = DateTime.now();
+    formData["Date"] = now;
     formData["Sign in"] = DateFormat('h:mm a').format(now);
     
 

@@ -25,6 +25,7 @@ class SupplierExcelTalker {
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String tableId = "Signed_In";
+    print(formatDateDMY(formData["Date"]!));
     bool isSuccess = await appendRowToTable(fileId: fileId!, tableId: tableId, accessToken: accessToken, row: newRow);
 
     // If upload was a success then return true else return false

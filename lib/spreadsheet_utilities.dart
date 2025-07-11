@@ -64,8 +64,7 @@ DateTime excelDateToDateTime(num excelSerial) {
 
 
 String formatDateDMY(DateTime date) {
-  print("${date.day}/${date.month}/${date.year}");
-  return "${date.day}/${date.month}/${date.year}";
+  return "${date.month}/${date.day}/${date.year}";
 }
 
 

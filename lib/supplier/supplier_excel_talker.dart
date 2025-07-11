@@ -15,7 +15,7 @@ class SupplierExcelTalker {
                                         formData["Name"]!,
                                         formData["Company"]!,
                                         formData["Reason For Visit"]!,
-                                        formatDateDMY(formData["Date"]!),
+                                        formatDateMDY(formData["Date"]!),
                                         formData["Sign in"]!.toString(),
                                         ];
 
@@ -25,7 +25,6 @@ class SupplierExcelTalker {
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String tableId = "Signed_In";
-    print(formatDateDMY(formData["Date"]!));
     bool isSuccess = await appendRowToTable(fileId: fileId!, tableId: tableId, accessToken: accessToken, row: newRow);
 
     // If upload was a success then return true else return false
@@ -146,7 +145,7 @@ class SupplierExcelTalker {
                                           supplier.name,
                                           supplier.company,
                                           supplier.reasonForVisit,
-                                          formatDateDMY(supplier.date),
+                                          formatDateMDY(supplier.date),
                                           supplier.signIn,
                                           supplier.signOut,
                                           ];

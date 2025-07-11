@@ -63,9 +63,17 @@ DateTime excelDateToDateTime(num excelSerial) {
 
 
 
-String formatDateDMY(DateTime date) {
+String formatDateMDY(DateTime date) {
   return "${date.month}/${date.day}/${date.year}";
 }
+
+String formatDateDMY(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  final year = date.year.toString();
+  return "$day/$month/$year";
+}
+
 
 
   // Gets the fileID from the name of the given file and directory path

@@ -51,7 +51,7 @@ class CustomerExcelTalker {
         String reasonForVisit = row[2].toString();
         String signInDriverName = row[3].toString();
         String signInDriverNumber = row[4].toString();
-        String signInDate = row[5].toString();
+        DateTime signInDate = excelDateToDateTime(toDoubleSafe(row[5])!);
         String signIn = row[6].toString();
 
         // Creates a CustomerHAJ instance for each customer
@@ -64,7 +64,7 @@ class CustomerExcelTalker {
           signOutDriverName: "",
           signOutDriverNumber: "",
           signInDate: signInDate,
-          signOutDate: "",
+          signOutDate: null,
           signIn: signIn,
           signOut: ""
         ));
@@ -126,11 +126,11 @@ class CustomerExcelTalker {
                             customer.reasonForVisit,
                             customer.signInDriverName,
                             customer.signInDriverNumber,
-                            customer.signInDate,
+                            formatDateMDY(customer.signInDate),
                             customer.signIn,
                             customer.signOutDriverName,
                             customer.signOutDriverNumber,
-                            customer.signOutDate,
+                            formatDateMDY(customer.signOutDate!),
                             customer.signOut
                             ];
 

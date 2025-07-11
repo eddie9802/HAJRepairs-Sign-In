@@ -4,9 +4,9 @@ class CustomerHAJ {
   final String signInDriverName;
   final String signInDriverNumber;
   final String reasonForVisit;
-  final String signInDate;
+  final DateTime signInDate;
   final String signIn;
-  String signOutDate;
+  DateTime? signOutDate;
   String signOutDriverName;
   String signOutDriverNumber;
   String signOut;

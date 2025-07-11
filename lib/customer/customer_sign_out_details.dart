@@ -26,7 +26,7 @@ class CustomerSignOutDetailsState extends State<CustomerSignOutDetails> {
     customerDetailsList.add("Driver Name: ${customer.signInDriverName}");
     customerDetailsList.add("Contact Number: ${customer.signInDriverNumber}");
     customerDetailsList.add("Reason For Visit: ${customer.reasonForVisit}");
-    customerDetailsList.add("Sign In Date: ${customer.signInDate}");
+    customerDetailsList.add("Sign In Date: ${formatDateDMY(customer.signInDate)}");
     customerDetailsList.add("Sign In Time: ${excelFractionToTimeAmPm(double.parse(customer.signIn))}");
     return customerDetailsList;
   }

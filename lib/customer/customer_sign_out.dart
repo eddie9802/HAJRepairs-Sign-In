@@ -128,7 +128,7 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     widget.customer.signOutDriverName = driverName;
     widget.customer.signOutDriverNumber = driverNumber;
     widget.customer.signOut = DateFormat('h:mm a').format(now);
-    widget.customer.signOutDate = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+    widget.customer.signOutDate = now;
     
 
     (bool, String) response = await CustomerExcelTalker().signCustomerOut(customer);

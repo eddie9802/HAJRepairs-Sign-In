@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'customer_excel_talker.dart';
 import '../common_widgets.dart';
+import '../spreadsheet_utilities.dart';
 
 class CustomerSignIn extends StatefulWidget {
   const CustomerSignIn({super.key}); // Optional constructor with key
@@ -114,7 +115,7 @@ bool isValidPhoneNumber(String input) {
 
 
     DateTime now = DateTime.now();
-    String date = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+    String date = formatDateMDY(now);
 
     Map<String, String> formData = {};
     for (int i = 0; i < _controllers.length; i++) {

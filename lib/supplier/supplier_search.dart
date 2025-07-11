@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../common_widgets.dart';
 import 'supplierHAJ.dart';
 import 'supplier_sign_out.dart';
-
 import './supplier_excel_talker.dart';
 
 class SupplierSearch extends StatefulWidget {
@@ -68,12 +69,12 @@ class _SupplierSearchState extends State<SupplierSearch> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Center(
-                  child: Text(
-                    "Please enter your name",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ),
+                // Center(
+                //   child: Text(
+                //     "Please enter your name",
+                //     style: TextStyle(fontSize: 24),
+                //   ),
+                // ),
                 Padding(
                     padding: EdgeInsets.only(top: 20.0),
                     child:
@@ -84,13 +85,12 @@ class _SupplierSearchState extends State<SupplierSearch> {
                         enabled: _signButtonPressed ? false : true,
                         onChanged: (value) => setMatchedSuppliers(value),
                         decoration: InputDecoration(
-                          //labelText: _fieldText[_currentTextField],
-                          labelStyle: TextStyle(color: Colors.red),
-                          border: OutlineInputBorder(),
+                          labelText: "Please enter your name",
                         ),
                       ),
                     )
                 ),
+              showNResults(_matchedSuppliers.length, "supplier"),
               Expanded(
                 child:
                 SizedBox(

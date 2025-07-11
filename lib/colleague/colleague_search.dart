@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../common_widgets.dart';
 import 'colleague_excel_talker.dart';
 import 'colleague.dart';
 import 'colleague_signing.dart';
@@ -82,18 +84,7 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                       ),
                     ),
                 ),
-                if (_matchedColleagues.isNotEmpty) ...[
-                  SizedBox(height: 4),
-                  Container(
-                    width: 400,
-                    child: Text(
-                      _matchedColleagues.length == 1 ? "1 colleague found" : "${_matchedColleagues.length} colleagues found",
-                      textAlign: TextAlign.left, // or center, right
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                ],
+                showNResults(_matchedColleagues.length, "colleague"),
                 Expanded(
                   child: 
                   SizedBox(

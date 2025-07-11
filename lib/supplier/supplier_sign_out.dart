@@ -59,7 +59,7 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     supplierDetails.add("Name: ${supplier.name}");
     supplierDetails.add("Company: ${supplier.company}");
     supplierDetails.add("Reasons For Visit: ${supplier.reasonForVisit}");
-    supplierDetails.add("Date: ${formatDateMDY(supplier.date)!}");
+    supplierDetails.add("Date: ${formatDateDMY(supplier.date)}");
     supplierDetails.add("Sign In: ${excelFractionToTimeAmPm(double.parse(supplier.signIn))}");
     return supplierDetails;
   }

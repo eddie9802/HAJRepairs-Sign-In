@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haj_repairs_sign_in/customer/customer_excel_talker.dart';
+
+import '../common_widgets.dart';
 import 'customerHAJ.dart';
 import 'customer_sign_out_details.dart';
 
@@ -68,12 +70,12 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Center(
-                  child: Text(
-                    "Please enter your vehicle's registration number",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ),
+                // Center(
+                //   child: Text(
+                //     "Please enter your vehicle's registration number",
+                //     style: TextStyle(fontSize: 24),
+                //   ),
+                // ),
                 Padding(
                     padding: EdgeInsets.only(top: 20.0),
                     child:
@@ -85,17 +87,16 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                         onChanged: (value) => setMatchedCustomers(value),
                         decoration: InputDecoration(
                           //labelText: _fieldText[_currentTextField],
-                          labelStyle: TextStyle(color: Colors.red),
-                          border: OutlineInputBorder(),
+                          labelText: 'Please enter your vehicle\'s registration number',
                         ),
                       ),
                     )
                 ),
+              showNResults(_matchedCustomers.length, "vehicle"),
               Expanded(
                 child:
                 SizedBox(
                 width: 400,
-                height: 600,
                 child: ListView(
                   padding: EdgeInsets.all(16.0),
                   children: [

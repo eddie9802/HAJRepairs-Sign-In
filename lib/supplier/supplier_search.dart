@@ -14,6 +14,7 @@ class SupplierSearch extends StatefulWidget {
 
 class _SupplierSearchState extends State<SupplierSearch> {
 
+  final TextEditingController _controller = TextEditingController();
   bool _signButtonPressed = false;
   final Future<List<SupplierHAJ>> _allSuppliersFuture = SupplierExcelTalker().retrieveSuppliers();
 
@@ -36,6 +37,12 @@ class _SupplierSearchState extends State<SupplierSearch> {
     setState(() => 
     _matchedSuppliers = matches
     ,);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Don't forget to dispose the controller
+    super.dispose();
   }
 
 
@@ -69,18 +76,13 @@ class _SupplierSearchState extends State<SupplierSearch> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Center(
-                //   child: Text(
-                //     "Please enter your name",
-                //     style: TextStyle(fontSize: 24),
-                //   ),
-                // ),
                 Padding(
                     padding: EdgeInsets.only(top: 20.0),
                     child:
                     SizedBox(
                       width: 400,
                       child: TextField(
+                        controller: _controller,
                         textCapitalization: TextCapitalization.words,
                         enabled: _signButtonPressed ? false : true,
                         onChanged: (value) => setMatchedSuppliers(value),
@@ -90,7 +92,7 @@ class _SupplierSearchState extends State<SupplierSearch> {
                       ),
                     )
                 ),
-              showNResults(_matchedSuppliers.length, "supplier"),
+              showNResults(_controller.text.isNotEmpty, _matchedSuppliers.length, "supplier"),
               Expanded(
                 child:
                 SizedBox(

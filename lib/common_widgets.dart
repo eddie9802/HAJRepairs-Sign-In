@@ -29,8 +29,21 @@ Widget loadingIndicator() {
 }
 
 
-Widget showNResults(int resultsLength, String resultType) {
-  if (resultsLength == 0) return SizedBox.shrink(); // Return nothing if empty
+Widget showNResults(bool hasUserInput, int resultsLength, String resultType) {
+  print("showNResults called with resultsLength: $resultsLength, hasUserInput: $hasUserInput, resultType: $resultType");
+  if (resultsLength == 0 && !hasUserInput) return SizedBox.shrink(); // Return nothing if empty
+
+  if (resultsLength == 0 && hasUserInput) {
+    return Container(
+      width: 400, // Match parent width
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        "No ${resultType}s found",
+        textAlign: TextAlign.left,
+        style: TextStyle(fontSize: 14, color: Colors.red),
+      ),
+    );
+  }
 
   return Container(
     width: 400, // Match parent width

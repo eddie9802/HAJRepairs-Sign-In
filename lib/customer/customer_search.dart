@@ -14,11 +14,18 @@ class CustomerFormSignOut extends StatefulWidget {
 
 class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
 
-  bool _signButtonPressed = false;
+  final TextEditingController _controller = TextEditingController();
   final Future<List<CustomerHAJ>> _allCustomersFuture = CustomerExcelTalker().retrieveCustomers();
+  List<CustomerHAJ> _matchedCustomers = [];
+  bool _signButtonPressed = false;
 
 
-    List<CustomerHAJ> _matchedCustomers = [];
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Don't forget to dispose the controller
+    super.dispose();
+  }
 
   // Function to get matched customers based on search input
   Future<List<CustomerHAJ>> getMatchingCustomers(String reg) async {
@@ -82,6 +89,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                     SizedBox(
                       width: 400,
                       child: TextField(
+                        controller: _controller,
                         textCapitalization: TextCapitalization.characters,
                         enabled: _signButtonPressed ? false : true,
                         onChanged: (value) => setMatchedCustomers(value),
@@ -92,7 +100,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                       ),
                     )
                 ),
-              showNResults(_matchedCustomers.length, "vehicle"),
+              showNResults(_controller.text.isNotEmpty, _matchedCustomers.length, "vehicle"),
               Expanded(
                 child:
                 SizedBox(

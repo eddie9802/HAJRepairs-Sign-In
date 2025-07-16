@@ -15,8 +15,16 @@ class ColleagueSearch extends StatefulWidget {
 class _ColleagueSearchState extends State<ColleagueSearch> {
 
   final Future<List<dynamic>?> _colleagues = ColleagueExcelTalker().retrieveColleagues();
+  final TextEditingController _controller = TextEditingController();
 
   List<Colleague> _matchedColleagues = [];
+
+  
+  @override
+  void dispose() {
+    _controller.dispose(); // Don't forget to dispose the controller
+    super.dispose();
+  }
 
   // Function to get matched colleagues based on search input
   Future<List<Colleague>> getSearchedColleagues(String search) async {
@@ -76,6 +84,7 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                     SizedBox(
                       width: 400,
                       child: TextField(
+                        controller: _controller,
                         onChanged: (value) => setMatchedColleagues(value),
                         decoration: InputDecoration(
                         labelText: 'Enter name',
@@ -84,7 +93,7 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                       ),
                     ),
                 ),
-                showNResults(_matchedColleagues.length, "colleague"),
+                showNResults(_controller.text.isNotEmpty, _matchedColleagues.length, "colleague"),
                 Expanded(
                   child: 
                   SizedBox(

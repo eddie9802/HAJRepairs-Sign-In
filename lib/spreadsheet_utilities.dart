@@ -78,15 +78,14 @@ String formatDateDMY(DateTime date) {
 
 
 
-  // Gets the fileID from the name of the given file and directory path
-  Future<String?> getFileId(String fileName, List<String> pathSegments, String accessToken) async {
-    final encodedSegments = pathSegments.map(Uri.encodeComponent).join('/');
+// Gets the file ID from the name of the given file and directory path
+Future<HAJResponse> getFileId(String fileName, List<String> pathSegments, String accessToken) async {
+  final encodedSegments = pathSegments.map(Uri.encodeComponent).join('/');
+  final url = Uri.parse(
+    'https://graph.microsoft.com/v1.0/drives/$_driveId/root:/$encodedSegments:/children'
+  );
 
-    final url = Uri.parse(
-      'https://graph.microsoft.com/v1.0/drives/$_driveId/root:/$encodedSegments:/children'
-    );
-
-
+  try {
     final response = await http.get(
       url,
       headers: {
@@ -96,29 +95,31 @@ String formatDateDMY(DateTime date) {
     );
 
     if (response.statusCode != 200) {
-      print('Error fetching Excel data: ${response.statusCode}');
-      return null;
+      return HAJResponse(statusCode: response.statusCode, message: 'Error fetching folder contents.');
     }
 
     final Map<String, dynamic> json = jsonDecode(response.body);
 
     if (json['value'] == null || json['value'] is! List) {
-      print('Unexpected response format: ${response.body}');
-      return null;
+      return HAJResponse(statusCode: 500, message: 'Unexpected response format.');
     }
 
     final List<dynamic> items = json['value'];
 
-
-
-    for(var item in items) {
+    for (var item in items) {
       if (item['name'] == fileName) {
-        return item['id'];
+        return HAJResponse(statusCode: 200, message: 'Success', body: item['id']);
       }
     }
-    
-    return null;
+
+    return HAJResponse(statusCode: 404, message: 'File not found.');
+  } on SocketException {
+    return HAJResponse(statusCode: 504, message: 'Failed to connect to the server. Please check your internet connection.');
+  } catch (e) {
+    return HAJResponse(statusCode: 500, message: 'An error occurred while retrieving the file ID.');
   }
+}
+
 
 
 

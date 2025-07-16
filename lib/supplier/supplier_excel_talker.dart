@@ -29,9 +29,14 @@ class SupplierExcelTalker {
     String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find supplier file");
+      return false;
+    }
+    String fileId = fileIdResponse.body;
     String tableId = "Signed_In";
-    bool isSuccess = await appendRowToTable(fileId: fileId!, tableId: tableId, accessToken: accessToken, row: newRow);
+    bool isSuccess = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
     // If upload was a success then return true else return false
     return isSuccess;
@@ -49,7 +54,12 @@ class SupplierExcelTalker {
     String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find supplier file");
+      return;
+    }
+    String? fileId = fileIdResponse.body;
     String tableId = "Signed_In";
     String? rowId = await getRowIdByNumber(fileId: fileId!, tableName: tableId, rowNumber: rowNumber, accessToken: accessToken);
     bool isSuccess = await deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId!, accessToken: accessToken);
@@ -73,7 +83,14 @@ class SupplierExcelTalker {
       return false;
     }
     String? accessToken = response.body;
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+
+    // Gets the file ID of the supplier file
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find supplier file");
+      return false;
+    }
+    String? fileId = fileIdResponse.body;
     String worksheetId = "Signed-In";
     final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
 
@@ -129,9 +146,15 @@ class SupplierExcelTalker {
     String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find supplier file");
+      return [];
+
+    }
+    String fileId = fileIdResponse.body;
     String sheet = "Signed-In";
-    final values = await readSpreadsheet(fileId!, sheet, accessToken);
+    final values = await readSpreadsheet(fileId, sheet, accessToken);
     final List<SupplierHAJ> allSuppliers = [];
     if (values == null || values.isEmpty) {
       print("No suppliers found");
@@ -189,10 +212,15 @@ class SupplierExcelTalker {
     String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find supplier file");
+      return (false, "Could not find supplier file");
+    }
+    String fileId = fileIdResponse.body;
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
-    bool successfullyWritten = await writeToSignedOutSuppliers(supplier, fileId!, signedOutTable, accessToken);
+    bool successfullyWritten = await writeToSignedOutSuppliers(supplier, fileId, signedOutTable, accessToken);
     (bool, String) res = (false, "");
 
     if (successfullyWritten) {

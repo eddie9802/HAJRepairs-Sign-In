@@ -35,14 +35,15 @@ class ColleagueExcelTalker {
 
     String fileName = "Colleagues.xlsx";
     final pathSegments = ['HAJ-Reception', 'Colleague'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
 
-    if (fileId == null) {
+    if (fileIdResponse.statusCode != 200) {
       print("Could not find colleagues file");
-      return HAJResponse(statusCode: 404, message: "Colleagues file not found");
+      return fileIdResponse;
     }
 
     String worksheetId = 'List';
+    String fileId = fileIdResponse.body;
     List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
 
 
@@ -90,11 +91,12 @@ class ColleagueExcelTalker {
     String? accessToken = response.body;
     TimesheetDetails details = getTimesheetDetails();
     final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
-    String? fileId = await getFileId(details.name, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(details.name, pathSegments, accessToken!);
 
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
-    List<dynamic>? values = await readSpreadsheet(fileId!, worksheetId, accessToken);
+    String fileId = fileIdResponse.body;
+    List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
 
     if (values == null || values.isEmpty) {
       print("Error: $worksheetId sheet for ${details.name} spreadsheet empty or not found");
@@ -198,10 +200,7 @@ class ColleagueExcelTalker {
       print("${response.message}");
       return response;
     }
-    String? accessToken = response.body;
-    TimesheetDetails details = getTimesheetDetails();
-    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
-    String? fileId = await getFileId(details.name, pathSegments, accessToken!);
+
 
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
@@ -215,8 +214,20 @@ class ColleagueExcelTalker {
     // All the rows that need updating
     List<UpdatedRow> updatedRows = [];
 
+    String? accessToken = response.body;
+    TimesheetDetails details = getTimesheetDetails();
+    final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
+    HAJResponse fileIdResponse = await getFileId(details.name, pathSegments, accessToken!);
+
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find timesheet file");
+      return fileIdResponse;
+    }
+
+    String fileId = fileIdResponse.body;
+
     // Gets the number of columns in the spreadsheet
-    int headerSize = await getHeaderSize(fileId!, worksheetId, accessToken);
+    int headerSize = await getHeaderSize(fileId, worksheetId, accessToken);
 
 
     // Gets the new header row.  If there isn't one newHeaderRow is null

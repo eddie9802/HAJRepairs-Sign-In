@@ -28,9 +28,14 @@ class CustomerExcelTalker {
       String? accessToken = response.body;
       String fileName = "Customer-Reception.xlsx";
       final pathSegments = ['HAJ-Reception', 'Customer'];
-      String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+      HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+      if (fileIdResponse.statusCode != 200) {
+        print("Could not find customer file");
+        return false;
+      }
+      String fileId = fileIdResponse.body;
       String tableId = "Signed_In";
-      bool success = await appendRowToTable(fileId: fileId!, tableId: tableId, accessToken: accessToken, row: newRow);
+      bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
       // If upload was a success then return true else return false
       return success;
@@ -47,9 +52,10 @@ class CustomerExcelTalker {
     String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    String fileId = fileIdResponse.body;
     String sheet = "Signed-In";
-    final values = await readSpreadsheet(fileId!, sheet, accessToken);
+    final values = await readSpreadsheet(fileId, sheet, accessToken);
     final List<CustomerHAJ> allCustomers = [];
     if (values == null || values.isEmpty) {
       print("No customers found");
@@ -96,10 +102,18 @@ class CustomerExcelTalker {
       return false;
     }
     String? accessToken = response.body;
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
-    getFileId(fileName, pathSegments, accessToken);
+
+    // Gets the file id of the customer reception file
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find customer file");
+      return false;
+    }
+    String fileId = fileIdResponse.body;
+
+    // Reads the signed in customers sheet
     String worksheetId = "Signed-In";
-    final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
+    final rows = await readSpreadsheet(fileId, worksheetId, accessToken);
 
     for (var row in rows!) {
       String reg = row[0].toString();
@@ -167,9 +181,14 @@ class CustomerExcelTalker {
     String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find customer file");
+      return false;
+    }
     String tableId = "Signed_In";
-    return deleteTableRow(fileId: fileId!, tableName: tableId, rowId: rowId, accessToken: accessToken);
+    String fileId = fileIdResponse.body;
+    return deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId, accessToken: accessToken);
 }
 
 
@@ -183,10 +202,15 @@ class CustomerExcelTalker {
     String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? fileId = await getFileId(fileName, pathSegments, accessToken!);
+    HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
+    if (fileIdResponse.statusCode != 200) {
+      print("Could not find customer file");
+      return (false, "Could not find customer file");
+    }
+    String fileId = fileIdResponse.body;
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
-    bool successfullyWritten = await writeToSignedOutCustomers(customer, fileId!, signedOutTable, accessToken);
+    bool successfullyWritten = await writeToSignedOutCustomers(customer, fileId, signedOutTable, accessToken);
     (bool, String) res = (false, "");
 
     if (successfullyWritten) {

@@ -16,7 +16,7 @@ class ColleagueSearch extends StatefulWidget {
 class _ColleagueSearchState extends State<ColleagueSearch> {
 
   List<Colleague> _allColleagues = <Colleague>[];
-  late Future<void> _colleaguesFuture;
+  late final Future<void> _colleaguesFuture;
   final TextEditingController _controller = TextEditingController();
   List<Colleague> _matchedColleagues = [];
 
@@ -115,7 +115,13 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                 future: _colleaguesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: loadingIndicator());
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 40), // Push it down a bit from the top
+                        loadingIndicator(),
+                      ],
+                    );
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error loading colleagues'));
                   } else {

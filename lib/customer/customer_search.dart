@@ -77,12 +77,6 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Center(
-                //   child: Text(
-                //     "Please enter your vehicle's registration number",
-                //     style: TextStyle(fontSize: 24),
-                //   ),
-                // ),
                 Padding(
                     padding: EdgeInsets.only(top: 20.0),
                     child:

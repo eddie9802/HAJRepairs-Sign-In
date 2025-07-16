@@ -1,6 +1,7 @@
 import 'package:haj_repairs_sign_in/supplier/supplierHAJ.dart';
 
 import '../spreadsheet_utilities.dart';
+import '../haj_response.dart';
 
 
 
@@ -20,7 +21,12 @@ class SupplierExcelTalker {
                                         ];
 
 
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return false;
+    }
+    String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -34,7 +40,13 @@ class SupplierExcelTalker {
 
 
   void deleteSupplierData(int rowNumber) async {
-    String? accessToken = await authenticateWithClientSecret();
+    
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return;
+    }
+    String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -55,7 +67,12 @@ class SupplierExcelTalker {
   Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, DateTime signInDate) async {
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return false;
+    }
+    String? accessToken = response.body;
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String worksheetId = "Signed-In";
     final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
@@ -104,7 +121,12 @@ class SupplierExcelTalker {
 
   // Returns a list of all the suppliers that are currently signed in
   Future<List<SupplierHAJ>> retrieveSuppliers() async {
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return [];
+    }
+    String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -159,14 +181,19 @@ class SupplierExcelTalker {
 
     // Writes the customer to the sign out sheet and remove them from the sign in
   Future<(bool, String)> signSupplierOut(SupplierHAJ supplier) async {
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return (false, "Authentication failed");
+    }
+    String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
     bool successfullyWritten = await writeToSignedOutSuppliers(supplier, fileId!, signedOutTable, accessToken);
-    (bool, String) response = (false, "");
+    (bool, String) res = (false, "");
 
     if (successfullyWritten) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: supplier.name, accessToken: accessToken);
@@ -175,18 +202,18 @@ class SupplierExcelTalker {
         bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 
         if (rowDeleted) {
-          response = (true, "Sign out successful");
+          res = (true, "Sign out successful");
         } else {
-          response = (false, "Failed to delete the supplier row from sign-in sheet");
+          res = (false, "Failed to delete the supplier row from sign-in sheet");
         }
       } else {
-        response = (false, "Failed to find supplier in sign-in sheet");
+        res = (false, "Failed to find supplier in sign-in sheet");
       }
     } else {
-      response = (false, "Failed to write supplier details to sign-out sheet");
+      res = (false, "Failed to write supplier details to sign-out sheet");
     }
 
-  return response;
+  return res;
   }
 }
 

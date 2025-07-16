@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../common_widgets.dart';
 import 'colleague_excel_talker.dart';
 import 'colleague.dart';
+import '../haj_response.dart';
 
 
 class ColleagueReception extends StatefulWidget {
@@ -32,14 +33,16 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
 
   // Writes the signing to excel online spreadsheet and then displays popup
   Future<void> signColleague(BuildContext context, String? signing) async {
-    (bool?, String) res = await ColleagueExcelTalker().writeSigning(_colleague);
-    bool success = res.$1!;
-    String time = res.$2;
+    HAJResponse? res = await ColleagueExcelTalker().writeSigning(_colleague);
+    if (res == null) {
+      await showDialogPopUp(context, 'An unknown error occurred.');
+      return;
+    }
     String dialogMessage;
-    if (success) {
-      dialogMessage = '$signing at $time successful!';
+    if (res.statusCode == 204) {
+      dialogMessage = '$signing at ${res.body} successful!';
     } else {
-      dialogMessage = 'Error:  Failed to write to timesheet';
+      dialogMessage = '${res.message}';
     }
     await showDialogPopUp(context, dialogMessage);
   }

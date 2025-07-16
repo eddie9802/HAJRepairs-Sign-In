@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haj_repairs_sign_in/haj_response.dart';
 
 import '../common_widgets.dart';
 import 'colleague_excel_talker.dart';
@@ -14,9 +15,9 @@ class ColleagueSearch extends StatefulWidget {
 
 class _ColleagueSearchState extends State<ColleagueSearch> {
 
-  final Future<List<dynamic>?> _colleagues = ColleagueExcelTalker().retrieveColleagues();
+  List<Colleague> _allColleagues = <Colleague>[];
+  late Future<void> _colleaguesFuture;
   final TextEditingController _controller = TextEditingController();
-
   List<Colleague> _matchedColleagues = [];
 
   
@@ -26,23 +27,41 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
     super.dispose();
   }
 
+
+  @override
+  void initState() {
+    super.initState();
+    _colleaguesFuture = initColleagues();
+  }
+
+
+
+  Future<void> initColleagues() async {
+  final response = await ColleagueExcelTalker().retrieveColleagues();
+  if (response.statusCode == 200) {
+    _allColleagues = response.body as List<Colleague>;
+  } else {
+    await showDialogPopUp(context, response.message);
+    Navigator.of(context).pop();
+  }
+}
+
   // Function to get matched colleagues based on search input
   Future<List<Colleague>> getSearchedColleagues(String search) async {
     List<Colleague> matched = [];
-    final colleagues = await _colleagues;
-    for (var colleague in colleagues!) {
+    for (var colleague in _allColleagues) {
       String fullName = '${colleague.forename} ${colleague.surname}';
       if (fullName.toLowerCase().startsWith(search.toLowerCase()) && search.isNotEmpty) {
         matched.add(colleague);
       }
     }
-
-  matched.sort((a, b) => a.getFullName().toLowerCase().compareTo(b.getFullName().toLowerCase()));
+    matched.sort((a, b) => a.getFullName().toLowerCase().compareTo(b.getFullName().toLowerCase()));
     return matched;
   }
 
 // Function to update the matched colleagues based on user input
   void setMatchedColleagues(String search) async {
+    await _colleaguesFuture;
     final matched = await getSearchedColleagues(search);
     setState(() {
       _matchedColleagues = matched;
@@ -57,7 +76,7 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
             icon: Icon(Icons.arrow_back),
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
-              Future.delayed(Duration(milliseconds: 200), () {
+              Future.delayed(Duration(milliseconds: 300), () {
                 Navigator.of(context).maybePop();
               });
             },
@@ -72,60 +91,75 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
     return Scaffold(
       appBar: getAppbar(),
       body:
-        Center(
-          child:
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(top: 50.0),
-                  child: 
-                    SizedBox(
-                      width: 400,
-                      child: TextField(
-                        controller: _controller,
-                        onChanged: (value) => setMatchedColleagues(value),
-                        decoration: InputDecoration(
-                        labelText: 'Enter name',
-                        border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                ),
-                showNResults(_controller.text.isNotEmpty, _matchedColleagues.length, "colleague"),
-                Expanded(
-                  child: 
-                  SizedBox(
+      Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 50.0),
+              child: 
+                SizedBox(
                   width: 400,
-                  child: ListView(
-                    padding: EdgeInsets.all(16.0),
-                    children: [
-                      ...List.generate(_matchedColleagues.length, (index) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 8.0),
-                          child: ListTile(
-                              title: Text('${_matchedColleagues[index].forename} ${_matchedColleagues[index].surname}'),
-                              onTap: () async {
-                                FocusManager.instance.primaryFocus?.unfocus(); 
-
-                                await Future.delayed(const Duration(milliseconds: 200));
-                                
-                                // Dismiss keyboard
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ColleagueReception(colleague: _matchedColleagues[index],)),
-                                );
-                              },
-                            ),
-                          );
-                        }),
-                      ]
+                  child: TextField(
+                    controller: _controller,
+                    onChanged: (value) => setMatchedColleagues(value),
+                    decoration: InputDecoration(
+                    labelText: 'Enter name',
+                    border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-              ],
             ),
+            Expanded( // gives height to FutureBuilder result
+              child: FutureBuilder<void>(
+                future: _colleaguesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: loadingIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error loading colleagues'));
+                  } else {
+                    return Column(
+                      children: [
+                        showNResults(_controller.text.isNotEmpty, _matchedColleagues.length, "colleague"),
+                        Expanded( // gives height to ListView
+                          child: SizedBox(
+                            width: 400,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(16.0),
+                              itemCount: _matchedColleagues.length,
+                              itemBuilder: (context, index) {
+                                final colleague = _matchedColleagues[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: ListTile(
+                                    title: Text('${colleague.forename} ${colleague.surname}'),
+                                    onTap: () async {
+                                      FocusManager.instance.primaryFocus?.unfocus();
+                                      await Future.delayed(const Duration(milliseconds: 200));
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ColleagueReception(colleague: colleague),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        ],
+                      );
+                    }
+                },
+              ),
+            ),
+
+            ],
+          ),
         ),
     );
   }

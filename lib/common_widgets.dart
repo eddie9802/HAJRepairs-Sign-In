@@ -30,7 +30,6 @@ Widget loadingIndicator() {
 
 
 Widget showNResults(bool hasUserInput, int resultsLength, String resultType) {
-  print("showNResults called with resultsLength: $resultsLength, hasUserInput: $hasUserInput, resultType: $resultType");
   if (resultsLength == 0 && !hasUserInput) return SizedBox.shrink(); // Return nothing if empty
 
   if (resultsLength == 0 && hasUserInput) {

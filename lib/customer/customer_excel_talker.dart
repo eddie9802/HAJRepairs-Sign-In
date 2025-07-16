@@ -1,5 +1,6 @@
 import 'package:haj_repairs_sign_in/spreadsheet_utilities.dart';
 import 'customerHAJ.dart';
+import '../haj_response.dart';
 
 class CustomerExcelTalker {
 
@@ -19,7 +20,12 @@ class CustomerExcelTalker {
                                           formData["Sign in"]!,
                                           ];
 
-      String? accessToken = await authenticateWithClientSecret();
+      HAJResponse response = (await authenticateWithClientSecret())!;
+      if (response.statusCode != 200) {
+        print("Failed to authenticate: ${response.message}");
+        return false;
+      }
+      String? accessToken = response.body;
       String fileName = "Customer-Reception.xlsx";
       final pathSegments = ['HAJ-Reception', 'Customer'];
       String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -33,7 +39,12 @@ class CustomerExcelTalker {
 
   // Returns a list of all the customers that are currently signed in
   Future<List<CustomerHAJ>> retrieveCustomers() async {
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return [];
+    }
+    String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -79,7 +90,12 @@ class CustomerExcelTalker {
   Future<bool> hasCustomerSignedIn(String customerReg) async {
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return false;
+    }
+    String? accessToken = response.body;
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     getFileId(fileName, pathSegments, accessToken);
     String worksheetId = "Signed-In";
@@ -143,7 +159,12 @@ class CustomerExcelTalker {
 
 
   Future<bool> deleteRowfromSignedIn(String rowId, fileId, ) async {
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return false;
+    }
+    String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
@@ -154,14 +175,19 @@ class CustomerExcelTalker {
 
   // Writes the customer to the sign out sheet and remove them from the sign in
   Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return (false, "Authentication failed");
+    }
+    String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
     String? fileId = await getFileId(fileName, pathSegments, accessToken!);
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
     bool successfullyWritten = await writeToSignedOutCustomers(customer, fileId!, signedOutTable, accessToken);
-    (bool, String) response = (false, "");
+    (bool, String) res = (false, "");
 
     if (successfullyWritten) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: customer.registration, accessToken: accessToken);
@@ -169,18 +195,18 @@ class CustomerExcelTalker {
         bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 
         if (rowDeleted) {
-          response = (true, "Your vehicle has successfully been signed out");
+          res = (true, "Your vehicle has successfully been signed out");
         } else {
-          response = (false, "Failed to delete the customer row from sign-in sheet");
+          res = (false, "Failed to delete the customer row from sign-in sheet");
         }
       } else {
-        response = (false, "Failed to find vehicle in sign-in sheet");
+        res = (false, "Failed to find vehicle in sign-in sheet");
       }
     } else {
-      response = (false, "Failed to write customer details to sign-out sheet");
+      res = (false, "Failed to write customer details to sign-out sheet");
     }
 
-  return response;
+  return res;
   }
   
 }

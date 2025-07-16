@@ -4,7 +4,7 @@ import 'package:flutter_appauth/flutter_appauth.dart';
 import 'colleague.dart';
 import '../spreadsheet_utilities.dart';
 import '../updated_row.dart';
-
+import '../haj_response.dart';
 
 
 
@@ -21,8 +21,17 @@ class ColleagueExcelTalker {
 
 
   // Retrieves all the colleauges from the colleagues file
-  Future<List<Colleague>?> retrieveColleagues() async {
-    String? accessToken = await authenticateWithClientSecret();
+  Future<HAJResponse> retrieveColleagues() async {
+    HAJResponse? response = await authenticateWithClientSecret();
+    if (response == null) {
+      print("Failed to authenticate due to an unknown error.");
+      return HAJResponse(statusCode: 500, message: "Authentication failed");
+    }
+    if (response.statusCode != 200) {
+      print("${response.message}");
+      return response;
+    }
+    String? accessToken = response.body;
 
     String fileName = "Colleagues.xlsx";
     final pathSegments = ['HAJ-Reception', 'Colleague'];
@@ -30,26 +39,24 @@ class ColleagueExcelTalker {
 
     if (fileId == null) {
       print("Could not find colleagues file");
-      return null;
+      return HAJResponse(statusCode: 404, message: "Colleagues file not found");
     }
 
     String worksheetId = 'List';
     List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
 
-    if (values == null || values.isEmpty) {
-      print('No colleagues found');
-      return [];
-    }
 
     final List<Colleague> allColleagues = [];
-
-    for (var row in values.skip(1)) {
-      final String forename = row.length > 0 ? row[0]?.toString() ?? '' : '';
-      final String surname = row.length > 1 ? row[1]?.toString() ?? '' : '';
-      allColleagues.add(Colleague(forename: forename, surname: surname));
+    if (values != null && values.isNotEmpty) {
+      for (var row in values.skip(1)) {
+        final String forename = row.length > 0 ? row[0]?.toString() ?? '' : '';
+        final String surname = row.length > 1 ? row[1]?.toString() ?? '' : '';
+        allColleagues.add(Colleague(forename: forename, surname: surname));
+      }
     }
 
-    return allColleagues;
+
+    return HAJResponse(statusCode: 200, message: "Sucess", body: allColleagues);
   }
 
 
@@ -75,7 +82,12 @@ class ColleagueExcelTalker {
   Future<void> setSigningDetails(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("Failed to authenticate: ${response.message}");
+      return;
+    }
+    String? accessToken = response.body;
     TimesheetDetails details = getTimesheetDetails();
     final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
     String? fileId = await getFileId(details.name, pathSegments, accessToken!);
@@ -178,10 +190,15 @@ class ColleagueExcelTalker {
 
 
   // Writes signing data to excel timesheet
-  Future<(bool?, String)> writeSigning(Colleague colleague) async {
+  Future<HAJResponse?> writeSigning(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
-    String? accessToken = await authenticateWithClientSecret();
+    HAJResponse response = (await authenticateWithClientSecret())!;
+    if (response.statusCode != 200) {
+      print("${response.message}");
+      return response;
+    }
+    String? accessToken = response.body;
     TimesheetDetails details = getTimesheetDetails();
     final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
     String? fileId = await getFileId(details.name, pathSegments, accessToken!);
@@ -217,15 +234,16 @@ class ColleagueExcelTalker {
 
 
     // Writes the updated rows to the spreadsheet
-    bool? success;
+    HAJResponse? res;
     for (var row in updatedRows) {
-      success = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row.row, row.range);
+      res = await writeRowToSpreadsheet(fileId, worksheetId, accessToken, row.row, row.range);
+      res.body = newSigningTime;
 
-      if (!success) {
-        return (false, newSigningTime); // early exit on failure
+      if (res.statusCode != 204) {
+        return res; // early exit on failure
       }
     }
 
-    return (true, newSigningTime);
+    return res;
   }
 }

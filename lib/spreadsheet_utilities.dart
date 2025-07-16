@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 import '../secret_manager.dart';
+import 'haj_response.dart';
 
 
 
@@ -298,7 +300,7 @@ Future<String?> getRowIdByNumber({
 
 
     // Writes to the spreadsheet denoted by fileId and the sheet denoted by worksheetId
-  Future<bool> writeRowToSpreadsheet(String fileId, String worksheetId, String accessToken,List<String> row, String range) async {
+  Future<HAJResponse> writeRowToSpreadsheet(String fileId, String worksheetId, String accessToken,List<String> row, String range) async {
 
     // Sends a http request to read the spreadsheet
     final url = Uri.parse(
@@ -310,17 +312,23 @@ Future<String?> getRowIdByNumber({
       'values': [row],  // single row, so 2D array with one inner array
     });
 
+    try {
+      final response = await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: body
+      );
+    } on SocketException {
+      return HAJResponse(statusCode: 504, message: 'Failed to connect to the server.  Please check your internet connection.');
+    } catch (e) {
+      return HAJResponse(statusCode: 500, message: 'An error occurred while writing to the spreadsheet.');
+    }
 
-    final response = await http.patch(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-      body: body
-    );
 
-    return response.statusCode == 200;
+    return HAJResponse(statusCode: 204, message: 'Successfully wrote to spreadsheet');
   }
 
 
@@ -369,28 +377,54 @@ String getTodaysSheet() {
 
 
 
-  Future<String?> authenticateWithClientSecret() async {
+  Future<HAJResponse?> authenticateWithClientSecret() async {
     final tokenEndpoint = 'https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token';
     final secretManager = await SecretManager.create();
 
-    final response = await http.post(
-      Uri.parse(tokenEndpoint),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: {
-        'client_id': clientId,
-        'scope': 'https://graph.microsoft.com/.default',
-        'client_secret': await secretManager.getDecryptedSecret(),
-        'grant_type': 'client_credentials',
-      },
-    );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-      return jsonResponse['access_token'] as String?;
-    } else {
-      print('Failed to get token: ${response.statusCode} - ${response.body}');
-      return null;
+    HAJResponse? response;
+    dynamic httpRes;
+    try {
+      httpRes = await http.post(
+        Uri.parse(tokenEndpoint),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'client_id': clientId,
+          'scope': 'https://graph.microsoft.com/.default',
+          'client_secret': await secretManager.getDecryptedSecret(),
+          'grant_type': 'client_credentials',
+        },
+      );
+
+
+      final msg = httpRes.body ?? "Unexpected error: No response body";
+
+      Map<String, dynamic> jsonResponse;
+      try {
+        jsonResponse = jsonDecode(msg);
+      } catch (e) {
+        return HAJResponse(
+          statusCode: httpRes.statusCode,
+          message: 'Invalid JSON from token endpoint.',
+        );
+      }
+
+      if (httpRes.statusCode == 200) {
+        return response = HAJResponse(statusCode: httpRes.statusCode, message: "Success", body: jsonResponse['access_token'] as String?);
+      } else {
+        return response = HAJResponse(statusCode: httpRes.statusCode, message: jsonResponse['error_description'] ?? 'Unknown error');
+      }
+
+
+    } on SocketException {
+      response = HAJResponse(statusCode: 504, message: 'Failed to connect to the server.  Please check your internet connection.');
+    } catch (e) {
+        final status = httpRes?.statusCode ?? 500;
+        final msg = httpRes?.body ?? 'Unexpected error: $e';
+        response = HAJResponse(statusCode: status, message: msg);
     }
+
+    return response;
   }

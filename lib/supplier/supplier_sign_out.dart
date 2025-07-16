@@ -83,15 +83,15 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     );
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     List<String> customerDetailsList = getSupplierDetails();
 
-    return Scaffold(
-      appBar: getAppbar(),
-      body: Stack(
-        children: [
-          Container(
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: getAppbar(),
+          body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
             alignment: Alignment.topCenter,
             child: Column(
@@ -132,18 +132,19 @@ class SupplierSignOutState extends State<SupplierSignOut> {
               ],
             ),
           ),
+        ),
 
-          if (_signButtonPressed) ...[
-            ModalBarrier(
-              color: Colors.black.withAlpha(77),
-              dismissible: false,
-            ),
-            Center(
-              child: loadingIndicator(),
-            ),
-          ],
+        // ✅ Put this OUTSIDE the Scaffold so it covers everything
+        if (_signButtonPressed) ...[
+          ModalBarrier(
+            color: Colors.black.withAlpha(77),
+            dismissible: false,
+          ),
+          Center(
+            child: loadingIndicator(),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

@@ -184,7 +184,6 @@ class ColleagueExcelTalker {
     String? accessToken = await authenticateWithClientSecret();
     TimesheetDetails details = getTimesheetDetails();
     final pathSegments = ['HAJ-Reception', 'Colleague', 'Timesheets', details.date.year.toString(), details.getMonthName()];
-    print(pathSegments);
     String? fileId = await getFileId(details.name, pathSegments, accessToken!);
 
     // Gets all the values from the spreadsheet

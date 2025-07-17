@@ -133,11 +133,10 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     
 
     HAJResponse response = await CustomerExcelTalker().signCustomerOut(customer);
-    bool isSuccess = response.body;
 
 
     await Future.delayed(Duration(milliseconds: 300));
-    if (isSuccess) {
+    if (response.isSuccess) {
       await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();

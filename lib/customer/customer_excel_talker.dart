@@ -270,22 +270,22 @@ class CustomerExcelTalker {
     String signedOutTable = "Signed_Out";
     HAJResponse appendResponse = await writeToSignedOutCustomers(customer, fileId, signedOutTable, accessToken);
 
-    if (appendResponse.statusCode == 200) {
+    if (appendResponse.isSuccess) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: customer.registration, accessToken: accessToken);
       if (rowId != null) {
         HAJResponse deleteResponse = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 
-        if (deleteResponse.statusCode == 204) {
-          return HAJResponse(statusCode: 200, message: "Sign out successful", body: true);
+        if (deleteResponse.isSuccess) {
+          return HAJResponse(statusCode: deleteResponse.statusCode, message: "Sign out successful");
         } else {
-          return HAJResponse(statusCode: deleteResponse.statusCode, message: "Failed to delete customer from sign-in sheet", body: false);
+          return HAJResponse(statusCode: deleteResponse.statusCode, message: "Failed to delete customer from sign-in sheet");
         }
 
       } else {
-        return HAJResponse(statusCode: 404, message: "Failed to find vehicle in sign-in sheet", body: false);
+        return HAJResponse(statusCode: 404, message: "Failed to find vehicle in sign-in sheet");
       }
     } else {
-      return HAJResponse(statusCode: 500, message: "Failed to write customer details to sign-out sheet", body: false);
+      return HAJResponse(statusCode: 500, message: "Failed to write customer details to sign-out sheet");
     }
   }
   

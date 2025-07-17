@@ -174,7 +174,7 @@ String excelFractionToTimeAmPm(double fraction) {
 }
 
 
-Future<bool> appendRowToTable({
+Future<HAJResponse> appendRowToTable({
   required String fileId,
   required String tableId, // e.g., "Table1"
   required String accessToken,
@@ -189,17 +189,25 @@ Future<bool> appendRowToTable({
     'values': [row], // must be a 2D array
   });
 
-  final response = await http.post(
-    url,
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json',
-    },
-    body: body,
-  );
+  try {
+    final httpRes = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
 
+    return HAJResponse(statusCode: httpRes.statusCode, message: httpRes.body);
 
-  return response.statusCode == 201;
+  } on SocketException {
+    print('Failed to connect to the server. Please check your internet connection.');
+    return HAJResponse(statusCode: 504, message: 'Failed to connect to the server.');
+  } catch (e) {
+    print('An error occurred while appending row to table: $e');
+    return HAJResponse(statusCode: 500, message: 'An error occurred while appending row to table.');
+  }
 }
 
 
@@ -283,7 +291,7 @@ Future<String?> getRowIdByNumber({
 
 
 
-  Future<bool> deleteTableRow({
+  Future<HAJResponse> deleteTableRow({
   required String fileId,
   required String tableName,
   required String rowId,
@@ -297,14 +305,27 @@ Future<String?> getRowIdByNumber({
     'https://graph.microsoft.com/v1.0$odataId'
   );
 
-  final deleteResponse = await http.delete(
-    deleteUrl,
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-    },
-  );
 
-  return deleteResponse.statusCode == 204;
+  try {
+    final httpRes = await http.delete(
+      deleteUrl,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+
+    if (httpRes.statusCode == 204) {
+      return HAJResponse(statusCode: 204, message: 'Row deleted successfully');
+    } else {
+      return HAJResponse(statusCode: httpRes.statusCode, message: 'Failed to delete row: ${httpRes.body}');
+    }
+
+    } on SocketException {
+      return HAJResponse(statusCode: 504, message: 'Failed to connect to the server.  Please check your internet connection.');
+    } catch (e) {
+      return HAJResponse(statusCode: 500, message: 'An error occurred while writing to the spreadsheet.');
+    }
 }
 
 

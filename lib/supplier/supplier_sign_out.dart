@@ -5,6 +5,7 @@ import '../common_widgets.dart';
 import './supplier_excel_talker.dart';
 import 'supplierHAJ.dart';
 import '../spreadsheet_utilities.dart';
+import '../haj_response.dart';
 
 
 class SupplierSignOut extends StatefulWidget {
@@ -35,16 +36,18 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     DateTime now = DateTime.now();
     supplier.signOut = DateFormat('h:mm a').format(now);
 
-    (bool, String) response = await SupplierExcelTalker().signSupplierOut(supplier);
+    HAJResponse response = await SupplierExcelTalker().signSupplierOut(supplier);
 
-    await Future.delayed(Duration(milliseconds: 200));
-    if (response.$1) {
-      await showDialogPopUp(context, response.$2);
+    bool isSuccess = response.statusCode == 200;
+
+    await Future.delayed(Duration(milliseconds: 300));
+    if (isSuccess) {
+      await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showDialogPopUp(context, "Error: ${response.$2}");
+      await showDialogPopUp(context, "Error: ${response.message}");
       setState(() {
          _signButtonPressed = false;
       });

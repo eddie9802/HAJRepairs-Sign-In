@@ -39,10 +39,10 @@ class CustomerExcelTalker {
       }
       String fileId = fileIdResponse.body;
       String tableId = "Signed_In";
-      bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
+      HAJResponse appendResponse = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
       // If upload was a success then return true else return false
-      return HAJResponse(statusCode: success ? 200 : 500, message: success ? "Upload successful" : "Upload failed");
+      return HAJResponse(statusCode: appendResponse.statusCode, message: appendResponse.message);
     }
 
 
@@ -169,11 +169,7 @@ class CustomerExcelTalker {
       final HAJResponse signedInResponse = await hasCustomerSignedIn(registration);
 
       if (signedInResponse.statusCode != 200) {
-        return HAJResponse(
-          statusCode: 500,
-          message: "${signedInResponse.message}",
-          body: false,
-        );
+        return HAJResponse(statusCode: signedInResponse.statusCode, message: signedInResponse.message, body: false);
       }
 
       final bool signedIn = signedInResponse.body;
@@ -182,25 +178,25 @@ class CustomerExcelTalker {
         return HAJResponse(
           statusCode: 200,
           message: "Customer is already signed in",
-          body: true,
-        );
-      }
-
-      final HAJResponse uploadResponse = await uploadCustomerData(formData);
-
-      if (uploadResponse.statusCode == 200) {
-        return HAJResponse(
-          statusCode: 200,
-          message: "Sign in successful",
-          body: true,
-        );
-      } else {
-        return HAJResponse(
-          statusCode: 500,
-          message: "${uploadResponse.message}",
           body: false,
         );
       }
+
+      HAJResponse uploadResponse = await uploadCustomerData(formData);
+      if (!uploadResponse.isSuccess) {
+        return HAJResponse(
+          statusCode: uploadResponse.statusCode,
+          message: uploadResponse.message,
+          body: false,
+        );
+      } else {
+        return HAJResponse(
+          statusCode: uploadResponse.statusCode,
+          message: "Sign in successful",
+          body: true,
+        );
+      }
+
     } catch (e) {
       return HAJResponse(
         statusCode: 500,
@@ -212,7 +208,7 @@ class CustomerExcelTalker {
 
 
 
-  Future<bool> writeToSignedOutCustomers(CustomerHAJ customer, String fileId, String tableId, String accessToken) async {
+  Future<HAJResponse> writeToSignedOutCustomers(CustomerHAJ customer, String fileId, String tableId, String accessToken) async {
     // Creates the row to be inserted into customer details
     List<String>? newRow = [
                             customer.registration,
@@ -229,18 +225,15 @@ class CustomerExcelTalker {
                             ];
 
 
-    bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
-
-    // If upload was a success then return true else return false
-    return success;
+    return await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
   }
 
 
-  Future<bool> deleteRowfromSignedIn(String rowId, fileId, ) async {
+  Future<HAJResponse> deleteRowfromSignedIn(String rowId, fileId, ) async {
     HAJResponse response = (await authenticateWithClientSecret())!;
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
-      return false;
+      return HAJResponse(statusCode: 500, message: "Failed to authenticate");
     }
     String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
@@ -248,7 +241,7 @@ class CustomerExcelTalker {
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find customer file");
-      return false;
+      return HAJResponse(statusCode: 404, message: "Customer file not found");
     }
     String tableId = "Signed_In";
     String fileId = fileIdResponse.body;
@@ -257,44 +250,48 @@ class CustomerExcelTalker {
 
 
   // Writes the customer to the sign out sheet and remove them from the sign in
-  Future<(bool, String)> signCustomerOut(CustomerHAJ customer) async {
+  Future<HAJResponse> signCustomerOut(CustomerHAJ customer) async {
+
     HAJResponse response = (await authenticateWithClientSecret())!;
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
-      return (false, "Authentication failed");
+      return response;
     }
     String? accessToken = response.body;
+
+
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
+
+
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find customer file");
-      return (false, "Could not find customer file");
+      return fileIdResponse;
     }
     String fileId = fileIdResponse.body;
+
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
-    bool successfullyWritten = await writeToSignedOutCustomers(customer, fileId, signedOutTable, accessToken);
-    (bool, String) res = (false, "");
+    HAJResponse appendResponse = await writeToSignedOutCustomers(customer, fileId, signedOutTable, accessToken);
 
-    if (successfullyWritten) {
+    if (appendResponse.statusCode == 200) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: customer.registration, accessToken: accessToken);
       if (rowId != null) {
-        bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
+        HAJResponse deleteResponse = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
 
-        if (rowDeleted) {
-          res = (true, "Your vehicle has successfully been signed out");
+        if (deleteResponse.statusCode == 204) {
+          return HAJResponse(statusCode: 200, message: "Sign out successful", body: true);
         } else {
-          res = (false, "Failed to delete the customer row from sign-in sheet");
+          return HAJResponse(statusCode: deleteResponse.statusCode, message: "Failed to delete customer from sign-in sheet", body: false);
         }
+
       } else {
-        res = (false, "Failed to find vehicle in sign-in sheet");
+        return HAJResponse(statusCode: 404, message: "Failed to find vehicle in sign-in sheet", body: false);
       }
     } else {
-      res = (false, "Failed to write customer details to sign-out sheet");
+      return HAJResponse(statusCode: 500, message: "Failed to write customer details to sign-out sheet", body: false);
     }
-
-  return res;
   }
   
 }

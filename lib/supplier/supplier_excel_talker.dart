@@ -10,7 +10,7 @@ class SupplierExcelTalker {
 
 
     // Takes all the customer data and uploads it to the customer data spreadsheet
-  Future<bool> uploadSupplierData(Map<String, dynamic> formData) async {
+  Future<HAJResponse> uploadSupplierData(Map<String, dynamic> formData) async {
     // Creates the row to be inserted into customer details
     List<String>? newRow = [
                                         formData["Name"]!,
@@ -21,54 +21,59 @@ class SupplierExcelTalker {
                                         ];
 
 
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return false;
+    HAJResponse authenticateRes = (await authenticateWithClientSecret())!;
+    if (authenticateRes.statusCode != 200) {
+      print("Failed to authenticate: ${authenticateRes.message}");
+      return authenticateRes;
     }
-    String? accessToken = response.body;
+    String? accessToken = authenticateRes.body;
+
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find supplier file");
-      return false;
+      return fileIdResponse;
     }
     String fileId = fileIdResponse.body;
+
     String tableId = "Signed_In";
-    bool isSuccess = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
+    HAJResponse appendResponse = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
     // If upload was a success then return true else return false
-    return isSuccess;
+    return appendResponse;
   }
 
 
 
-  void deleteSupplierData(int rowNumber) async {
+  Future<HAJResponse> deleteSupplierData(int rowNumber) async {
     
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return;
+    HAJResponse authenticateRes = (await authenticateWithClientSecret())!;
+    if (authenticateRes.statusCode != 200) {
+      print("${authenticateRes.message}");
+      return authenticateRes;
     }
-    String? accessToken = response.body;
+    String? accessToken = authenticateRes.body;
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find supplier file");
-      return;
+      return fileIdResponse;
     }
     String? fileId = fileIdResponse.body;
     String tableId = "Signed_In";
     String? rowId = await getRowIdByNumber(fileId: fileId!, tableName: tableId, rowNumber: rowNumber, accessToken: accessToken);
-    bool isSuccess = await deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId!, accessToken: accessToken);
+    HAJResponse deleteResponse = await deleteTableRow(fileId: fileId, tableName: tableId, rowId: rowId!, accessToken: accessToken);
 
-    if (isSuccess) {
-      print("Successfully deleted supplier data for row $rowNumber");
+    if (deleteResponse.statusCode == 204) {
+      String message = "Successfully deleted supplier data for row $rowNumber";
+      print(message);
+      return HAJResponse(statusCode: 200, message: message, body: true);
     } else {
-      print("Failed to delete supplier data for row $rowNumber");
-
+      String message = "Failed to delete supplier data for row $rowNumber";
+      print(message);
+      return HAJResponse(statusCode: deleteResponse.statusCode, message: message, body: false);
     }
   }
 
@@ -127,7 +132,9 @@ class SupplierExcelTalker {
     bool signedIn = await hasSupplierSignedIn(name, company, formData["Date"]!);
 
     if (!signedIn) {
-      if (await uploadSupplierData(formData)) {
+      HAJResponse uploadResponse = await uploadSupplierData(formData);
+      bool uploadSuccess = uploadResponse.statusCode == 200;
+      if (uploadSuccess) {
         response = (true, "Sign in successful");
       } else {
         response = (false, "Sign in failed");
@@ -197,7 +204,7 @@ class SupplierExcelTalker {
 
 
 
-    Future<bool> writeToSignedOutSuppliers(SupplierHAJ supplier, String fileId, String tableId, String accessToken) async {
+    Future<HAJResponse> writeToSignedOutSuppliers(SupplierHAJ supplier, String fileId, String tableId, String accessToken) async {
       // Creates the row to be inserted into customer details
       List<String>? newRow = [
                                           supplier.name,
@@ -208,19 +215,18 @@ class SupplierExcelTalker {
                                           supplier.signOut,
                                           ];
 
-      bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
-      return success;
+      return await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
   }
 
 
 
 
     // Writes the customer to the sign out sheet and remove them from the sign in
-  Future<(bool, String)> signSupplierOut(SupplierHAJ supplier) async {
+  Future<HAJResponse> signSupplierOut(SupplierHAJ supplier) async {
     HAJResponse response = (await authenticateWithClientSecret())!;
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
-      return (false, "Authentication failed");
+      return response;
     }
     String? accessToken = response.body;
     String fileName = "Supplier-Reception.xlsx";
@@ -228,33 +234,33 @@ class SupplierExcelTalker {
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find supplier file");
-      return (false, "Could not find supplier file");
+      return fileIdResponse;
     }
     String fileId = fileIdResponse.body;
     String signedInTable = "Signed_In";
     String signedOutTable = "Signed_Out";
-    bool successfullyWritten = await writeToSignedOutSuppliers(supplier, fileId, signedOutTable, accessToken);
-    (bool, String) res = (false, "");
+    HAJResponse writeToSignedOutRes = await writeToSignedOutSuppliers(supplier, fileId, signedOutTable, accessToken);
+
+    bool successfullyWritten = writeToSignedOutRes.statusCode == 200;
 
     if (successfullyWritten) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: supplier.name, accessToken: accessToken);
 
       if (rowId != null) {
-        bool rowDeleted = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
+        HAJResponse deleteResponse = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
+        bool deleteSuccessful = deleteResponse.statusCode == 204;
 
-        if (rowDeleted) {
-          res = (true, "Sign out successful");
+        if (deleteSuccessful) {
+          return HAJResponse(statusCode: 200, message: "Sign out successful", body: true);
         } else {
-          res = (false, "Failed to delete the supplier row from sign-in sheet");
+          return HAJResponse(statusCode: 500, message: "Failed to delete the supplier row from sign-in sheet", body: false);
         }
       } else {
-        res = (false, "Failed to find supplier in sign-in sheet");
+        return HAJResponse(statusCode: 404, message: "Failed to find supplier in sign-in sheet", body: false);
       }
     } else {
-      res = (false, "Failed to write supplier details to sign-out sheet");
+      return HAJResponse(statusCode: 500, message: "Failed to write supplier details to sign-out sheet", body: false);
     }
-
-  return res;
   }
 }
 

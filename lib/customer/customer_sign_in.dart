@@ -131,10 +131,9 @@ bool isValidPhoneNumber(String input) {
     
 
     HAJResponse response = await CustomerExcelTalker().signCustomerIn(formData);
-    bool customerSignedIn = response.body;
 
 
-    if (customerSignedIn) {
+    if (response.isSuccess) {
       await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();

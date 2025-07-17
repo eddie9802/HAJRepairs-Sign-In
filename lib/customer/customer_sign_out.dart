@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../common_widgets.dart';
 import 'customerHAJ.dart';
+import '../haj_response.dart';
 
 class CustomerSignOut extends StatefulWidget {
 
@@ -131,17 +132,19 @@ class CustomerSignOutState extends State<CustomerSignOut> {
     widget.customer.signOutDate = now;
     
 
-    (bool, String) response = await CustomerExcelTalker().signCustomerOut(customer);
+    HAJResponse response = await CustomerExcelTalker().signCustomerOut(customer);
+    bool isSuccess = response.body;
 
-    await Future.delayed(Duration(milliseconds: 200));
-    if (response.$1) {
-      await showDialogPopUp(context, response.$2);
+
+    await Future.delayed(Duration(milliseconds: 300));
+    if (isSuccess) {
+      await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showDialogPopUp(context, "Error: ${response.$2}");
+      await showDialogPopUp(context, "${response.message}");
       setState(() {
          _signButtonPressed = false;
       });

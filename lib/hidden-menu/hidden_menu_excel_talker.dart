@@ -46,9 +46,16 @@ class HiddenMenuExcelTalker {
     // Adds all the signings to the colleagues signing array
     for (var i = 1; i < values.length; i++) {
       var row = values[i];
+      int count = 0;
+      int index = 0;
+      while (row[index] != '' && row[index] != null) {
+        count++;
+        index++;
 
-      if (row.length % 2 == 0) {
+      }
+      if (count % 2 == 0) {
         String name = row[0];
+        print(name);
         signedInColleagues.add(name);
       }
     }

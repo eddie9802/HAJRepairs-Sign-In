@@ -39,7 +39,7 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
       return;
     }
     String dialogMessage;
-    if (res.statusCode == 204) {
+    if (res.isSuccess) {
       dialogMessage = '$signing at ${res.body} successful!';
     } else {
       dialogMessage = '${res.message}';

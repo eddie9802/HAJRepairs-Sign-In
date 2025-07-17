@@ -71,7 +71,12 @@ class _ColleagueReceptionState extends State<ColleagueReception> {
   Future<String> _getButtonTextFuture(Colleague colleague) async {
 
     // Updates the signing details of the colleague
-    await ColleagueExcelTalker().setSigningDetails(colleague);
+    HAJResponse response = await ColleagueExcelTalker().setSigningDetails(colleague);
+
+    if (!response.isSuccess) {
+      print("Failed to set signing details: ${response.message}");
+      return "Error";
+    }
 
     String buttonText;
     // Finds out if the user is signing in or out

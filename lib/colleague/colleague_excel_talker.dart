@@ -85,13 +85,19 @@ class ColleagueExcelTalker {
 
 
   // Set colleague signing details
-  Future<void> setSigningDetails(Colleague colleague) async {
+  Future<HAJResponse> setSigningDetails(Colleague colleague) async {
 
     // Gets the id of the timesheet that needs to be read
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return;
+    HAJResponse? response = await authenticateWithClientSecret();
+
+    if (response == null) {
+      print("Failed to authenticate due to an unknown error.");
+      return HAJResponse(statusCode: 500, message: "Authentication failed");
+    }
+
+    if (!response.isSuccess) {
+      print(response.message);
+      return response;
     }
     String? accessToken = response.body;
     TimesheetDetails details = getTimesheetDetails();
@@ -103,15 +109,15 @@ class ColleagueExcelTalker {
     String fileId = fileIdResponse.body;
     HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, worksheetId, accessToken);
 
-    if (spreadsheetResponse.statusCode != 200) {
+    if (!spreadsheetResponse.isSuccess) {
       print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
-      return;
+      return spreadsheetResponse;
     }
     List<dynamic>? values = spreadsheetResponse.body;
 
     if (values == null || values.isEmpty) {
       print("Error: $worksheetId sheet for ${details.name} spreadsheet empty or not found");
-      return;
+      return spreadsheetResponse;
     }
 
     // Adds all the signings to the colleagues signing array
@@ -135,6 +141,8 @@ class ColleagueExcelTalker {
         break;
       }
     }
+
+    return HAJResponse(statusCode: 200, message: "Success");
   }
 
 

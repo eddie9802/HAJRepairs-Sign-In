@@ -4,12 +4,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../secrets/secret_manager.dart';
 import '../common_widgets.dart';
 
-class SecretSetter extends StatefulWidget {
+class QRCode extends StatefulWidget {
   @override
-  State<SecretSetter> createState() => _SecretSetterState();
+  State<QRCode> createState() => _QRCodeState();
 }
 
-class _SecretSetterState extends State<SecretSetter> {
+class _QRCodeState extends State<QRCode> {
   String? qrText;
   bool _isScanned = false;
 
@@ -32,7 +32,8 @@ class _SecretSetterState extends State<SecretSetter> {
 
       // Optionally close the scanner or do something with the result
       Future.delayed(Duration(seconds: 1), () {
-        Navigator.pop(context, qrText); // Return value if needed
+        Navigator.pop(context); // Return value if needed
+        Navigator.pop(context); // Return value if needed
       });
     }
   }

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
 import 'supplier/supplier_form.dart';
-import 'hidden-menu/qr_code.dart';
+import 'hidden-menu/hidden_menu.dart';
 
 void main() async {
   //await dotenv.load(fileName: "assets/.env");
@@ -112,7 +112,7 @@ class MainPageState extends State<MainPage> {
       _tapCount = 0; // Reset tap count
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SecretSetter()),
+        MaterialPageRoute(builder: (_) => HiddenMenu()),
       );
     }
 

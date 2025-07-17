@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
 import 'supplier/supplier_form.dart';
-import './hidden-menu/secret_setter.dart';
+import 'hidden-menu/qr_code.dart';
 
 void main() async {
   //await dotenv.load(fileName: "assets/.env");

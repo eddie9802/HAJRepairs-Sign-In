@@ -7,23 +7,27 @@ class CustomerExcelTalker {
 
 
     // Takes all the customer data and uploads it to the customer data spreadsheet
-  Future<bool> uploadCustomerData(Map<String, String> formData) async {
+  Future<HAJResponse> uploadCustomerData(Map<String, String> formData) async {
 
       // Creates the row to be inserted into customer details
       List<String>? newRow = [
-                                          formData["Registration"]!,
-                                          formData["Company"]!,
-                                          formData["Reason For Visit"]!,
-                                          formData["Name"]!,
-                                          formData["Driver Number"]!.toString(),
-                                          formData["Date"]!,
-                                          formData["Sign in"]!,
-                                          ];
+                              formData["Registration"]!,
+                              formData["Company"]!,
+                              formData["Reason For Visit"]!,
+                              formData["Name"]!,
+                              formData["Driver Number"]!.toString(),
+                              formData["Date"]!,
+                              formData["Sign in"]!,
+                              ];
 
-      HAJResponse response = (await authenticateWithClientSecret())!;
+      HAJResponse? response = await authenticateWithClientSecret();
+      if (response == null) {
+        return HAJResponse(statusCode: 500, message: "An unknown error has occurred");
+      }
+
       if (response.statusCode != 200) {
-        print("Failed to authenticate: ${response.message}");
-        return false;
+        print("${response.message}");
+        return response;
       }
       String? accessToken = response.body;
       String fileName = "Customer-Reception.xlsx";
@@ -31,14 +35,14 @@ class CustomerExcelTalker {
       HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
       if (fileIdResponse.statusCode != 200) {
         print("Could not find customer file");
-        return false;
+        return fileIdResponse;
       }
       String fileId = fileIdResponse.body;
       String tableId = "Signed_In";
       bool success = await appendRowToTable(fileId: fileId, tableId: tableId, accessToken: accessToken, row: newRow);
 
       // If upload was a success then return true else return false
-      return success;
+      return HAJResponse(statusCode: success ? 200 : 500, message: success ? "Upload successful" : "Upload failed");
     }
 
 
@@ -107,7 +111,12 @@ class CustomerExcelTalker {
     final pathSegments = ['HAJ-Reception', 'Customer'];
 
     // Authenticates with the client secret
-    HAJResponse response = (await authenticateWithClientSecret())!;
+    HAJResponse? response = await authenticateWithClientSecret();
+
+    if (response == null) {
+      return HAJResponse(statusCode: 500, message: "An unknown error has occurred");
+    }
+
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
       return response;
@@ -145,32 +154,62 @@ class CustomerExcelTalker {
     return result;
   }
 
-  // Signs the customer in
-  Future<(bool, String)> signCustomerIn(Map<String, String> formData) async {
-    (bool, String) response = (false, "");
-    String registration = formData["Registration"]!;
+  Future<HAJResponse> signCustomerIn(Map<String, String> formData) async {
+    final String? registration = formData["Registration"];
 
-    HAJResponse signedInResponse = await hasCustomerSignedIn(registration);
-
-    if (signedInResponse.statusCode != 200) {
-      return (false, signedInResponse.message);
+    if (registration == null || registration.trim().isEmpty) {
+      return HAJResponse(
+        statusCode: 400,
+        message: "Missing or invalid registration number",
+        body: false,
+      );
     }
 
-    bool signedIn = signedInResponse.body;
+    try {
+      final HAJResponse signedInResponse = await hasCustomerSignedIn(registration);
 
-    if (!signedIn) {
-      if (await uploadCustomerData(formData)) {
-        response = (true, "Your vehicle has successfully been signed in");
-      } else {
-        response = (false, "Sign in failed");
+      if (signedInResponse.statusCode != 200) {
+        return HAJResponse(
+          statusCode: 500,
+          message: "${signedInResponse.message}",
+          body: false,
+        );
       }
-    } else {
-      response = (false, "Vehicle has already been signed in");
+
+      final bool signedIn = signedInResponse.body;
+
+      if (signedIn) {
+        return HAJResponse(
+          statusCode: 200,
+          message: "Customer is already signed in",
+          body: true,
+        );
+      }
+
+      final HAJResponse uploadResponse = await uploadCustomerData(formData);
+
+      if (uploadResponse.statusCode == 200) {
+        return HAJResponse(
+          statusCode: 200,
+          message: "Sign in successful",
+          body: true,
+        );
+      } else {
+        return HAJResponse(
+          statusCode: 500,
+          message: "${uploadResponse.message}",
+          body: false,
+        );
+      }
+    } catch (e) {
+      return HAJResponse(
+        statusCode: 500,
+        message: "Unexpected error: $e",
+        body: false,
+      );
     }
-
-
-    return response;
   }
+
 
 
   Future<bool> writeToSignedOutCustomers(CustomerHAJ customer, String fileId, String tableId, String accessToken) async {

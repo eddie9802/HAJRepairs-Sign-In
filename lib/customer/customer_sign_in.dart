@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haj_repairs_sign_in/haj_response.dart';
 import 'package:intl/intl.dart';
 
 import 'customer_excel_talker.dart';
@@ -129,15 +130,16 @@ bool isValidPhoneNumber(String input) {
     }
     
 
-    (bool, String) response = await CustomerExcelTalker().signCustomerIn(formData);
+    HAJResponse response = await CustomerExcelTalker().signCustomerIn(formData);
+    bool customerSignedIn = response.body;
 
-    // response.$1 is the success of the sign in
-    if (response.$1) {
-      await showDialogPopUp(context, response.$2);
+
+    if (customerSignedIn) {
+      await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showDialogPopUp(context, "Error: ${response.$2}");
+      await showDialogPopUp(context, response.message);
       setState(() {
          _signButtonPressed = false;
       });

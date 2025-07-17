@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'secret_manager.dart';
-import 'common_widgets.dart';
+import '../secrets/secret_manager.dart';
+import '../common_widgets.dart';
 
 class SecretSetter extends StatefulWidget {
   @override

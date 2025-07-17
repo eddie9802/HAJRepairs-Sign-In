@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-import '../secret_manager.dart';
+import 'secrets/secret_manager.dart';
 import 'haj_response.dart';
 
 
@@ -355,14 +355,13 @@ Future<String?> getRowIdByNumber({
         },
         body: body
       );
+
+      return HAJResponse(statusCode: response.statusCode, message: 'Successfully wrote to spreadsheet');
     } on SocketException {
       return HAJResponse(statusCode: 504, message: 'Failed to connect to the server.  Please check your internet connection.');
     } catch (e) {
       return HAJResponse(statusCode: 500, message: 'An error occurred while writing to the spreadsheet.');
     }
-
-
-    return HAJResponse(statusCode: 204, message: 'Successfully wrote to spreadsheet');
   }
 
 

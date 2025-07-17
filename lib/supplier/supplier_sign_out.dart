@@ -37,11 +37,10 @@ class SupplierSignOutState extends State<SupplierSignOut> {
     supplier.signOut = DateFormat('h:mm a').format(now);
 
     HAJResponse response = await SupplierExcelTalker().signSupplierOut(supplier);
-
-    bool isSuccess = response.statusCode == 200;
+    
 
     await Future.delayed(Duration(milliseconds: 300));
-    if (isSuccess) {
+    if (response.isSuccess) {
       await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();

@@ -183,7 +183,7 @@ class SupplierExcelTalker {
 
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    
+
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (!fileIdResponse.isSuccess) {
       print("Could not find supplier file");
@@ -250,8 +250,14 @@ class SupplierExcelTalker {
 
     // Writes the customer to the sign out sheet and remove them from the sign in
   Future<HAJResponse> signSupplierOut(SupplierHAJ supplier) async {
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
+    HAJResponse? response = await authenticateWithClientSecret();
+
+    if (response == null) {
+      print("Failed to authenticate");
+      return HAJResponse(statusCode: 500, message: "Failed to authenticate: An unknown error occurred");
+    }
+
+    if (!response.isSuccess) {
       print("Failed to authenticate: ${response.message}");
       return response;
     }
@@ -268,25 +274,22 @@ class SupplierExcelTalker {
     String signedOutTable = "Signed_Out";
     HAJResponse writeToSignedOutRes = await writeToSignedOutSuppliers(supplier, fileId, signedOutTable, accessToken);
 
-    bool successfullyWritten = writeToSignedOutRes.statusCode == 200;
-
-    if (successfullyWritten) {
+    if (writeToSignedOutRes.isSuccess) {
       String? rowId = await getRowId(fileId: fileId, tableName: signedInTable, identifier: supplier.name, accessToken: accessToken);
 
       if (rowId != null) {
         HAJResponse deleteResponse = await deleteTableRow(fileId: fileId, tableName: signedOutTable, rowId: rowId, accessToken: accessToken);
-        bool deleteSuccessful = deleteResponse.statusCode == 204;
 
-        if (deleteSuccessful) {
-          return HAJResponse(statusCode: 200, message: "Sign out successful", body: true);
+        if (deleteResponse.isSuccess) {
+          return HAJResponse(statusCode: 200, message: "Sign out successful");
         } else {
-          return HAJResponse(statusCode: 500, message: "Failed to delete the supplier row from sign-in sheet", body: false);
+          return HAJResponse(statusCode: 500, message: "Failed to delete the supplier row from sign-in sheet");
         }
       } else {
-        return HAJResponse(statusCode: 404, message: "Failed to find supplier in sign-in sheet", body: false);
+        return HAJResponse(statusCode: 404, message: "Failed to find supplier in sign-in sheet");
       }
     } else {
-      return HAJResponse(statusCode: 500, message: "Failed to write supplier details to sign-out sheet", body: false);
+      return HAJResponse(statusCode: 500, message: "Failed to write supplier details to sign-out sheet");
     }
   }
 }

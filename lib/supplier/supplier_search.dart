@@ -4,6 +4,7 @@ import '../common_widgets.dart';
 import 'supplierHAJ.dart';
 import 'supplier_sign_out.dart';
 import './supplier_excel_talker.dart';
+import '../haj_response.dart';
 
 class SupplierSearch extends StatefulWidget {
   const SupplierSearch({super.key}); // Optional constructor with key
@@ -16,15 +17,16 @@ class _SupplierSearchState extends State<SupplierSearch> {
 
   final TextEditingController _controller = TextEditingController();
   bool _signButtonPressed = false;
-  final Future<List<SupplierHAJ>> _allSuppliersFuture = SupplierExcelTalker().retrieveSuppliers();
+  List<SupplierHAJ> _allSuppliers = [];
+  late final Future<void> _supplierFuture;
 
     List<SupplierHAJ> _matchedSuppliers = [];
 
   // Function to get matched suppliers based on search input
   Future<List<SupplierHAJ>> getMatchingSuppliers(String reg) async {
     List<SupplierHAJ> matched = [];
-    final allSuppliers = await _allSuppliersFuture;
-    for (var supplier in allSuppliers) {
+    await _supplierFuture;
+    for (var supplier in _allSuppliers) {
       if (supplier.name.toLowerCase().startsWith(reg.toLowerCase()) && reg.isNotEmpty) {
         matched.add(supplier);
       }
@@ -43,6 +45,22 @@ class _SupplierSearchState extends State<SupplierSearch> {
   void dispose() {
     _controller.dispose(); // Don't forget to dispose the controller
     super.dispose();
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    _supplierFuture = initSuppliers();
+  }
+
+  Future<void> initSuppliers() async {
+    HAJResponse response = await SupplierExcelTalker().retrieveSuppliers();
+    if (response.isSuccess) {
+      _allSuppliers = response.body as List<SupplierHAJ>;
+    } else {
+      await showDialogPopUp(context, response.message);
+      Navigator.of(context).pop();
+    }
   }
 
 
@@ -76,55 +94,74 @@ class _SupplierSearchState extends State<SupplierSearch> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Padding(
-                    padding: EdgeInsets.only(top: 20.0),
-                    child:
-                    SizedBox(
-                      width: 400,
-                      child: TextField(
-                        controller: _controller,
-                        textCapitalization: TextCapitalization.words,
-                        enabled: _signButtonPressed ? false : true,
-                        onChanged: (value) => setMatchedSuppliers(value),
-                        decoration: InputDecoration(
-                          labelText: "Please enter your name",
-                        ),
-                      ),
-                    )
-                ),
-              showNResults(_controller.text.isNotEmpty, _matchedSuppliers.length, "supplier"),
-              Expanded(
-                child:
                 SizedBox(
-                width: 400,
-                height: 600,
-                child: ListView(
-                  padding: EdgeInsets.all(16.0),
-                  children: [
-                    ...List.generate(_matchedSuppliers.length, (index) {
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 8.0),
-                        child: ListTile(
-                            title: Text('${_matchedSuppliers[index].name} from ${_matchedSuppliers[index].company}'),
-                            onTap: () async {
-                              FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
-                              // Wait a little to ensure the keyboard is fully gone
-                              await Future.delayed(const Duration(milliseconds: 200));
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => SupplierSignOut(supplier: _matchedSuppliers[index])),
-                              );
-                            },
-                          ),
-                        );
-                      }),
-                    ]
+                  width: 400,
+                  child: TextField(
+                    controller: _controller,
+                    textCapitalization: TextCapitalization.words,
+                    enabled: _signButtonPressed ? false : true,
+                    onChanged: (value) => setMatchedSuppliers(value),
+                    decoration: InputDecoration(
+                      labelText: "Please enter your name",
+                    ),
                   ),
                 ),
+              Expanded( // gives height to FutureBuilder result
+              child: FutureBuilder<void>(
+                future: _supplierFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 40), // Push it down a bit from the top
+                        loadingIndicator(),
+                      ],
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error loading colleagues'));
+                  } else {
+                    return Column(
+                      children: [
+                        showNResults(_controller.text.isNotEmpty, _matchedSuppliers.length, "supplier"),
+                        Expanded(
+                          child:
+                          SizedBox(
+                          width: 400,
+                          height: 600,
+                          child: ListView(
+                            padding: EdgeInsets.all(16.0),
+                            children: [
+                              ...List.generate(_matchedSuppliers.length, (index) {
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: 8.0),
+                                  child: ListTile(
+                                      title: Text('${_matchedSuppliers[index].name} from ${_matchedSuppliers[index].company}'),
+                                      onTap: () async {
+                                        FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+                                        // Wait a little to ensure the keyboard is fully gone
+                                        await Future.delayed(const Duration(milliseconds: 200));
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => SupplierSignOut(supplier: _matchedSuppliers[index])),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ]
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
-            ],
-          ),
-        )
+            ),
+          ],
+        ),
+      )
     );
   }
 }

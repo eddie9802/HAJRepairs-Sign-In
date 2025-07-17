@@ -122,7 +122,7 @@ class _CustomerFormSignOutState extends State<CustomerFormSignOut> {
                         ],
                       );
                     } else if (snapshot.hasError) {
-                      return Center(child: Text('Error loading colleagues'));
+                      return Center(child: Text('Error loading customers'));
                     } else {
                       return Column(
                         children: [

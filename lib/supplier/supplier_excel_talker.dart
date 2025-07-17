@@ -167,33 +167,42 @@ class SupplierExcelTalker {
 
 
   // Returns a list of all the suppliers that are currently signed in
-  Future<List<SupplierHAJ>> retrieveSuppliers() async {
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return [];
+  Future<HAJResponse> retrieveSuppliers() async {
+    HAJResponse? response = await authenticateWithClientSecret();
+
+    if (response == null) {
+      print("Failed to authenticate");
+      return HAJResponse(statusCode: 500, message: "Failed to authenticate: An unknown error occurred");
+    }
+
+    if (!response.isSuccess) {
+      print(response.message);
+      return HAJResponse(statusCode: response.statusCode, message: response.message);
     }
     String? accessToken = response.body;
+
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
+    
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
-    if (fileIdResponse.statusCode != 200) {
+    if (!fileIdResponse.isSuccess) {
       print("Could not find supplier file");
-      return [];
-
+      return HAJResponse(statusCode: 404, message: "Supplier file not found");
     }
     String fileId = fileIdResponse.body;
     String sheet = "Signed-In";
 
     // Reads the signed in suppliers sheet
     HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, sheet, accessToken);
-    if (spreadsheetResponse.statusCode != 200) {
+    if (!spreadsheetResponse.isSuccess) {
       print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
-      return [];
+      return HAJResponse(statusCode: 500, message: "Failed to read spreadsheet");
     }
     List<dynamic>? values = spreadsheetResponse.body;
 
+
     final List<SupplierHAJ> allSuppliers = [];
+    HAJResponse result = new HAJResponse(statusCode: 200, message: "Successfully retrieved suppliers", body: allSuppliers);
     if (values == null || values.isEmpty) {
       print("No suppliers found");
     } else {
@@ -217,7 +226,7 @@ class SupplierExcelTalker {
         ));
       }
     }
-    return allSuppliers;
+    return result;
   }
 
 

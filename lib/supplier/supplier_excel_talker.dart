@@ -21,7 +21,12 @@ class SupplierExcelTalker {
                                         ];
 
 
-    HAJResponse authenticateRes = (await authenticateWithClientSecret())!;
+    HAJResponse? authenticateRes = await authenticateWithClientSecret();
+    if (authenticateRes == null) {
+      print("Failed to authenticate");
+      return HAJResponse(statusCode: 500, message: "Failed to authenticate: An unknown error occurred");
+    }
+    
     if (authenticateRes.statusCode != 200) {
       print("Failed to authenticate: ${authenticateRes.message}");
       return authenticateRes;
@@ -30,6 +35,7 @@ class SupplierExcelTalker {
 
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
+
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find supplier file");
@@ -79,30 +85,34 @@ class SupplierExcelTalker {
 
 
     // Checks if the given customer is already signed in
-  Future<bool> hasSupplierSignedIn(String supplierName, String supplierCompany, DateTime signInDate) async {
+  Future<HAJResponse> hasSupplierSignedIn(String supplierName, String supplierCompany, DateTime signInDate) async {
     String fileName = "Supplier-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Supplier'];
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return false;
+
+    // Authenticates with the client secret to get an access token
+    HAJResponse authenticateRes = (await authenticateWithClientSecret())!;
+    if (authenticateRes.statusCode != 200) {
+      print("Failed to authenticate: ${authenticateRes.message}");
+      return authenticateRes;
     }
-    String? accessToken = response.body;
+    String? accessToken = authenticateRes.body;
 
     // Gets the file ID of the supplier file
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find supplier file");
-      return false;
+      return fileIdResponse;
     }
     String? fileId = fileIdResponse.body;
+    
     String worksheetId = "Signed-In";
     HAJResponse spreadsheetResponse = await readSpreadsheet(fileId!, worksheetId, accessToken);
     if (spreadsheetResponse.statusCode != 200) {
-      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
-      return false;
+      print("${spreadsheetResponse.message}");
+      return spreadsheetResponse;
     }
     List<dynamic>? rows = spreadsheetResponse.body;
+
 
     for (var i = 1; i < rows!.length; i++) {
       var row = rows[i];
@@ -110,41 +120,49 @@ class SupplierExcelTalker {
       String company = row[1].toString();
       DateTime rowSignInDate = excelDateToDateTime(row[3]);
       if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase() && isSameDate(signInDate, rowSignInDate)) {
-        return true;
+        return HAJResponse(statusCode: 409, message: "$supplierName from $supplierCompany is already signed in", body: true);
       } else if (name.toLowerCase() == supplierName.toLowerCase() && company.toLowerCase() == supplierCompany.toLowerCase()) {
         var rowNumber = i - 1; // Adjust for header row
-        deleteSupplierData(rowNumber);
-        break;
+        HAJResponse deleteSupplierRes = await deleteSupplierData(rowNumber);
+        if (deleteSupplierRes.isSuccess) {
+          print("Successfully deleted supplier data for row $rowNumber");
+          break;
+        } else {
+          print("Failed to delete supplier data for row $rowNumber");
+          return deleteSupplierRes;
+        }
       }
     }
 
     // Customer has not signed in
-    return false;
+    return HAJResponse(statusCode: 200, message: "Supplier not signed in", body: false);
   }
 
 
   // Signs the supplier in
-  Future<(bool, String)> signSupplierIn(Map<String, dynamic> formData) async {
-    (bool, String) response = (false, "");
+  Future<HAJResponse> signSupplierIn(Map<String, dynamic> formData) async {
     String name = formData["Name"]!;
     String company = formData["Company"]!;
 
-    bool signedIn = await hasSupplierSignedIn(name, company, formData["Date"]!);
+    HAJResponse supplierSignedInRes = await hasSupplierSignedIn(name, company, formData["Date"]!);
+
+    if (!supplierSignedInRes.isSuccess) {
+      return supplierSignedInRes;
+    }
+    bool signedIn = supplierSignedInRes.body;
 
     if (!signedIn) {
       HAJResponse uploadResponse = await uploadSupplierData(formData);
-      bool uploadSuccess = uploadResponse.statusCode == 200;
-      if (uploadSuccess) {
-        response = (true, "Sign in successful");
+      if (uploadResponse.isSuccess) {
+        return HAJResponse(statusCode: uploadResponse.statusCode, message: "Sign in successful");
       } else {
-        response = (false, "Sign in failed");
+        return HAJResponse(statusCode: uploadResponse.statusCode, message: "Sign in failed");
       }
     } else {
-      response = (false, "${formData["Name"]} from ${formData["Company"]} is already signed in");
+      String message = "$name from $company is already signed in";
+      print(message);
+      return HAJResponse(statusCode: 409, message: message);
     }
-
-
-    return response;
   }
 
 

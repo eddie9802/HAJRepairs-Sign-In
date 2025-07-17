@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../common_widgets.dart';
 import './supplier_excel_talker.dart'; // Importing the ExcelSheetsTalker class
+import '../haj_response.dart';
 
 class SupplierSignIn extends StatefulWidget {
   const SupplierSignIn({super.key}); // Optional constructor with key
@@ -115,15 +116,15 @@ bool isValidPhoneNumber(String input) {
     formData["Sign in"] = DateFormat('h:mm a').format(now);
     
 
-    (bool, String) response = await SupplierExcelTalker().signSupplierIn(formData);
+    HAJResponse response = await SupplierExcelTalker().signSupplierIn(formData);
 
     // response.$1 is the success of the sign in
-    if (response.$1) {
-      await showDialogPopUp(context, response.$2);
+    if (response.isSuccess) {
+      await showDialogPopUp(context, response.message);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
     } else {
-      await showDialogPopUp(context, "Error: ${response.$2}");
+      await showDialogPopUp(context, response.message);
       setState(() {
          _signButtonPressed = false;
       });

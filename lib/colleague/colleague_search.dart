@@ -163,10 +163,9 @@ class _ColleagueSearchState extends State<ColleagueSearch> {
                 },
               ),
             ),
-
-            ],
-          ),
+          ],
         ),
+      ),
     );
   }
 }

@@ -47,11 +47,11 @@ class CustomerExcelTalker {
 
 
   // Returns a list of all the customers that are currently signed in
-  Future<List<CustomerHAJ>> retrieveCustomers() async {
+  Future<HAJResponse> retrieveCustomers() async {
     HAJResponse response = (await authenticateWithClientSecret())!;
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
-      return [];
+      return response;
     }
     String? accessToken = response.body;
     String fileName = "Customer-Reception.xlsx";
@@ -64,12 +64,13 @@ class CustomerExcelTalker {
     HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, sheet, accessToken);
     if (spreadsheetResponse.statusCode != 200) {
       print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
-      return [];
+      return spreadsheetResponse;
     }
     List<dynamic>? values = spreadsheetResponse.body;
 
-    final List<CustomerHAJ> allCustomers = [];
 
+    final List<CustomerHAJ> allCustomers = [];
+    HAJResponse result = HAJResponse(statusCode: 200, message: 'Success', body: allCustomers);
     if (values == null || values.isEmpty) {
       print("No customers found");
     } else {
@@ -100,7 +101,7 @@ class CustomerExcelTalker {
         ));
       }
     }
-    return allCustomers;
+    return result;
   }
 
 

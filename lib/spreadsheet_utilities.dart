@@ -124,14 +124,15 @@ Future<HAJResponse> getFileId(String fileName, List<String> pathSegments, String
 
 
   // Reads the spreadsheet denoted by fileId, at the sheet dentoed by worksheetId
-  Future<List<dynamic>?> readSpreadsheet(String fileId, String worksheetId, String accessToken) async {
+  Future<HAJResponse> readSpreadsheet(String fileId, String worksheetId, String accessToken) async {
     // Sends a http request to read the spreadsheet
     final url = Uri.parse(
       'https://graph.microsoft.com/v1.0/drives/$_driveId/items/$fileId/workbook/worksheets/$worksheetId/usedRange(valuesOnly=true)'
     );
 
 
-    final response = await http.get(
+    try {
+    final httpRes = await http.get(
       url,
       headers: {
         'Authorization': 'Bearer $accessToken',
@@ -140,15 +141,26 @@ Future<HAJResponse> getFileId(String fileName, List<String> pathSegments, String
       },
     );
 
-    if (response.statusCode != 200) {
-      print('Error fetching Excel data: ${response.statusCode}');
-      return null;
+    if (httpRes.statusCode != 200) {
+      return HAJResponse(statusCode: httpRes.statusCode, message: 'Error fetching Excel data.');
     }
 
-    final Map<String, dynamic> spreadsheetJson = jsonDecode(response.body);
+    final Map<String, dynamic> spreadsheetJson = jsonDecode(httpRes.body);
     final List<dynamic>? values = spreadsheetJson['values'];
 
-    return values;
+    if (values == null || values.isEmpty) {
+      return HAJResponse(statusCode: 404, message: 'No data found in worksheet $worksheetId');
+    }
+
+    return HAJResponse(statusCode: 200, message: 'Success', body: values);
+
+    } on SocketException {
+      print('Failed to connect to the server. Please check your internet connection.');
+      return HAJResponse(statusCode: 504, message: 'Failed to connect to the server.');
+    } catch (e) {
+      print('An error occurred while reading the spreadsheet: $e');
+      return HAJResponse(statusCode: 500, message: 'An error occurred while reading the spreadsheet.');
+    }
   }
 
 

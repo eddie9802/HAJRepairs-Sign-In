@@ -55,8 +55,17 @@ class CustomerExcelTalker {
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     String fileId = fileIdResponse.body;
     String sheet = "Signed-In";
-    final values = await readSpreadsheet(fileId, sheet, accessToken);
+
+    // Reads the spreadsheet and returns a list of customers
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, sheet, accessToken);
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return [];
+    }
+    List<dynamic>? values = spreadsheetResponse.body;
+
     final List<CustomerHAJ> allCustomers = [];
+
     if (values == null || values.isEmpty) {
       print("No customers found");
     } else {
@@ -93,13 +102,15 @@ class CustomerExcelTalker {
 
 
     // Checks if the given customer is already signed in
-  Future<bool> hasCustomerSignedIn(String customerReg) async {
+  Future<HAJResponse> hasCustomerSignedIn(String customerReg) async {
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
+
+    // Authenticates with the client secret
     HAJResponse response = (await authenticateWithClientSecret())!;
     if (response.statusCode != 200) {
       print("Failed to authenticate: ${response.message}");
-      return false;
+      return response;
     }
     String? accessToken = response.body;
 
@@ -107,23 +118,31 @@ class CustomerExcelTalker {
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);
     if (fileIdResponse.statusCode != 200) {
       print("Could not find customer file");
-      return false;
+      return fileIdResponse;
     }
     String fileId = fileIdResponse.body;
 
     // Reads the signed in customers sheet
     String worksheetId = "Signed-In";
-    final rows = await readSpreadsheet(fileId, worksheetId, accessToken);
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, worksheetId, accessToken);
+
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return spreadsheetResponse;
+    }
+
+    List<dynamic>? rows = spreadsheetResponse.body;
+    HAJResponse result = new HAJResponse(statusCode: 200, message: 'Success', body: false);
 
     for (var row in rows!) {
       String reg = row[0].toString();
       if (reg == customerReg) {
-        return true;
+        result.body = true;
       } 
     }
 
     // Customer has not signed in
-    return false;
+    return result;
   }
 
   // Signs the customer in
@@ -131,7 +150,13 @@ class CustomerExcelTalker {
     (bool, String) response = (false, "");
     String registration = formData["Registration"]!;
 
-    bool signedIn = await hasCustomerSignedIn(registration);
+    HAJResponse signedInResponse = await hasCustomerSignedIn(registration);
+
+    if (signedInResponse.statusCode != 200) {
+      return (false, signedInResponse.message);
+    }
+
+    bool signedIn = signedInResponse.body;
 
     if (!signedIn) {
       if (await uploadCustomerData(formData)) {

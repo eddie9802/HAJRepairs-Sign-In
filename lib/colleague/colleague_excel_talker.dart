@@ -44,8 +44,13 @@ class ColleagueExcelTalker {
 
     String worksheetId = 'List';
     String fileId = fileIdResponse.body;
-    List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, worksheetId, accessToken);
 
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return spreadsheetResponse;
+    }
+    List<dynamic>? values = spreadsheetResponse.body;
 
     final List<Colleague> allColleagues = [];
     if (values != null && values.isNotEmpty) {
@@ -96,7 +101,13 @@ class ColleagueExcelTalker {
     // Gets all the values from the spreadsheet
     String worksheetId = getTodaysSheet();
     String fileId = fileIdResponse.body;
-    List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, worksheetId, accessToken);
+
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return;
+    }
+    List<dynamic>? values = spreadsheetResponse.body;
 
     if (values == null || values.isEmpty) {
       print("Error: $worksheetId sheet for ${details.name} spreadsheet empty or not found");
@@ -165,7 +176,13 @@ class ColleagueExcelTalker {
 
   // Returns the number of columns in the sheet
   Future<int> getHeaderSize(String fileId, String worksheetId, String accessToken) async {
-    List<dynamic>? values = await readSpreadsheet(fileId, worksheetId, accessToken);
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, worksheetId, accessToken);
+
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return 0;
+    }
+    List<dynamic>? values = spreadsheetResponse.body;
 
     List<dynamic> headerRow = values![0];
     int nColumns = headerRow.length;

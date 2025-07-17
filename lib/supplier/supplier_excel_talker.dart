@@ -92,7 +92,12 @@ class SupplierExcelTalker {
     }
     String? fileId = fileIdResponse.body;
     String worksheetId = "Signed-In";
-    final rows = await readSpreadsheet(fileId!, worksheetId, accessToken);
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId!, worksheetId, accessToken);
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return false;
+    }
+    List<dynamic>? rows = spreadsheetResponse.body;
 
     for (var i = 1; i < rows!.length; i++) {
       var row = rows[i];
@@ -154,7 +159,15 @@ class SupplierExcelTalker {
     }
     String fileId = fileIdResponse.body;
     String sheet = "Signed-In";
-    final values = await readSpreadsheet(fileId, sheet, accessToken);
+
+    // Reads the signed in suppliers sheet
+    HAJResponse spreadsheetResponse = await readSpreadsheet(fileId, sheet, accessToken);
+    if (spreadsheetResponse.statusCode != 200) {
+      print("Failed to read spreadsheet: ${spreadsheetResponse.message}");
+      return [];
+    }
+    List<dynamic>? values = spreadsheetResponse.body;
+
     final List<SupplierHAJ> allSuppliers = [];
     if (values == null || values.isEmpty) {
       print("No suppliers found");

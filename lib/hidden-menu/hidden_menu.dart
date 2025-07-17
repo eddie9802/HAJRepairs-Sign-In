@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'qr_code.dart';
+import 'fire_report.dart';
 
 
 
@@ -39,7 +40,7 @@ class HiddenMenu extends StatelessWidget {
                 } else if (item == 'Get Fire Report') {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => QRCode()),
+                    MaterialPageRoute(builder: (_) => FireReport()),
                   );    
                 }
               },

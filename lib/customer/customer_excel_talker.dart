@@ -161,15 +161,14 @@ class CustomerExcelTalker {
       return HAJResponse(
         statusCode: 400,
         message: "Missing or invalid registration number",
-        body: false,
       );
     }
 
     try {
       final HAJResponse signedInResponse = await hasCustomerSignedIn(registration);
 
-      if (signedInResponse.statusCode != 200) {
-        return HAJResponse(statusCode: signedInResponse.statusCode, message: signedInResponse.message, body: false);
+      if (!signedInResponse.isSuccess) {
+        return signedInResponse;
       }
 
       final bool signedIn = signedInResponse.body;
@@ -178,7 +177,6 @@ class CustomerExcelTalker {
         return HAJResponse(
           statusCode: 200,
           message: "Customer is already signed in",
-          body: false,
         );
       }
 
@@ -187,13 +185,11 @@ class CustomerExcelTalker {
         return HAJResponse(
           statusCode: uploadResponse.statusCode,
           message: uploadResponse.message,
-          body: false,
         );
       } else {
         return HAJResponse(
           statusCode: uploadResponse.statusCode,
           message: "Sign in successful",
-          body: true,
         );
       }
 
@@ -201,7 +197,6 @@ class CustomerExcelTalker {
       return HAJResponse(
         statusCode: 500,
         message: "Unexpected error: $e",
-        body: false,
       );
     }
   }

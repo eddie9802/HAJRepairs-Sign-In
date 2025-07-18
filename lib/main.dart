@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import 'colleague/colleague_search.dart';
 import 'customer/customer_form.dart';
 import 'supplier/supplier_form.dart';
 import 'hidden-menu/hidden_menu.dart';
+import 'hidden-menu/fire_report_service.dart';
+
+
+
 
 void main() async {
   //await dotenv.load(fileName: "assets/.env");
@@ -15,7 +20,12 @@ void main() async {
     DeviceOrientation.landscapeRight,
     DeviceOrientation.landscapeLeft,
   ]);
-  runApp(MainApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => FireReportService(),
+      child: MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -120,6 +130,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<FireReportService>(context, listen: false);
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),

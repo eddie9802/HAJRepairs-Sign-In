@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
         android:label="HAJ Reception"
         android:name="${applicationName}"
         android:icon="@mipmap/logo">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -48,12 +48,17 @@ class CustomerExcelTalker {
 
   // Returns a list of all the customers that are currently signed in
   Future<HAJResponse> retrieveCustomers() async {
-    HAJResponse response = (await authenticateWithClientSecret())!;
-    if (response.statusCode != 200) {
-      print("Failed to authenticate: ${response.message}");
-      return response;
+    HAJResponse? authenticateRes = await authenticateWithClientSecret();
+
+    if (authenticateRes == null) {
+      return HAJResponse(statusCode: 500, message: "An unknown error has occurred");
     }
-    String? accessToken = response.body;
+
+    if (authenticateRes.statusCode != 200) {
+      print("Failed to authenticate: ${authenticateRes.message}");
+      return authenticateRes;
+    }
+    String? accessToken = authenticateRes.body;
     String fileName = "Customer-Reception.xlsx";
     final pathSegments = ['HAJ-Reception', 'Customer'];
     HAJResponse fileIdResponse = await getFileId(fileName, pathSegments, accessToken!);

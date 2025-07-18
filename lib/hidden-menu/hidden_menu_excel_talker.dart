@@ -6,6 +6,7 @@ import '../spreadsheet_utilities.dart';
 class HiddenMenuExcelTalker {
 
 
+
   Future<HAJResponse> getSignedInColleagues() async {
     HAJResponse? authenticateRes = await authenticateWithClientSecret();
 
@@ -55,7 +56,6 @@ class HiddenMenuExcelTalker {
       }
       if (count % 2 == 0) {
         String name = row[0];
-        print(name);
         signedInColleagues.add(name);
       }
     }
